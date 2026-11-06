@@ -27,6 +27,14 @@ You need [uv](https://docs.astral.sh/uv/) and [Node.js](https://nodejs.org/) wit
 
 Then open http://localhost:8000. The first run installs dependencies and downloads the detector, about 120 MB, and the species model, about 3.7 GB, the first time a video is analyzed.
 
+## On a phone
+
+Open `/start`, for example https://coastalaction.ligangyan.com/start. It says what TideCount is and has one tap into a sample video, a sample report or an upload.
+
+On a computer, **Open on phone** in the sidebar shows a large QR code for that page, so a room can scan it from the screen. For slides and print, `pnpm qr` in `web/` writes `demo/qr/start.png` and `start.svg`. Pass another address to change where they lead: `pnpm qr https://example.com/start`.
+
+A phone has to reach the site, so scan from the public address, not `localhost`.
+
 ## Using it
 
 1. Import a video in **Fish Counter** and choose a model. Analysis runs in the background.

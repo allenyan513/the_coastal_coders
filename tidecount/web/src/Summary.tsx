@@ -90,7 +90,7 @@ export function SummaryPage() {
         {!!s.schools.length && <div className="kpi"><span className="meta">Fish in counted schools</span><b>{school}</b></div>}
       </div>
 
-      <div className="split" style={{ gridTemplateColumns: "minmax(0,1fr) 380px" }}>
+      <div className="split report-split">
         <div className="stack">
           <section className="panel">
             <div className="panel-head">
@@ -106,7 +106,7 @@ export function SummaryPage() {
             {!s.species.length && <p className="meta" style={{ padding: 12 }}>Nothing confirmed yet.</p>}
           </section>
           {!!s.schools.length && (
-            <section className="panel">
+            <section className="panel" style={{ overflowX: "auto" }}>
               <div className="panel-head"><h2>School counts</h2></div>
               <table>
                 <thead><tr><th>Time</th><th className="right">Total</th><th className="right">AI proposed</th><th className="right">Removed</th><th className="right">Added</th></tr></thead>

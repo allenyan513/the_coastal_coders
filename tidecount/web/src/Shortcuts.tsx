@@ -18,7 +18,7 @@ export function Shortcuts({ groups }: { groups: KeyGroup[] }) {
 
   return (
     <>
-      <button className="btn quiet" onClick={() => setOpen(true)} title="Press ? to open"><kbd>?</kbd>Shortcuts</button>
+      <button className="btn quiet shortcuts" onClick={() => setOpen(true)} title="Press ? to open"><kbd>?</kbd>Shortcuts</button>
       {open && (
         <div className="help-back" onClick={() => setOpen(false)}>
           <div className="help" role="dialog" aria-label="Keyboard shortcuts" onClick={(e) => e.stopPropagation()}>

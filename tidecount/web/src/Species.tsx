@@ -57,7 +57,7 @@ export function Species() {
           <span className="num meta" style={{ alignSelf: "flex-end", paddingBottom: 10 }}>{shown.length} of {rows.length}</span>
         </div>
         <div style={{ overflowX: "auto" }}>
-          <table>
+          <table className="sticky-first">
             <thead>
               <tr>
                 <th>Common name</th><th>Scientific name</th><th>Group</th>
