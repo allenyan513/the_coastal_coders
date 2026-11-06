@@ -259,6 +259,22 @@ Run these from `deploy/` too:
 
 The site has no login, so anyone with the link can upload and every visitor shares one set of data. The Summary only counts decisions a person made, so review a video before you share the link.
 
+### Deploy automatically
+
+The machine can deploy the `release` branch by itself. To publish, merge `main` into `release`. Within a minute the machine pulls it, rebuilds and checks the site. The site stays up during the build and goes down for a few seconds when the containers change. If the release fails, the machine goes back to the previous commit and doesn't try that commit again. Data in `deploy/data/` is kept.
+
+To turn this on, run these once on the machine. `tidecount-update.service` assumes the repo is at `/home/wsyanligang/the_coastal_coders`.
+
+```bash
+git fetch origin release && git switch release
+chmod +x deploy/auto-update.sh
+sudo cp deploy/tidecount-update.service deploy/tidecount-update.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now tidecount-update.timer
+```
+
+To see what it's doing, run `journalctl -u tidecount-update -f`.
+
 ## Known limits
 
 - AI output is weak in murky water and on dense schools, so treat every box as a suggestion.
