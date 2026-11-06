@@ -1,0 +1,13 @@
+# Plain HTTP on port 80. Cloudflare sits in front and handles HTTPS.
+:80 {
+	encode gzip
+
+	# This endpoint reads a path on the server. The site's uploads don't use it.
+	@blocked {
+		method POST
+		path /api/videos/import-path
+	}
+	respond @blocked "This isn't available on the public site." 403
+
+	reverse_proxy app:8000
+}

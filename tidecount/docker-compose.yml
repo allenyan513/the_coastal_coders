@@ -1,0 +1,31 @@
+# Start:   docker compose up -d
+# Rebuild: docker compose up -d --build
+# Stop:    docker compose down
+#
+# Run ./fetch-models.sh once first. Everything the app saves is in ./data, which survives `down`.
+name: tidecount
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      TIDECOUNT_DEVICE: cpu
+    volumes:
+      - ./data:/app/tidecount/data
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

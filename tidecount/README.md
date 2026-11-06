@@ -234,6 +234,29 @@ Then run `pnpm dev` in `web/` and open http://localhost:5183. It sends `/api` re
 
 Each test gets a fresh database from `server/tests/conftest.py`, so tests don't need to clean up. CI runs the server tests, the `ml` tests and the web build on every pull request that touches `tidecount/`.
 
+## Deploy a public demo
+
+You need a machine with [Docker](https://docs.docker.com/engine/install/) and about 30 GB free. The demo runs on the CPU and starts with an empty database.
+
+```bash
+git clone https://github.com/allenyan513/the_coastal_coders.git
+cd the_coastal_coders/tidecount
+./fetch-models.sh
+docker compose up -d
+```
+
+`fetch-models.sh` builds the app and downloads the open model weights, about 4.2 GB, into `data/`. Then open the site and import a video in **Fish Counter**, as you would locally.
+
+| Task | Command |
+|---|---|
+| Rebuild after `git pull` | `docker compose up -d --build` |
+| Stop, keeping the data | `docker compose down` |
+| See what the app is doing | `docker compose logs -f app` |
+
+The site is plain HTTP on port 80, so put Cloudflare in front for HTTPS: point an A record at the machine, turn the proxy on and set the SSL mode to Flexible for that hostname. Cloudflare limits how large an upload can be, so upload videos at the machine's IP address instead.
+
+The site has no login, so anyone with the link can upload and every visitor shares one set of data. The Summary only counts decisions a person made, so review a video before you share the link.
+
 ## Known limits
 
 - AI output is weak in murky water and on dense schools, so treat every box as a suggestion.
