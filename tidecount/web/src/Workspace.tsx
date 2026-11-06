@@ -416,10 +416,10 @@ export function Workspace() {
               {draft && <div className={`fishbox draft ${following ? "busy" : ""}`} style={{ left: `${draft.x * 100}%`, top: `${draft.y * 100}%`, width: `${draft.w * 100}%`, height: `${draft.h * 100}%` }} />}
             </div>
             <span className="stamp">{clock(time)} / {clock(video.duration)}</span>
-            {addMode && <span className="stage-note" role="status">{following ? "Following the fish through the video…" : "Adding fish: drag a box around each fish AI missed. Esc when done."}</span>}
+            {addMode && <span className="stage-note" role="status">{following ? "Following the fish through the video…" : <>Adding fish: drag a box around each fish AI missed.<span className="hide-phone"> Esc when done.</span></>}</span>}
           </div>
 
-          <div className="panel row" style={{ padding: 8 }}>
+          <div className="panel row player-controls" style={{ padding: 8 }}>
             <button className="btn" style={{ width: 36, padding: 0 }} onClick={() => step(-1)} title="Back one frame (left arrow)" aria-label="Back one frame">‹</button>
             <button className="btn" style={{ minWidth: 68 }} onClick={toggle} title="Space">{playing ? "Pause" : "Play"}</button>
             <button className="btn" style={{ width: 36, padding: 0 }} onClick={() => step(1)} title="Forward one frame (right arrow)" aria-label="Forward one frame">›</button>
@@ -433,7 +433,7 @@ export function Workspace() {
             <button className="chip" aria-pressed={gray} onClick={() => setGray(!gray)}>Grayscale</button>
           </div>
 
-          <div className="panel panel-pad">
+          <div className="panel panel-pad player-timeline">
             <div className="row" style={{ justifyContent: "space-between" }}>
               <span className="meta">AI detections across the video. Click to jump.</span>
               <div className="row">

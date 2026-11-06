@@ -46,12 +46,12 @@ export function Accuracy() {
       </div>
       {frames > 0 && frames < 20 && <p className="meta" style={{ color: "var(--warn)" }}>With fewer than 20 frames these numbers are rough. Each frame you add steadies them.</p>}
 
-      <section className="panel" style={{ overflowX: "auto" }}>
+      <section className="panel">
         <div className="panel-head">
           <h2>Videos</h2>
           <p className="meta">One frame every 30 seconds. A fish counts as found when your dot sits inside an AI box on that frame.</p>
         </div>
-        <table>
+        <table className="cards">
           <thead>
             <tr>
               <th>Video</th><th>Detection model</th><th className="right">Frames counted blind</th><th className="right">Fish you counted</th>
@@ -67,12 +67,12 @@ export function Accuracy() {
                     <span className="vname">{r.name}</span>
                     <div className="meta">{r.site || "No site set"}</div>
                   </td>
-                  <td className="meta">{r.model}</td>
-                  <td className="num right">{r.frames_blind} of {r.frames_total}</td>
-                  <td className="num right">{r.frames_blind ? r.fish : "—"}</td>
-                  <td className="num right">{r.fish ? `${r.found} · ${share(r.found, r.fish)}` : "—"}</td>
-                  <td className="num right">{r.fish ? r.missed : "—"}</td>
-                  <td className="num right">{r.frames_blind ? r.extra_boxes : "—"}</td>
+                  <td className="meta" data-label="Detection model">{r.model}</td>
+                  <td className="num right" data-label="Frames counted blind">{r.frames_blind} of {r.frames_total}</td>
+                  <td className="num right" data-label="Fish you counted">{r.frames_blind ? r.fish : "—"}</td>
+                  <td className="num right" data-label="AI found">{r.fish ? `${r.found} · ${share(r.found, r.fish)}` : "—"}</td>
+                  <td className="num right" data-label="AI missed">{r.fish ? r.missed : "—"}</td>
+                  <td className="num right" data-label="Boxes with no fish">{r.frames_blind ? r.extra_boxes : "—"}</td>
                   <td className="right">
                     <div className="row" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
                       {r.frames_blind > 0 && <a className="btn" href={`/api/videos/${r.id}/labels.json`} title="Your blind counts, in the form the benchmark reads">Labels</a>}

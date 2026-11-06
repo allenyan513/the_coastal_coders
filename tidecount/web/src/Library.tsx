@@ -1,6 +1,6 @@
 import { DragEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import { api, clock, ModelOption, Summary, Video } from "./api";
+import { Link, useSearchParams } from "react-router-dom";
+import { api, clock, isLocal, ModelOption, Summary, Video } from "./api";
 
 const READY = "Ready to review";
 type Group = { root: string; runs: Video[] };
@@ -42,7 +42,8 @@ export function Library() {
   const [detector, setDetector] = useState("");
   const [site, setSite] = useState("");
   const [path, setPath] = useState("");
-  const [importing, setImporting] = useState<boolean | null>(null);
+  const [params] = useSearchParams();
+  const [importing, setImporting] = useState<boolean | null>(params.has("import") ? true : null);
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -130,8 +131,8 @@ export function Library() {
               onDragLeave={() => setOver(false)}
               onDrop={drop}
             >
-              <b>{busy ? "Importing…" : "Drop a video here"}</b>
-              <span className="meta">MP4, MOV, MKV or AVI. It's copied into this PC's TideCount folder and nowhere else.</span>
+              <b>{busy ? "Importing…" : <><span className="hide-phone">Drop a video here</span><span className="only-phone">Choose a video</span></>}</b>
+              <span className="meta">MP4, MOV, MKV or AVI. {isLocal ? "It's copied into this PC's TideCount folder and nowhere else." : "It's uploaded to the demo server."}</span>
               <button className="btn" disabled={busy} onClick={() => input.current?.click()}>Choose file</button>
               <input
                 ref={input}
@@ -157,12 +158,14 @@ export function Library() {
                       {models.map((m) => <option key={m.key} value={m.key} disabled={!m.available}>{m.label}{m.available ? "" : " (off)"}</option>)}
                     </select>
                   </label>
-                  <label className="field">File path on this PC, for files too large to upload
-                    <input value={path} onChange={(e) => setPath(e.target.value)} placeholder="D:\Surveys\GX010123.MP4" />
-                  </label>
-                  <button className="btn" disabled={busy || !path.trim()} onClick={() => run(async () => { await api.importPath(path, site, detector); setPath(""); })}>
-                    Import from path
-                  </button>
+                  <div className="stack hide-phone">
+                    <label className="field">File path on this PC, for files too large to upload
+                      <input value={path} onChange={(e) => setPath(e.target.value)} placeholder="D:\Surveys\GX010123.MP4" />
+                    </label>
+                    <button className="btn" disabled={busy || !path.trim()} onClick={() => run(async () => { await api.importPath(path, site, detector); setPath(""); })}>
+                      Import from path
+                    </button>
+                  </div>
                 </div>
               </details>
             </div>
@@ -210,7 +213,7 @@ export function Library() {
                 )}
               </div>
               <span className="num right hide-narrow">{v.duration ? clock(v.duration) : "—"}</span>
-              <div className="stack hide-narrow" style={{ gap: 6 }}>
+              <div className="stack vprogress" style={{ gap: 6 }}>
                 {!ready && (
                   <div className="row">
                     <span className={`pill ${v.status === "Failed" ? "down" : "muted"}`}>{v.status}</span>
@@ -229,7 +232,7 @@ export function Library() {
                   </>
                 )}
               </div>
-              <div className="row" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
+              <div className="row vactions" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
                 {v.status === "Failed" && <button className="btn" disabled={busy} onClick={() => run(() => api.retry(v.id))}>Retry</button>}
                 {ready && (
                   <>
