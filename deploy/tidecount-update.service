@@ -1,0 +1,9 @@
+[Unit]
+Description=Deploy TideCount when the release branch changes
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=wsyanligang
+ExecStart=/home/wsyanligang/the_coastal_coders/deploy/auto-update.sh
