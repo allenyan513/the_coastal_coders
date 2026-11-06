@@ -1,7 +1,0 @@
-**/data/raw/
-.DS_Store
-__pycache__/
-**/data/processed/
-.venv/
-.ipynb_checkpoints/
-/videos/

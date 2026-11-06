@@ -1,8 +1,0 @@
-# Screen recordings and video clips are shared by link, never committed.
-recordings/
-*.mp4
-*.mov
-*.m4v
-*.mkv
-*.webm
-*.avi
