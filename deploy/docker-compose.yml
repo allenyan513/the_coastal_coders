@@ -2,6 +2,7 @@
 # Rebuild: docker compose up -d --build
 # Stop:    docker compose down
 #
+# Put SITE_ADDRESS=your.domain in .env here for HTTPS.
 # The first start builds the image and downloads the models. Everything is kept in ./data.
 name: tidecount
 
@@ -32,8 +33,11 @@ services:
     restart: unless-stopped
     depends_on:
       - app
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

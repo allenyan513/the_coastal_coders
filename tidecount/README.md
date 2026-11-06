@@ -241,8 +241,11 @@ You need a machine with [Docker](https://docs.docker.com/engine/install/) and ab
 ```bash
 git clone https://github.com/allenyan513/the_coastal_coders.git
 cd the_coastal_coders/deploy
+echo "SITE_ADDRESS=your.domain" > .env
 docker compose up -d
 ```
+
+Point the domain's A record at the machine first, and open ports 80 and 443. If you use Cloudflare, set the record to **DNS only**. Caddy then gets a certificate and serves HTTPS by itself, and uploads have no size limit. Leave out `.env` and the site is plain HTTP on port 80.
 
 The first start builds the image and downloads the model weights, about 4.2 GB, so it takes a while. Later starts skip both. Then open the site and import a video in **Fish Counter**, as you would locally. Everything is saved in `deploy/data/`, separate from the `tidecount/data/` that `start.sh` uses.
 
@@ -253,8 +256,6 @@ Run these from `deploy/` too:
 | Rebuild after `git pull` | `docker compose up -d --build` |
 | Stop, keeping the data | `docker compose down` |
 | See what the app is doing | `docker compose logs -f app` |
-
-The site is plain HTTP on port 80, so put Cloudflare in front for HTTPS: point an A record at the machine, turn the proxy on and set the SSL mode to Flexible for that hostname. Cloudflare limits how large an upload can be, so upload videos at the machine's IP address instead.
 
 The site has no login, so anyone with the link can upload and every visitor shares one set of data. The Summary only counts decisions a person made, so review a video before you share the link.
 

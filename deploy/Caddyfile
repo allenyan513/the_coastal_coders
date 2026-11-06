@@ -1,5 +1,6 @@
-# Plain HTTP on port 80. Cloudflare sits in front and handles HTTPS.
-:80 {
+# With a domain in SITE_ADDRESS, Caddy gets a certificate and serves HTTPS by itself.
+# Without one, it's plain HTTP on port 80.
+{$SITE_ADDRESS} {
 	encode gzip
 
 	# This endpoint reads a path on the server. The site's uploads don't use it.
