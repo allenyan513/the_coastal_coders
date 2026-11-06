@@ -234,6 +234,31 @@ Then run `pnpm dev` in `web/` and open http://localhost:5183. It sends `/api` re
 
 Each test gets a fresh database from `server/tests/conftest.py`, so tests don't need to clean up. CI runs the server tests, the `ml` tests and the web build on every pull request that touches `tidecount/`.
 
+## Deploy a public demo
+
+You need a machine with [Docker](https://docs.docker.com/engine/install/) and about 30 GB free. The demo runs on the CPU and starts with an empty database. Run this:
+
+```bash
+git clone https://github.com/allenyan513/the_coastal_coders.git
+cd the_coastal_coders/deploy
+echo "SITE_ADDRESS=your.domain" > .env
+docker compose up -d
+```
+
+Point the domain's A record at the machine first, and open ports 80 and 443. If you use Cloudflare, set the record to **DNS only**. Caddy then gets a certificate and serves HTTPS by itself, and uploads have no size limit. Leave out `.env` and the site is plain HTTP on port 80.
+
+The first start builds the image and downloads the model weights, about 4.2 GB, so it takes a while. Later starts skip both. Then open the site and import a video in **Fish Counter**, as you would locally. Everything is saved in `deploy/data/`, separate from the `tidecount/data/` that `start.sh` uses.
+
+Run these from `deploy/` too:
+
+| Task | Command |
+|---|---|
+| Rebuild after `git pull` | `docker compose up -d --build` |
+| Stop, keeping the data | `docker compose down` |
+| See what the app is doing | `docker compose logs -f app` |
+
+The site has no login, so anyone with the link can upload and every visitor shares one set of data. The Summary only counts decisions a person made, so review a video before you share the link.
+
 ## Known limits
 
 - AI output is weak in murky water and on dense schools, so treat every box as a suggestion.

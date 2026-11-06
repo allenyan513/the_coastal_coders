@@ -1,0 +1,48 @@
+# Start:   docker compose up -d
+# Rebuild: docker compose up -d --build
+# Stop:    docker compose down
+#
+# Put SITE_ADDRESS=your.domain in .env here for HTTPS.
+# The first start builds the image and downloads the models. Everything is kept in ./data.
+name: tidecount
+
+x-app: &app
+  build:
+    context: ..
+    dockerfile: deploy/Dockerfile
+  image: tidecount-app
+  environment:
+    TIDECOUNT_DEVICE: cpu
+  volumes:
+    - ./data:/app/tidecount/data
+
+services:
+  models:  # runs once and exits, and skips models it already has
+    <<: *app
+    command: [".venv/bin/python", "-m", "tidecount.fetch_models"]
+
+  app:
+    <<: *app
+    restart: unless-stopped
+    depends_on:
+      models:
+        condition: service_completed_successfully
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
