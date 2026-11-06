@@ -277,7 +277,7 @@ export function Snapshots() {
               {blind && frame?.ai_shown && frame.status !== "checked" ? "This frame showed AI's dots earlier, so it won't measure AI." : ""}
             </p>
           </div>
-          <div className="panel panel-pad" style={{ fontSize: 13 }}>
+          <div className="panel panel-pad snap-facts" style={{ fontSize: 13 }}>
             {fact("MeanCount", stats.mean_count?.toFixed(2) ?? "—")}
             {fact("Frames in MeanCount", `${stats.frames_checked} of ${stats.frames_total}`)}
             {fact(stats.largest_label, String(stats.largest_count ?? "—"))}
