@@ -236,16 +236,17 @@ Each test gets a fresh database from `server/tests/conftest.py`, so tests don't 
 
 ## Deploy a public demo
 
-You need a machine with [Docker](https://docs.docker.com/engine/install/) and about 30 GB free. The demo runs on the CPU and starts with an empty database.
+You need a machine with [Docker](https://docs.docker.com/engine/install/) and about 30 GB free. The demo runs on the CPU and starts with an empty database. Run this:
 
 ```bash
 git clone https://github.com/allenyan513/the_coastal_coders.git
-cd the_coastal_coders/tidecount
-./fetch-models.sh
+cd the_coastal_coders/deploy
 docker compose up -d
 ```
 
-`fetch-models.sh` builds the app and downloads the open model weights, about 4.2 GB, into `data/`. Then open the site and import a video in **Fish Counter**, as you would locally.
+The first start builds the image and downloads the model weights, about 4.2 GB, so it takes a while. Later starts skip both. Then open the site and import a video in **Fish Counter**, as you would locally. Everything is saved in `deploy/data/`, separate from the `tidecount/data/` that `start.sh` uses.
+
+Run these from `deploy/` too:
 
 | Task | Command |
 |---|---|

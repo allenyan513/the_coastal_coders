@@ -1,9 +1,0 @@
-*
-!web
-!server
-!settings.toml
-**/node_modules
-**/dist
-**/.venv
-**/__pycache__
-server/tests

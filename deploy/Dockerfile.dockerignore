@@ -1,0 +1,9 @@
+*
+!tidecount/web
+!tidecount/server
+!tidecount/settings.toml
+**/node_modules
+**/dist
+**/.venv
+**/__pycache__
+tidecount/server/tests
