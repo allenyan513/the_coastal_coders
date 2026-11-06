@@ -1,0 +1,50 @@
+# Everything an experiment may change. The ml owner edits these values, and a new field needs
+# server and ml together. Machine settings, paths and product rules stay in server/tidecount/config.py.
+#
+# New values apply to new analysis runs. Each run saves the settings it used, so old results keep
+# theirs. Restart the app after editing. Before committing, from tidecount/server, run:
+#
+#     uv run python -m tidecount.settings
+
+version = 1
+default_detector = "cfd-nano"
+fps = 2                      # frames looked at per second of video
+
+[defaults]                   # used by every detector unless its own block overrides a value
+width = 960                  # detectors see this width, and 0 means the original width
+queue_threshold = 0.3        # a box at or above this can put footage in the review queue
+dot_threshold = 0.15         # a box at or above this becomes an AI dot in a school count
+
+# Confidence isn't comparable between models, so a detector with its own values gets a block:
+#
+# [detector.cfd-medium]
+# width = 0
+# queue_threshold = 0.1
+
+[tracker]
+start_confidence = 0.5       # a box under this can't start a track, whatever the thresholds say
+lost_track_buffer = 60       # in 30 fps frames, so 60 is 2 seconds at any fps
+min_consecutive = 2          # frames in a row before a track gets an id
+min_points = 2               # shorter tracks are dropped as noise
+
+[still]                      # the "Barely moves" flag on a track, which doesn't affect the queue
+min_seconds = 3.0
+reach = 0.5                  # in box lengths
+
+[flicker]                    # a box that comes and goes can't put footage in the queue on its own
+reach_s = 2.0                # seconds looked at on each side of a box
+need = 2                     # how many of those frames must have a box nearby, and 0 turns the rule off
+nearby = 0.1                 # how far a box's centre may move and still count, as a share of the frame
+
+[queue]
+merge_gap_s = 3
+min_segment_s = 4
+max_segment_s = 45
+quiet_chunk_s = 20
+audit_share = 0.10
+dense_detections = 8
+
+[species]
+model = "hf-hub:imageomics/bioclip-2.5-vith14"  # TIDECOUNT_SPECIES_MODEL overrides this
+min_side = 64                # fish shorter than this in the original video get no suggestion
+top_k = 3
