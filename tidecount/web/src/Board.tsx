@@ -107,7 +107,7 @@ function FlowCard({ card, data, onRetry }: { card: Card; data: SurveyData; onRet
       </div>
       {station
         ? <span className="flow-where">{placeLabel(data, station)}</span>
-        : <Link className="flow-where unfiled" to="/">Not filed yet · choose a station</Link>}
+        : <Link className="flow-where unfiled" to="/workspace">Not filed yet · choose a station</Link>}
       {stage === "Analysing" ? (
         failed ? (
           <div className="stack" style={{ gap: 6 }}>
@@ -164,7 +164,7 @@ export function Workflow() {
           <h1>Workflow</h1>
           <p className="lede">Every video from import to the finished count.</p>
         </div>
-        {manager && <Link className="btn primary" to="/?import=1">Import video</Link>}
+        {manager && <Link className="btn primary" to="/workspace?import=1">Import video</Link>}
       </div>
 
       <div className="flow-bar">
@@ -184,7 +184,7 @@ export function Workflow() {
       </div>
 
       {manager && unfiled > 0 && site !== UNFILED && (
-        <p className="meta">{unfiled} {unfiled === 1 ? "video has" : "videos have"} no station yet, so reports leave {unfiled === 1 ? "it" : "them"} out. <Link to="/">File them in Surveys</Link></p>
+        <p className="meta">{unfiled} {unfiled === 1 ? "video has" : "videos have"} no station yet, so reports leave {unfiled === 1 ? "it" : "them"} out. <Link to="/workspace">File them in Surveys</Link></p>
       )}
       {(error || retryError) && <p className="meta" style={{ color: "var(--down)" }}>{error || retryError}</p>}
       {!cards ? <p className="meta">Loading…</p> : (

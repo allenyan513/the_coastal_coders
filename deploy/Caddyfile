@@ -12,3 +12,9 @@
 
 	reverse_proxy app:8000
 }
+
+# An old address, sent on to the current one. Without REDIRECT_FROM in .env this answers only a name
+# that never resolves, over plain HTTP, so it never asks for a certificate.
+{$REDIRECT_FROM} {
+	redir https://{$SITE_ADDRESS}{uri} permanent
+}

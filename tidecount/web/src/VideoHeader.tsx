@@ -21,7 +21,7 @@ type Props = {
 /** One header for every page inside a video: where you are, and the three steps in order. */
 export function VideoHeader({ id, step, view, review, snapshots, title, from }: Props) {
   const user = useUser();
-  const crumb = from ?? { to: "/", label: homeLabel(user.role) };
+  const crumb = from ?? { to: "/workspace", label: homeLabel(user.role) };
   const [name, setName] = useState("");
   const [site, setSite] = useState("");
   const [loaded, setLoaded] = useState<{ review?: Progress; snapshots?: Progress }>({});
