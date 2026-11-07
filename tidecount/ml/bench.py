@@ -363,8 +363,8 @@ def extract_frames(video: Video) -> None:
 def pull(video: Video) -> str:
     """Copy counts a person made on their own in the app into this video's labels.
 
-    The app takes its snapshot frames at the same times as `frames` here, so the names match. A
-    frame that already has an answer keeps it, so labels made earlier are never replaced.
+    Only frames at the same times as `frames` here match by name, so label with the app's `[protocol]`
+    set to this spacing. A frame that already has an answer keeps it, so labels made earlier are never replaced.
     """
     from tidecount import db, snapshots
 

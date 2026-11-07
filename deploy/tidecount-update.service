@@ -1,5 +1,5 @@
 [Unit]
-Description=Deploy TideCount when the release branch changes
+Description=Deploy Tideflow when the release branch changes
 After=docker.service network-online.target
 Wants=network-online.target
 

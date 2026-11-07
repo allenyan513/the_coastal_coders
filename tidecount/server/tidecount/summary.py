@@ -1,6 +1,8 @@
 """The summary and its CSV. Only decisions a person made reach these numbers."""
 import csv
 import io
+import re
+from pathlib import Path
 
 from . import db, snapshots
 
@@ -11,9 +13,24 @@ def review_seconds(con, video_id: str) -> float:
     return sum(b - a for a, b in zip(times, times[1:]) if b - a <= 120)
 
 
+def species_observed(con, video_id: str, points: list[dict]) -> list[str]:
+    """Species named at a sub-sample point or confirmed while finding species, for the procedure's list."""
+    named = {s["name"] for f in points for s in f["species"]}
+    confirmed = {r["species"] for r in con.execute(
+        "SELECT d.species FROM decisions d JOIN tracks t ON t.id = d.track_id "
+        "WHERE t.video_id = ? AND d.state IN ('Confirmed', 'Corrected') AND d.species IS NOT NULL", (video_id,),
+    )}
+    return sorted((named | confirmed) - {"Fish, unidentified"})
+
+
 def build(con, v: dict) -> dict:
     """`v` is the video's row."""
     video_id = v["id"]
+    if v["status"] == "Ready to review":
+        snapshots.ensure_frames(con, v)
+    frames = snapshots.frames(con, video_id)
+    points = [f for f in frames if f["kind"] == "snapshot"]
+    plan = snapshots.window(con, v)
     segs = db.rows(con.execute("SELECT * FROM segments WHERE video_id = ?", (video_id,)))
     decided = db.rows(con.execute(
         "SELECT d.state, d.species, t.first_t, t.last_t, t.manual FROM decisions d JOIN tracks t ON t.id = d.track_id "
@@ -46,7 +63,15 @@ def build(con, v: dict) -> dict:
         "species": species,
         "schools": schools,
         "snapshots": snapshots.stats(con, video_id),
-        "snapshot_frames": [f for f in snapshots.frames(con, video_id) if f["status"]],
+        "snapshot_frames": [f for f in frames if f["status"]],
+        "protocol": plan,
+        "points": points,
+        "species_observed": species_observed(con, video_id, points),
+        "peaks": sorted(
+            ({**f, "ai_count": len(snapshots.ai_dots(con, video_id, f["t"])), "in_window": plan["start"] <= f["t"] < plan["end"]}
+             for f in frames if f["kind"] == "peak"),
+            key=lambda f: -f["ai_count"],
+        ),
         "reviewed": seconds("reviewed"),
         "could_not_see": seconds("could_not_see"),
         "skipped": skipped,
@@ -98,4 +123,57 @@ def to_csv(s: dict) -> str:
     w.writerow(["snapshot_time_s", "kind", "status", "total", "ai_proposed", "removed", "added"])
     for r in s["snapshot_frames"]:
         w.writerow([round(r["t"], 2), r["kind"], r["status"], r["total"], r["proposed"], r["removed"], r["added"]])
+    return out.getvalue()
+
+
+def clock(t: float) -> str:
+    return f"{int(t) // 60}:{int(t) % 60:02d}"
+
+
+def transect_stat(name: str) -> tuple[str, str]:
+    """Reads T1 and STAT 2 out of a name like 'T1-STAT2 411.MP4'. Either is blank if it isn't there."""
+    transect = re.search(r"(?<![A-Za-z0-9])T(\d+)", name, re.I)
+    stat = re.search(r"STAT\s*(\d+)", name, re.I)
+    return (f"T{transect.group(1)}" if transect else "", stat.group(1) if stat else "")
+
+
+def protocol_csv(con, v: dict) -> str:
+    """The analyst's sheet from Coastal Action's procedure: one row per sub-sample point, then the results.
+
+    Only a person's saved answers appear. A frame nobody could see has no count, which isn't a zero,
+    so its count stays blank and MeanCount leaves it out.
+    """
+    snapshots.ensure_frames(con, v)
+    plan = snapshots.window(con, v)
+    points = [f for f in snapshots.frames(con, v["id"]) if f["kind"] == "snapshot"]
+    stats = snapshots.stats(con, v["id"])
+    named = sorted({s["name"] for f in points for s in f["species"]})
+    observed = species_observed(con, v["id"], points)
+    video_id = Path(v["name"]).stem
+    transect, stat = transect_stat(v["name"])
+
+    out = io.StringIO()
+    out.write("\ufeff")  # so Excel reads the file as UTF-8
+    w = csv.writer(out)
+    w.writerow(["Video ID", "Transect", "STAT", "Analysis Start", "Analysis End", "Sub-sample", "Video Time", "Visibility",
+                "Total Fish Count", "Invertebrate Count", *named, "Unknown/Unable to ID due to visibility", "Total Species Observed", "Notes"])
+    for i, f in enumerate(points, 1):
+        counted = f["status"] == "checked"
+        by_name = {s["name"]: s["n"] for s in f["species"]}
+        notes = "; ".join(x for x in ("Could not see" if f["status"] == "could_not_see" else "", f["comment"]) if x)
+        w.writerow([
+            video_id, transect, stat, clock(plan["start"]), clock(plan["end"]), i, clock(f["t"]), f["visibility"] or plan["visibility"],
+            f["total"] if counted else "", f["invertebrates"] or 0 if counted else "",
+            *[by_name.get(n, 0) if counted else "" for n in named],
+            f["total"] - sum(by_name.values()) if counted else "", len(by_name) if counted else "", notes,
+        ])
+    w.writerow([])
+    w.writerow(["MeanCount", "" if stats["mean_count"] is None else f"{stats['mean_count']:.2f}"])
+    w.writerow(["Points counted", f"{stats['frames_checked']} of {stats['frames_total']}"])
+    w.writerow(["Points could not see", stats["could_not_see"]])
+    w.writerow(["Mean invertebrates", "" if stats["invertebrate_mean"] is None else f"{stats['invertebrate_mean']:.2f}"])
+    w.writerow(["Species richness", len(observed)])
+    w.writerow(["Species observed", "; ".join(observed)])
+    w.writerow(["Horizontal visibility", plan["visibility"]])
+    w.writerow(["Juveniles present", "" if plan["juveniles"] is None else plan["juveniles"]])
     return out.getvalue()

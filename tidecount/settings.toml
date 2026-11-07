@@ -48,3 +48,13 @@ dense_detections = 8
 model = "hf-hub:imageomics/bioclip-2.5-vith14"  # TIDECOUNT_SPECIES_MODEL overrides this
 min_side = 64                # fish shorter than this in the original video get no suggestion
 top_k = 3
+
+[protocol]                   # Coastal Action's draft procedure. Unlike the rest of this file, it needs no new
+                             # analysis: it applies the next time a video's snapshot count opens, after a restart
+trim_start_s = 60            # footage dropped at the start while sediment settles
+trim_end_s = 60
+window_s = 900               # how much footage is analysed
+every_s = 60                 # one sub-sample point this often
+context_s = 5                # seconds a person watches either side of a point
+clear_share = 0.5            # footage under this share of the video's usual clarity is too murky to start in
+clear_for_s = 120            # the suggested start needs this long of clear footage after it

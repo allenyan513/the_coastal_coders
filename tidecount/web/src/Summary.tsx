@@ -35,10 +35,8 @@ export function SummaryPage() {
     ["Open AI suggestions, not counted", String(s.open_suggestions)],
     ["Audit of skipped footage", `${s.audit_segments} of ${s.audit_total} done, ${s.audit_fish} fish found`],
     ["Time spent reviewing", clock(s.review_seconds)],
-    ["Snapshot frames checked", `${snap.frames_checked} of ${snap.frames_total}`],
-    ["Snapshot frames could not see", String(snap.could_not_see)],
-    ["Peak frames checked", `${snap.peak_checked} of ${snap.peak_total}`],
-    ["Peak frames could not see", String(snap.peak_could_not_see)],
+    ["Points could not see", String(snap.could_not_see)],
+    ["Busiest moments checked", `${snap.peak_checked} of ${snap.peak_total}`],
   ];
 
   return (
@@ -47,11 +45,81 @@ export function SummaryPage() {
       <div className="pagehead">
         <div>
           <h1>Report</h1>
-          <p className="lede">Only results a person confirmed are counted here.</p>
+          <p className="lede">Analysis window {clock(s.protocol.start)} to {clock(s.protocol.end)}. Only counts a person confirmed are included.</p>
         </div>
-        <a className="btn primary" href={`/api/videos/${id}/export.csv`}>Export CSV</a>
+        <a className="btn primary" href={`/api/videos/${id}/protocol.csv`}>Export analysis sheet</a>
       </div>
 
+      <div className="panel kpis">
+        <div className="kpi">
+          <span className="meta">MeanCount</span>
+          <b>{snap.mean_count?.toFixed(2) ?? "—"}</b>
+          {snap.mean_count !== null
+            ? <small className="meta num">Fish per point, {snap.frames_checked} of {snap.frames_total} points</small>
+            : <small><Link to={`/videos/${id}/snapshots`}>Not counted yet. Start counting</Link></small>}
+        </div>
+        <div className="kpi">
+          <span className="meta">Invertebrates per point</span>
+          <b>{snap.invertebrate_mean?.toFixed(2) ?? "—"}</b>
+        </div>
+        <div className="kpi">
+          <span className="meta">Species observed</span>
+          <b>{s.species_observed.length}</b>
+          <small className="meta">{s.species_observed.join(", ") || "None named yet"}</small>
+        </div>
+        <div className="kpi">
+          <span className="meta">Visibility</span>
+          <b style={{ fontSize: 20 }}>{s.protocol.visibility || "—"}</b>
+          <small className="meta">Juveniles: {s.protocol.juveniles === null ? "not noted" : s.protocol.juveniles ? "present" : "absent"}</small>
+        </div>
+      </div>
+
+      <section className="panel" style={{ overflowX: "auto" }}>
+        <div className="panel-head"><h2>Sub-sample points</h2></div>
+        <table>
+          <thead><tr><th>Point</th><th>Time</th><th>Visibility</th><th className="right">Fish</th><th className="right">Invertebrates</th><th>Species</th><th>Notes</th></tr></thead>
+          <tbody>
+            {s.points.map((p, i) => (
+              <tr key={p.id}>
+                <td className="num">{i + 1}</td>
+                <td className="num">{clock(p.t)}</td>
+                <td>{p.visibility || s.protocol.visibility || "—"}</td>
+                <td className="num right">{p.status === "checked" ? p.total : p.status ? "Could not see" : "—"}</td>
+                <td className="num right">{p.status === "checked" ? p.invertebrates ?? 0 : "—"}</td>
+                <td>{p.species.map((x) => `${x.name} ${x.n}`).join(", ")}</td>
+                <td className="meta">{p.comment}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      {!!s.peaks.length && (
+        <section className="panel" style={{ overflowX: "auto" }}>
+          <div className="panel-head"><h2>Busiest moments AI found</h2></div>
+          <p className="meta" style={{ padding: "0 16px 12px", lineHeight: 1.6 }}>
+            MeanCount only sees the sub-sample points, so a school that passes between two of them isn't in it. These are AI's busiest moments away from those points. AI's numbers are unchecked until a person opens the frame, and they never feed MeanCount.
+          </p>
+          <table>
+            <thead><tr><th>Time</th><th>Where</th><th className="right">AI's count</th><th className="right">Person's count</th><th /></tr></thead>
+            <tbody>
+              {s.peaks.map((p) => (
+                <tr key={p.id}>
+                  <td className="num">{clock(p.t)}</td>
+                  <td>{p.in_window ? "Between points" : "Outside the window"}</td>
+                  <td className="num right">{p.ai_count}</td>
+                  <td className="num right">{p.status === "checked" ? p.total : p.status ? "Could not see" : "—"}</td>
+                  <td className="right"><Link className="btn" to={`/videos/${id}/snapshots?mode=ai&frame=${p.id}`}>Check frame</Link></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      <details className="stack">
+        <summary className="meta">AI-assisted review of the whole video</summary>
+        <div className="stack" style={{ gap: 16, marginTop: 12 }}>
       <section className="panel" aria-label="Footage">
         <div className="kpis big">
           <div className="kpi"><span className="meta">Footage</span><b>{clock(s.video.duration)}</b></div>
@@ -78,16 +146,9 @@ export function SummaryPage() {
 
       <div className="panel kpis">
         <div className="kpi">
-          <span className="meta">Average fish per snapshot</span>
-          <b>{snap.mean_count?.toFixed(2) ?? "—"}</b>
-          {snap.mean_count !== null
-            ? <small className="meta num">MeanCount, {snap.frames_checked} of {snap.frames_total} frames</small>
-            : <small><Link to={`/videos/${id}/snapshots`}>Not counted yet. Start the snapshot count</Link></small>}
-        </div>
-        <div className="kpi">
           <span className="meta">Most fish in one frame</span>
           <b>{snap.largest_count ?? "—"}</b>
-          <small className="meta">{snap.largest_count === null ? "Needs the snapshot count" : snap.largest_label}</small>
+          <small className="meta">{snap.largest_count === null ? "Needs a count" : snap.largest_label}</small>
         </div>
         {m && (
           <div className="kpi">
@@ -205,6 +266,9 @@ export function SummaryPage() {
           <p className="meta" style={{ lineHeight: 1.6 }}>{s.video.notes}</p>
         </section>
       </div>
+      <a className="btn" style={{ alignSelf: "flex-start" }} href={`/api/videos/${id}/export.csv`}>Export review data</a>
+        </div>
+      </details>
     </div>
   );
 }
