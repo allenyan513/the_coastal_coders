@@ -52,7 +52,7 @@ function Sidebar() {
   ];
   return (
     <aside className={`side ${inVideo ? "rail" : ""}`}>
-      <Link to="/" className="brand" aria-label="TideCount">{inVideo ? "T" : "TideCount"}</Link>
+      <Link to="/" className="brand" aria-label="Tideflow"><img src="/favicon.svg" alt="" />{!inVideo && "Tideflow"}</Link>
       <nav className="side-nav" aria-label="Fish Counter">
         <p className="side-label">Fish Counter</p>
         {items.map((i) => (
