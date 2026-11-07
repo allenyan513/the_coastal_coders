@@ -81,6 +81,12 @@ export type AccuracyRow = {
 export type Dot = { x: number; y: number; source: "ai" | "user" };
 export type SchoolCount = { id: number; t: number; dots: Dot[]; model: string };
 
+export type ReportPoint = {
+  id: number; t: number; status: SnapshotStatus; total: number | null; invertebrates: number | null;
+  species: SpeciesCount[]; visibility: string; comment: string;
+};
+export type ReportPeak = { id: number; t: number; status: SnapshotStatus; total: number | null; ai_count: number; in_window: boolean };
+
 export type Summary = {
   video: { id: string; name: string; site: string; duration: number; notes: string };
   entries: number;
@@ -89,6 +95,10 @@ export type Summary = {
   species: { name: string; entries: number }[];
   schools: { t: number; total: number; proposed: number; removed: number; added: number }[];
   snapshots: SnapshotStats;
+  protocol: Protocol;
+  points: ReportPoint[];
+  species_observed: string[];
+  peaks: ReportPeak[];
   reviewed: number;
   could_not_see: number;
   skipped: number;
@@ -193,6 +203,8 @@ export type SnapshotStats = {
   peak_checked: number;
   peak_could_not_see: number;
   mean_count: number | null;
+  invertebrate_mean: number | null;
+  species_seen: string[];
   largest_count: number | null;
   largest_label: string;
   complete: boolean;
@@ -201,17 +213,30 @@ export type SnapshotStats = {
 export type SnapshotStatus = "" | "checked" | "could_not_see";
 /** `rank` is the order frames are offered in when a person counts on their own. */
 export type SnapshotRow = { id: number; kind: "snapshot" | "peak"; t: number; status: SnapshotStatus; total: number | null; blind?: number; rank: number };
-export type SnapshotFrame = { id: number; kind: "snapshot" | "peak"; t: number; status: SnapshotStatus; dots: Dot[]; model: string; ai_shown: boolean };
+export type SpeciesCount = { name: string; n: number };
+/** What the procedure records at each sub-sample point, beyond the fish dots. */
+export type FrameRecord = { invertebrates: number; species: SpeciesCount[]; visibility: string; comment: string };
+export type SnapshotFrame = Omit<FrameRecord, "invertebrates"> & {
+  id: number; kind: "snapshot" | "peak"; t: number; status: SnapshotStatus; dots: Dot[]; model: string; ai_shown: boolean;
+  invertebrates: number | null;
+};
+/** The analysis window and the procedure's values. `juveniles` is 1, 0 or null when nobody has said. */
+export type Protocol = {
+  start: number; end: number; suggested: number; chosen: boolean; every_s: number; context_s: number;
+  visibility: string; juveniles: number | null; visibility_options: string[];
+};
 export type SnapshotList = {
   video: { id: string; name: string; duration: number; width: number; height: number };
   frames: SnapshotRow[];
   stats: SnapshotStats;
+  protocol: Protocol;
 };
 
 export const snapshotApi = {
   list: (id: string) => call<SnapshotList>(`/api/videos/${id}/snapshots`),
   frame: (frameId: number, blind = false) => call<SnapshotFrame>(`/api/snapshot-frames/${frameId}${blind ? "?blind=true" : ""}`),
   image: (frameId: number) => `/api/snapshot-frames/${frameId}/image`,
-  save: (frameId: number, status: SnapshotStatus, dots: Dot[], aiHidden: boolean, blind = false) =>
-    call<{ stats: SnapshotStats }>(`/api/snapshot-frames/${frameId}`, json("PUT", { status, dots, ai_hidden: aiHidden, blind })),
+  clip: (frameId: number) => `/api/snapshot-frames/${frameId}/clip`,
+  save: (frameId: number, status: SnapshotStatus, dots: Dot[], aiHidden: boolean, blind: boolean, record: FrameRecord) =>
+    call<{ stats: SnapshotStats }>(`/api/snapshot-frames/${frameId}`, json("PUT", { status, dots, ai_hidden: aiHidden, blind, ...record })),
 };

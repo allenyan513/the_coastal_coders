@@ -73,8 +73,7 @@ FOLLOW_MAX_S = 5            # follow at most this long each way: a person waits 
                             # box has less time to slip onto a neighbour
 FOLLOW_CHUNK_S = 2          # seconds of video decoded at a time
 
-SNAPSHOT_EVERY_S = 30
-SNAPSHOT_START_S = 15
+VISIBILITY = ("<0.5 m", "0.5-1.0 m", "1.0-1.5 m", ">1.5 m")  # the protocol's four categories
 SNAPSHOT_PEAKS = 5
 SNAPSHOT_PEAK_GAP_S = 60
 SNAPSHOT_DOT_REACH_S = 0.5

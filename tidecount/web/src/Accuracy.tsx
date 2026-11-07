@@ -27,7 +27,7 @@ export function Accuracy() {
     <div className="stack" style={{ gap: 20 }}>
       <div>
         <h1>AI accuracy</h1>
-        <p className="lede">Count the fish on a few frames without seeing AI's dots. TideCount then shows how many of your fish AI had found. Frames you count on your own in a video's snapshot count land here too.</p>
+        <p className="lede">Count the fish on a few frames without seeing AI's dots. Tideflow then shows how many of your fish AI had found. Frames you count on your own in a video's snapshot count land here too.</p>
       </div>
 
       <div className="panel kpis">
@@ -90,7 +90,7 @@ export function Accuracy() {
       <div className="stack" style={{ gap: 6 }}>
         {assisted > 0 && <p className="meta">{assisted} {assisted === 1 ? "frame was" : "frames were"} counted with AI's dots showing and {assisted === 1 ? "is" : "are"} left out. Seeing AI's dots first makes AI look better than it is.</p>}
         <p className="meta">Two models run on one video share your counts, so each row scores its own model on the same frames.</p>
-        <p className="meta"><Link to="/models">Compare detection models</Link>, for people tuning TideCount.</p>
+        <p className="meta"><Link to="/models">Compare detection models</Link>, for people tuning Tideflow.</p>
       </div>
     </div>
   );

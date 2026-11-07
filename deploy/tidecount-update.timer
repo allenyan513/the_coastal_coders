@@ -1,5 +1,5 @@
 [Unit]
-Description=Check the TideCount release branch every minute
+Description=Check the Tideflow release branch every minute
 
 [Timer]
 OnBootSec=2min
