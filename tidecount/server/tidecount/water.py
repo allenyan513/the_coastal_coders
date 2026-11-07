@@ -20,6 +20,18 @@ KEEP = {
 }
 
 
+# Readings outside these limits are mistakes in the source data, not real water, so they're left out.
+# (lowest, highest), in the units after any conversion.
+LIMITS = {
+    "Temperature, water": (-2, 35),
+    "pH": (0, 14),
+    "Dissolved oxygen (DO)": (0, 20),
+    "Dissolved oxygen saturation": (0, 200),
+    "Specific conductance": (0, 60000),
+    "Salinity": (0, 40),
+}
+
+
 def reading(row: dict) -> dict | None:
     """One row of the file as a reading, or None if it isn't one to keep."""
     if row["CharacteristicName"] not in KEEP:
@@ -34,6 +46,9 @@ def reading(row: dict) -> dict | None:
         unit = "uS/cm"
     if unit == "None":
         unit = ""
+    low, high = LIMITS[row["CharacteristicName"]]
+    if not low <= value <= high:
+        return None
     return {
         "site_id": row["MonitoringLocationID"],
         "site_name": row["MonitoringLocationName"],
