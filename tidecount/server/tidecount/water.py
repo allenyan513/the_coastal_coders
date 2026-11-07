@@ -6,6 +6,7 @@ The file has one row per measurement. Only the probe readings taken on site are 
 """
 import csv
 import sys
+from pathlib import Path
 
 from . import db
 
@@ -92,8 +93,8 @@ def fix_salty_conductance(readings: list[dict]) -> int:
     return fixed
 
 
-def import_file(path: str) -> int:
-    """Read the whole file and save its readings, replacing any imported before. Returns how many."""
+def read_file(path: str) -> list[dict]:
+    """The readings to keep from a file downloaded from DataStream, cleaned and corrected."""
     with open(path, encoding="utf-8-sig", newline="") as f:
         rows = csv.DictReader(f)
         readings = []
@@ -104,14 +105,59 @@ def import_file(path: str) -> int:
 
     fixed = fix_salty_conductance(readings)
     print(f"Corrected {fixed} conductance readings labelled uS/cm that were really mS/cm.")
+    return readings
 
+
+def save(con, readings: list[dict]) -> None:
+    """Replace every water reading with these."""
+    con.execute("DELETE FROM water_readings")
+    con.executemany(
+        "INSERT INTO water_readings (site_id, site_name, lat, lon, date, time, measurement, value, unit) "
+        "VALUES (:site_id, :site_name, :lat, :lon, :date, :time, :measurement, :value, :unit)",
+        readings,
+    )
+
+
+def import_file(path: str) -> int:
+    """Read the whole file and save its readings, replacing any imported before. Returns how many."""
+    readings = read_file(path)
     with db.session() as con:
-        con.execute("DELETE FROM water_readings")
-        con.executemany(
-            "INSERT INTO water_readings (site_id, site_name, lat, lon, date, time, measurement, value, unit) "
-            "VALUES (:site_id, :site_name, :lat, :lon, :date, :time, :measurement, :value, :unit)",
-            readings,
-        )
+        save(con, readings)
+    return len(readings)
+
+
+# --- The copy kept in the repo ------------------------------------------------------------------
+# The DataStream download is 14 MB, mostly measurements we don't use. A trimmed copy, already
+# cleaned and corrected, is kept with the code (about 2 MB), so every computer and the team site
+# get the water data without downloading or importing anything. See water_data/README.md.
+
+BUNDLED = Path(__file__).parent / "water_data" / "lahave.csv"
+COLUMNS = ("site_id", "site_name", "lat", "lon", "date", "time", "measurement", "value", "unit")
+
+
+def write_bundled(path: str, out: Path = BUNDLED) -> int:
+    """Make the trimmed copy from a DataStream download. Returns how many readings."""
+    readings = read_file(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with open(out, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=COLUMNS, lineterminator="\n")
+        w.writeheader()
+        for r in sorted(readings, key=lambda r: (r["site_id"], r["date"], r["time"], r["measurement"])):
+            w.writerow({**r, "value": f"{r['value']:g}"})
+    return len(readings)
+
+
+def load_bundled(con, path: Path = BUNDLED) -> int:
+    """Fill an empty water_readings table from the trimmed copy. Returns how many readings were added.
+
+    Does nothing when readings are already there (so a newer import isn't overwritten) or the copy is missing.
+    """
+    if con.execute("SELECT 1 FROM water_readings LIMIT 1").fetchone() or not path.exists():
+        return 0
+    with open(path, encoding="utf-8", newline="") as f:
+        readings = [{**r, "lat": float(r["lat"]), "lon": float(r["lon"]), "value": float(r["value"])}
+                    for r in csv.DictReader(f)]
+    save(con, readings)
     return len(readings)
 
 
@@ -137,6 +183,12 @@ def series(con, site_id: str, measurement: str) -> dict:
 
 
 if __name__ == "__main__":
-    db.init()
-    count = import_file(sys.argv[1])
-    print(f"Imported {count} water readings.")
+    # python -m tidecount.water <download.csv>          import a DataStream download into the database
+    # python -m tidecount.water bundle <download.csv>   remake the trimmed copy kept in the repo
+    if sys.argv[1:2] == ["bundle"] and len(sys.argv) == 3:
+        print(f"Wrote {write_bundled(sys.argv[2])} water readings to {BUNDLED}.")
+    elif len(sys.argv) == 2:
+        db.init()
+        print(f"Imported {import_file(sys.argv[1])} water readings.")
+    else:
+        sys.exit("Usage: python -m tidecount.water [bundle] <download.csv>")

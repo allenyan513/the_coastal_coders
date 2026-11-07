@@ -185,3 +185,53 @@ def test_only_salinity_from_the_same_visit_counts():
     ]
 
     assert fix_salty_conductance(readings) == 0
+
+
+# The trimmed copy kept in the repo.
+
+def write_download(path, rows):
+    """A small file shaped like a DataStream download."""
+    import csv
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+
+
+def test_the_trimmed_copy_keeps_cleaned_readings_and_loads_back(tmp_path):
+    from tidecount import water
+    download, copy = tmp_path / "download.csv", tmp_path / "lahave.csv"
+    write_download(download, [
+        row(),
+        row("Salinity", "20", "ppth"),
+        row("Specific conductance", "31.5", "uS/cm"),  # really mS/cm at this salty visit
+        row("Dissolved oxygen (DO)", "1357", "mg/L"),  # impossible: left out
+        row("Nitrate", "0.2", "mg/L"),  # not a measurement we keep
+    ])
+
+    assert water.write_bundled(str(download), copy) == 3
+    with db.session() as con:
+        assert water.load_bundled(con, copy) == 3
+    con = open_db()
+    readings = {r["measurement"]: (r["value"], r["unit"]) for r in con.execute("SELECT measurement, value, unit FROM water_readings")}
+    assert readings == {"pH": (8.07, ""), "Salinity": (20.0, "ppth"), "Specific conductance": (31500.0, "uS/cm")}
+    assert sites(con)[0]["lat"] == 44.3521
+
+
+def test_loading_the_copy_leaves_existing_readings_alone(tmp_path):
+    from tidecount import water
+    download, copy = tmp_path / "download.csv", tmp_path / "lahave.csv"
+    write_download(download, [row()])
+    water.write_bundled(str(download), copy)
+    add_readings(("9", "Somewhere", "2020-01-01", "pH", 7.0, ""))
+
+    with db.session() as con:
+        assert water.load_bundled(con, copy) == 0
+    assert open_db().execute("SELECT COUNT(*) AS n FROM water_readings").fetchone()["n"] == 1
+
+
+def test_the_copy_in_the_repo_loads():
+    from tidecount import water
+    with db.session() as con:
+        assert water.load_bundled(con) > 20000
+        assert len(sites(con)) == 20

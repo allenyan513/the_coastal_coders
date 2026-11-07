@@ -12,8 +12,8 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-from . import config, db, settings, surveys
-from .routes import review, schools, snapshots, species, stats, summary, surveys as survey_routes, tracks, videos, water, web
+from . import config, db, settings, surveys, water
+from .routes import review, schools, snapshots, species, stats, summary, surveys as survey_routes, tracks, videos, water as water_routes, web
 
 
 def worker_loop() -> None:
@@ -37,12 +37,14 @@ async def lifespan(app: FastAPI):
     if db.init():
         with db.session() as con:
             surveys.sample(con)  # a first run starts with a structure to try, which a manager can change
+    with db.session() as con:
+        water.load_bundled(con)  # Coastal Action's water readings, on any computer that doesn't have them yet
     if config.RUN_WORKER:
         threading.Thread(target=worker_loop, daemon=True).start()
     yield
 
 
 app = FastAPI(title="Tideflow", lifespan=lifespan)
-for module in (survey_routes, videos, tracks, review, schools, snapshots, species, summary, stats, water):
+for module in (survey_routes, videos, tracks, review, schools, snapshots, species, summary, stats, water_routes):
     app.include_router(module.router)
 app.include_router(web.router)  # last, because its catch-all path would hide the API
