@@ -5,7 +5,7 @@ import { acceptInvite, findMember } from "./teamStore";
 
 /** Only follow paths inside the app, so a crafted link can't send someone elsewhere after sign-in. */
 function safeNext(next: string | null) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/workspace";
 }
 
 export function Login() {

@@ -4,7 +4,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { deflateSync, crc32 } from "node:zlib";
 import qrcode from "qrcode-generator";
 
-const url = process.argv[2] ?? "https://coastalaction.ligangyan.com/start";
+const url = process.argv[2] ?? "https://tideflow.ligangyan.com/";
 const out = new URL("../../demo/qr/", import.meta.url);
 const QUIET = 4;  // the blank margin a scanner needs, in QR squares
 const PIXELS = 24;  // PNG pixels per QR square, sharp on a projected slide

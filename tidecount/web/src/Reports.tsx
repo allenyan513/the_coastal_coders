@@ -216,7 +216,7 @@ export function Reports() {
         </div>
         {!sample && (unfiled > 0 || undated > 0) && (
           <p className="meta">
-            Not included: {[unfiled > 0 && `${unfiled} without a station`, undated > 0 && `${undated} without a filmed date are under No date`].filter(Boolean).join(", ")}. <Link to="/">Fix in Surveys</Link>
+            Not included: {[unfiled > 0 && `${unfiled} without a station`, undated > 0 && `${undated} without a filmed date are under No date`].filter(Boolean).join(", ")}. <Link to="/workspace">Fix in Surveys</Link>
           </p>
         )}
       </div>
