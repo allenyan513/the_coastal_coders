@@ -74,6 +74,17 @@ class Species(Strict):
     top_k: int = Field(3, ge=1)
 
 
+class Protocol(Strict):
+    """Coastal Action's fish video analysis procedure, which is still a draft, so none of this is fixed."""
+    trim_start_s: int = Field(60, ge=0)    # footage dropped at the start while sediment settles
+    trim_end_s: int = Field(60, ge=0)
+    window_s: int = Field(900, ge=1)       # how much footage is analysed
+    every_s: int = Field(60, ge=1)         # one sub-sample point this often
+    context_s: int = Field(5, ge=1, le=30)  # seconds a person watches either side of a point
+    clear_share: float = Field(0.5, gt=0, le=1)  # footage this far below the video's usual clarity is too murky
+    clear_for_s: int = Field(120, ge=1)    # the suggested start needs this long of clear footage after it
+
+
 class Settings(Strict):
     version: Literal[1] = 1
     default_detector: str = "cfd-nano"
@@ -85,6 +96,7 @@ class Settings(Strict):
     flicker: Flicker = Flicker()
     queue: Queue = Queue()
     species: Species = Species()
+    protocol: Protocol = Protocol()
 
     @model_validator(mode="after")
     def detectors_exist(self):

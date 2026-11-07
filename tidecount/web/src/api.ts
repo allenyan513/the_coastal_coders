@@ -81,6 +81,12 @@ export type AccuracyRow = {
 export type Dot = { x: number; y: number; source: "ai" | "user" };
 export type SchoolCount = { id: number; t: number; dots: Dot[]; model: string };
 
+export type ReportPoint = {
+  id: number; t: number; status: SnapshotStatus; total: number | null; invertebrates: number | null;
+  species: SpeciesCount[]; visibility: string; comment: string;
+};
+export type ReportPeak = { id: number; t: number; status: SnapshotStatus; total: number | null; ai_count: number; in_window: boolean };
+
 export type Summary = {
   video: { id: string; name: string; site: string; duration: number; notes: string };
   entries: number;
@@ -89,6 +95,10 @@ export type Summary = {
   species: { name: string; entries: number }[];
   schools: { t: number; total: number; proposed: number; removed: number; added: number }[];
   snapshots: SnapshotStats;
+  protocol: Protocol;
+  points: ReportPoint[];
+  species_observed: string[];
+  peaks: ReportPeak[];
   reviewed: number;
   could_not_see: number;
   skipped: number;
@@ -99,6 +109,31 @@ export type Summary = {
   audit_fish: number;
   partial: boolean;
   review_seconds: number;
+};
+
+/** MaxN from tracks a person confirmed. Worked out in server/tidecount/stats.py. */
+export type MaxnStats = {
+  maxn: number;
+  maxn_t: number | null;
+  species: { species: string; maxn: number; t: number | null; tracks: number }[];
+  confirmed_tracks: number;
+  undecided_tracks: number;
+  partial: boolean;
+  snapshot_maxn: number | null;
+  snapshot_complete: boolean;
+};
+
+/** Shannon and Simpson diversity from each species' MaxN. Worked out in server/tidecount/stats.py. */
+export type DiversityStats = {
+  shannon: number | null;
+  evenness: number | null;
+  simpson_diversity: number | null;
+  inverse_simpson: number | null;
+  richness: number;
+  species: { species: string; maxn: number; share: number }[];
+  unidentified_maxn: number;
+  undecided_tracks: number;
+  partial: boolean;
 };
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
@@ -126,6 +161,8 @@ export const api = {
   video: (id: string) => call<VideoDetail>(`/api/videos/${id}`),
   tracks: (id: string) => call<Track[]>(`/api/videos/${id}/tracks`),
   summary: (id: string) => call<Summary>(`/api/videos/${id}/summary`),
+  maxn: (id: string) => call<MaxnStats>(`/api/videos/${id}/stats/maxn`),
+  diversity: (id: string) => call<DiversityStats>(`/api/videos/${id}/stats/diversity`),
   upload: (file: File, site: string, detector: string) => {
     const form = new FormData();
     form.append("file", file);
@@ -166,6 +203,8 @@ export type SnapshotStats = {
   peak_checked: number;
   peak_could_not_see: number;
   mean_count: number | null;
+  invertebrate_mean: number | null;
+  species_seen: string[];
   largest_count: number | null;
   largest_label: string;
   complete: boolean;
@@ -174,17 +213,30 @@ export type SnapshotStats = {
 export type SnapshotStatus = "" | "checked" | "could_not_see";
 /** `rank` is the order frames are offered in when a person counts on their own. */
 export type SnapshotRow = { id: number; kind: "snapshot" | "peak"; t: number; status: SnapshotStatus; total: number | null; blind?: number; rank: number };
-export type SnapshotFrame = { id: number; kind: "snapshot" | "peak"; t: number; status: SnapshotStatus; dots: Dot[]; model: string; ai_shown: boolean };
+export type SpeciesCount = { name: string; n: number };
+/** What the procedure records at each sub-sample point, beyond the fish dots. */
+export type FrameRecord = { invertebrates: number; species: SpeciesCount[]; visibility: string; comment: string };
+export type SnapshotFrame = Omit<FrameRecord, "invertebrates"> & {
+  id: number; kind: "snapshot" | "peak"; t: number; status: SnapshotStatus; dots: Dot[]; model: string; ai_shown: boolean;
+  invertebrates: number | null;
+};
+/** The analysis window and the procedure's values. `juveniles` is 1, 0 or null when nobody has said. */
+export type Protocol = {
+  start: number; end: number; suggested: number; chosen: boolean; every_s: number; context_s: number;
+  visibility: string; juveniles: number | null; visibility_options: string[];
+};
 export type SnapshotList = {
   video: { id: string; name: string; duration: number; width: number; height: number };
   frames: SnapshotRow[];
   stats: SnapshotStats;
+  protocol: Protocol;
 };
 
 export const snapshotApi = {
   list: (id: string) => call<SnapshotList>(`/api/videos/${id}/snapshots`),
   frame: (frameId: number, blind = false) => call<SnapshotFrame>(`/api/snapshot-frames/${frameId}${blind ? "?blind=true" : ""}`),
   image: (frameId: number) => `/api/snapshot-frames/${frameId}/image`,
-  save: (frameId: number, status: SnapshotStatus, dots: Dot[], aiHidden: boolean, blind = false) =>
-    call<{ stats: SnapshotStats }>(`/api/snapshot-frames/${frameId}`, json("PUT", { status, dots, ai_hidden: aiHidden, blind })),
+  clip: (frameId: number) => `/api/snapshot-frames/${frameId}/clip`,
+  save: (frameId: number, status: SnapshotStatus, dots: Dot[], aiHidden: boolean, blind: boolean, record: FrameRecord) =>
+    call<{ stats: SnapshotStats }>(`/api/snapshot-frames/${frameId}`, json("PUT", { status, dots, ai_hidden: aiHidden, blind, ...record })),
 };

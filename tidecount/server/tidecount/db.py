@@ -77,12 +77,14 @@ def init() -> None:
         columns = {r["name"] for r in con.execute("PRAGMA table_info(videos)")}
         for name, kind in (("detector", "TEXT DEFAULT 'cfd-nano'"), ("source_id", "TEXT DEFAULT ''"),
                            ("analysis_s", "REAL DEFAULT 0"), ("frames", "INTEGER DEFAULT 0"),
-                           ("settings_json", "TEXT DEFAULT ''"), ("settings_hash", "TEXT DEFAULT ''")):
+                           ("settings_json", "TEXT DEFAULT ''"), ("settings_hash", "TEXT DEFAULT ''"),
+                           ("window_start", "REAL"), ("visibility", "TEXT DEFAULT ''"), ("juveniles", "INTEGER")):
             if name not in columns:
                 con.execute(f"ALTER TABLE videos ADD COLUMN {name} {kind}")
         columns = {r["name"] for r in con.execute("PRAGMA table_info(school_counts)")}
         for name, kind in (("kind", "TEXT DEFAULT 'school'"), ("status", "TEXT DEFAULT ''"), ("blind", "INTEGER DEFAULT 0"),
-                           ("ai_shown", "INTEGER DEFAULT 0")):
+                           ("ai_shown", "INTEGER DEFAULT 0"), ("invertebrates", "INTEGER"), ("species", "TEXT DEFAULT '[]'"),
+                           ("visibility", "TEXT DEFAULT ''"), ("comment", "TEXT DEFAULT ''")):
             if name not in columns:
                 con.execute(f"ALTER TABLE school_counts ADD COLUMN {name} {kind}")
         if "ai_shown" not in columns and "blind" in columns:
