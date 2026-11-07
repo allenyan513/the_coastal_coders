@@ -29,9 +29,9 @@ Then open http://localhost:8000. The first run installs dependencies and downloa
 
 ## On a phone
 
-Open `/start`, for example https://coastalaction.ligangyan.com/start. It says what Tideflow is and has one tap into a sample video, a sample report or an upload.
+Open the home page, for example https://tideflow.ligangyan.com/. It says what Tideflow is, with one tap into a sample video and a way to join as a volunteer. The workspace people sign in to is at `/workspace`. Old `/start` links still land on the home page.
 
-On a computer, **Open on phone** in the sidebar shows a large QR code for that page, so a room can scan it from the screen. For slides and print, `pnpm qr` in `web/` writes `demo/qr/start.png` and `start.svg`. Pass another address to change where they lead: `pnpm qr https://example.com/start`.
+For slides and print, `pnpm qr` in `web/` writes `demo/qr/start.png` and `start.svg`, which open the home page. Pass another address to change where they lead: `pnpm qr https://example.com/`.
 
 A phone has to reach the site, so scan from the public address, not `localhost`.
 
@@ -255,7 +255,7 @@ echo "SITE_ADDRESS=your.domain" > .env
 docker compose up -d
 ```
 
-Point the domain's A record at the machine first, and open ports 80 and 443. If you use Cloudflare, set the record to **DNS only**. Caddy then gets a certificate and serves HTTPS by itself, and uploads have no size limit. Leave out `.env` and the site is plain HTTP on port 80.
+Point the domain's A record at the machine first, and open ports 80 and 443. If you use Cloudflare, set the record to **DNS only**. Caddy then gets a certificate and serves HTTPS by itself, and uploads have no size limit. Leave out `.env` and the site is plain HTTP on port 80. To move to a new domain, set `SITE_ADDRESS` to it and put the old one in `REDIRECT_FROM`; Caddy then sends visitors from the old address on to the new one, with the same path.
 
 The first start builds the image and downloads the model weights, about 4.2 GB, so it takes a while. Later starts skip both. Then open the site and import a video in **Fish Counter**, as you would locally. Everything is saved in `deploy/data/`, separate from the `tidecount/data/` that `start.sh` uses.
 
