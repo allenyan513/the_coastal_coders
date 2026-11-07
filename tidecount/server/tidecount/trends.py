@@ -2,8 +2,8 @@
 
 Fish counts live in the fish_counts table: one row per survey date, site and species. For now they
 are made-up DEMO data from make_demo(), so the Fish and water trends page can show how fish trends
-will look. Every demo row has source 'demo', and the page labels it. Once videos are linked to a
-site and filming date, each video's MaxN per species can be saved in the same table with another source.
+will look. Every demo row has source 'demo', and the page labels it. Reviewed videos filmed at a
+water site are saved in the same table with source 'video', by link.py.
 
 Plain functions on a database connection, so they can be tested without HTTP. Run
 `python -m tidecount.trends demo` from server/ to (re)make the demo data.
@@ -85,7 +85,7 @@ def fish_series(con, site_id: str, metric: str) -> dict:
     label = METRICS.get(metric, metric)
     unit = "fish" if metric == "total" or metric not in METRICS else ""
     return {"site_id": site_id, "metric": metric, "label": label, "unit": unit, "points": points,
-            "demo": "demo" in sources}
+            "demo": "demo" in sources, "from_videos": "video" in sources}
 
 
 def survey_value(counts: dict[str, int], metric: str) -> float | None:

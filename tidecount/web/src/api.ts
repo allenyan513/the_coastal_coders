@@ -312,7 +312,14 @@ export type WaterSeries = {
 };
 
 /** What a fish chart at a site can show: overall measures, then each species. From server/tidecount/trends.py. */
-export type FishOptions = { metrics: { key: string; label: string }[]; species: string[] };
+export type FishOptions = { metrics: { key: string; label: string }[]; species: string[]; videos: VideoLinks };
+
+/** Which videos give fish counts at a water site, and why the others don't. From server/tidecount/link.py. */
+export type VideoLinks = {
+  match_km: number;
+  linked: { video: string; site_id: string; site_name: string; date: string; km: number }[];
+  not_linked: { video: string; reason: string }[];
+};
 
 /** A standardized line: `z` is how many standard deviations each point is from the line's own average. */
 export type ZLine = { label: string; unit: string; points: { date: string; value: number; z: number }[] };
@@ -337,4 +344,5 @@ export type FishSeries = {
   unit: string;
   points: { date: string; value: number }[];
   demo: boolean;
+  from_videos: boolean;
 };

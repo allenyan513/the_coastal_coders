@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, FishOptions, FishSeries, FishWaterComparison, WaterSeries, WaterSite } from "./api";
+import { api, FishOptions, FishSeries, FishWaterComparison, VideoLinks, WaterSeries, WaterSite } from "./api";
 import { CompareChart } from "./CompareChart";
 import { WaterChart } from "./WaterChart";
 
@@ -119,14 +119,17 @@ export function River() {
         {fish?.demo && (
           <p className="demo-flag" style={{ background: "var(--warn-soft)", color: "var(--down-ink)", padding: "6px 10px", borderRadius: 6, fontSize: 13 }}>
             <b>Demo data.</b> These fish counts are made up to show how trends will look. They are not real observations.
+            {fish.from_videos && " Counts from reviewed videos are added to them."}
           </p>
         )}
         {fish && !hasFish && (
           <p className="meta">
             No fish counts at {siteName || "this site"} yet. Demo counts cover Upper LaHave, Dayspring and Bridgewater.
-            Real counts will appear once videos are linked to a sampling site and date.
+            Videos count here once they have a station and filming date, the station is within{" "}
+            {fishOptions?.videos.match_km ?? 1} km of this site, and their review is finished.
           </p>
         )}
+        {fishOptions && <VideoLinkList links={fishOptions.videos} siteId={siteId} />}
         {hasFish && (
           <>
             <Summary points={fish.points} unit={fish.unit} what="surveys" />
@@ -186,6 +189,37 @@ function CorrelationLine({ c }: { c: FishWaterComparison }) {
         Each fish survey is paired with the water reading closest in time, within {c.max_gap_days} days.
       </p>
     </div>
+  );
+}
+
+/** Which reviewed videos give fish counts at this site, and, folded away, why other videos don't count anywhere. */
+function VideoLinkList({ links, siteId }: { links: VideoLinks; siteId: string }) {
+  const here = links.linked.filter((l) => l.site_id === siteId);
+  if (here.length === 0 && links.not_linked.length === 0) return null;
+  return (
+    <details className="meta" style={{ lineHeight: 1.6 }}>
+      <summary>
+        {here.length === 0 ? "No reviewed videos from this site yet" : `${here.length} reviewed video${here.length === 1 ? "" : "s"} from this site`}
+        {links.not_linked.length > 0 && ` · ${links.not_linked.length} video${links.not_linked.length === 1 ? "" : "s"} not counted`}
+      </summary>
+      <p style={{ margin: "6px 0" }}>
+        A video counts when its station is within {links.match_km} km of a water sampling site, so the fish and the water
+        come from the same place. Each species' MaxN from the confirmed fish is used.
+      </p>
+      {here.length > 0 && (
+        <ul style={{ margin: "4px 0" }}>
+          {here.map((l) => <li key={l.video + l.date}>{l.video}: filmed {l.date}, {l.km} km from the water site</li>)}
+        </ul>
+      )}
+      {links.not_linked.length > 0 && (
+        <>
+          <b>Not counted</b>
+          <ul style={{ margin: "4px 0" }}>
+            {links.not_linked.map((n) => <li key={n.video}>{n.video}: {n.reason}</li>)}
+          </ul>
+        </>
+      )}
+    </details>
   );
 }
 
