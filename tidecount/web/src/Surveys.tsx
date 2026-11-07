@@ -1,27 +1,12 @@
-import { FormEvent, ReactNode, useEffect, useState } from "react";
+import { FormEvent, ReactNode, useState } from "react";
 import { Menu } from "./Menu";
+import { Modal } from "./Modal";
 import {
   activeTree, Flag, newId, placeLabel, removeItem, resetSurveys, saveItem, setArchived, setFilmedOn, setPlace,
   Site, Station, suggestStation, SurveyData, Transect, useSurveys, videoCount,
 } from "./surveyStore";
 
 const FLAGS: { value: Flag; label: string }[] = [{ value: "", label: "Not set" }, { value: "treatment", label: "Treatment" }, { value: "reference", label: "Reference" }];
-
-export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-  return (
-    <div className="help-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="help edit-dialog" role="dialog" aria-label={title}>
-        <h2>{title}</h2>
-        {children}
-      </div>
-    </div>
-  );
-}
 
 type Field = { key: string; label: string; options?: { value: string; label: string }[]; hint?: string };
 type EditState = { title: string; fields: Field[]; values: Record<string, string>; check?: (v: Record<string, string>) => string; save: (v: Record<string, string>) => void };

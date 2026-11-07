@@ -7,7 +7,7 @@ import { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { Accuracy } from "./Accuracy";
-import { Analyse, MyTasks } from "./Board";
+import { MyTasks, Workflow } from "./Board";
 import { Compare } from "./Compare";
 import { Library } from "./Library";
 import { Login } from "./Login";
@@ -55,7 +55,7 @@ function Sidebar() {
   const inAccuracy = pathname.startsWith("/accuracy") || pathname.startsWith("/models") || pathname.endsWith("/compare") || search.includes("from=accuracy");
   const items = [
     { to: "/", label: homeLabel(user.role), icon: manager ? "videos" as const : "tasks" as const, on: (pathname === "/" || inVideo) && !inAccuracy },
-    { to: "/analyse", label: "Analyse", icon: "board" as const, on: pathname.startsWith("/analyse") },
+    { to: "/workflow", label: "Workflow", icon: "board" as const, on: pathname.startsWith("/workflow") },
     ...(manager ? [{ to: "/reports", label: "Reports", icon: "reports" as const, on: pathname.startsWith("/reports") }] : []),
     { to: "/species", label: "Species wiki", icon: "species" as const, on: pathname.startsWith("/species") },
     { to: "/river", label: "River Sensor", icon: "river" as const, on: pathname.startsWith("/river") },
@@ -100,7 +100,8 @@ function Shell() {
       <main className="page">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/analyse" element={<Analyse />} />
+          <Route path="/workflow" element={<Workflow />} />
+          <Route path="/analyse" element={<Navigate to="/workflow" replace />} />
           <Route path="/reports" element={<ManagerOnly><Reports /></ManagerOnly>} />
           <Route path="/species" element={<Species />} />
           <Route path="/river" element={<River />} />
