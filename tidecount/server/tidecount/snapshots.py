@@ -1,8 +1,13 @@
 """Snapshot counts: a fixed set of frames a person checks, for MeanCount and MaxN.
 
+The frames follow Coastal Action's procedure: a window of footage is chosen, sediment and set-up left
+out, with one sub-sample point at equal intervals through it. MeanCount is the mean of those points.
+
 Frames are rows in school_counts with kind 'snapshot' or 'peak'. Status '' means not done, and
-those rows hold no total. AI dots are read from boxes saved during analysis, so no model loads here
-and the review UI still only reads saved results.
+those rows hold no total. A counted frame that leaves the grid, because the window moved, becomes
+'retired': it's out of every number, but it's kept, and it comes back if the window does. AI dots are
+read from boxes saved during analysis, so no model loads here and the review UI still only reads
+saved results.
 
 AI's count for a frame is every box the detector drew on it at the run's dot threshold, tracked or
 not. Tracks are built for the review queue: one only starts on a confident box that lasts, so in a
@@ -12,7 +17,9 @@ A frame is blind when a person counted it without seeing AI's dots. Only blind f
 because a person who sees AI's dots first tends to keep them and to miss what AI missed. Once a
 frame has shown AI's dots it can never be blind, even if someone counts it again without them.
 """
+import json
 import random
+import statistics
 
 from . import config, db, settings
 
@@ -23,16 +30,55 @@ AI_SAMPLES = (
 )
 
 
-def snapshot_times(duration: float, fps: int) -> list[float]:
-    """Evenly spaced times, snapped to the nearest frame the worker sampled."""
+def snapshot_times(start: float, end: float, every: float, fps: int) -> list[float]:
+    """Evenly spaced times from start up to end, snapped to the nearest frame the worker sampled."""
     out = []
-    t = float(config.SNAPSHOT_START_S)
-    while t < duration:
+    t = float(start)
+    while t < end:
         snapped = round(t * fps) / fps
-        if snapped < duration:
+        if snapped < end:
             out.append(snapped)
-        t += config.SNAPSHOT_EVERY_S
+        t += every
     return out
+
+
+def trims(duration: float) -> tuple[float, float]:
+    """Footage left out at each end. A clip much shorter than the procedure's videos keeps most of its length."""
+    rules = settings.current().protocol
+    return min(rules.trim_start_s, duration / 4), min(rules.trim_end_s, duration / 4)
+
+
+def suggest_start(seconds: list[tuple[int, float]], duration: float) -> float:
+    """The first time the water stays clear, leaving room for the whole window if the video has it.
+
+    `seconds` is (second, clarity). Clarity falls in murky water, and each video has its own usual
+    level, so it's compared with that video's median. With no clear stretch the earliest start stands.
+    """
+    rules = settings.current().protocol
+    head, tail = trims(duration)
+    latest = max(head, duration - tail - rules.window_s)
+    clarity = dict(seconds)
+    usual = statistics.median([c for c in clarity.values() if c > 0] or [0])
+    for start in range(int(head + 0.999), int(latest) + 1):
+        ahead = [clarity[s] for s in range(start, start + rules.clear_for_s) if s in clarity]
+        if ahead and statistics.median(ahead) >= usual * rules.clear_share:
+            return float(start)
+    return head
+
+
+def window(con, v: dict) -> dict:
+    """The footage this video's frames come from, and the rest of the procedure the screen needs."""
+    rules = settings.current().protocol
+    fps = settings.for_run(v).fps
+    rows = con.execute("SELECT second, clarity FROM seconds WHERE video_id = ?", (v["id"],)).fetchall()
+    suggested = round(suggest_start([(r["second"], r["clarity"]) for r in rows], v["duration"]) * fps) / fps
+    start = suggested if v.get("window_start") is None else v["window_start"]
+    end = min(start + rules.window_s, v["duration"] - trims(v["duration"])[1])
+    return {
+        "start": start, "end": end, "suggested": suggested, "chosen": v.get("window_start") is not None,
+        "every_s": rules.every_s, "context_s": rules.context_s, "visibility": v.get("visibility") or "",
+        "juveniles": v.get("juveniles"), "visibility_options": config.VISIBILITY,
+    }
 
 
 def pick_peaks(seconds: list[tuple[int, int]], taken: set[float], best_sample: dict[int, float] | None = None) -> list[float]:
@@ -53,21 +99,35 @@ def pick_peaks(seconds: list[tuple[int, int]], taken: set[float], best_sample: d
 
 
 def ensure_frames(con, v: dict) -> None:
-    """Create a video's frames once. The unique index keeps a second request from doubling them."""
-    if con.execute(f"SELECT 1 FROM school_counts WHERE video_id = ? AND {FRAME_KINDS} LIMIT 1", (v["id"],)).fetchone():
+    """Bring a video's frames in line with its window. The unique index keeps a second request from doubling them.
+
+    Frames are never lost: one nobody started can go, but a counted one is set aside, and a frame
+    back on the grid picks up its old count.
+    """
+    plan = window(con, v)
+    snaps = snapshot_times(plan["start"], plan["end"], plan["every_s"], settings.for_run(v).fps)
+    first = not con.execute(f"SELECT 1 FROM school_counts WHERE video_id = ? AND {FRAME_KINDS} LIMIT 1", (v["id"],)).fetchone()
+    on_grid = set(snaps)
+    for r in db.rows(con.execute("SELECT id, kind, t, saved FROM school_counts WHERE video_id = ? AND kind IN ('snapshot', 'retired')", (v["id"],))):
+        if r["kind"] == "retired" and r["t"] in on_grid:
+            con.execute("UPDATE school_counts SET kind = 'snapshot' WHERE id = ?", (r["id"],))
+        elif r["kind"] == "snapshot" and r["t"] not in on_grid:
+            if r["saved"]:
+                con.execute("UPDATE school_counts SET kind = 'retired' WHERE id = ?", (r["id"],))
+            else:
+                con.execute("DELETE FROM school_counts WHERE id = ?", (r["id"],))
+    model = config.DETECTORS.get(v["detector"], {}).get("label", v["detector"])
+    insert = "INSERT OR IGNORE INTO school_counts (video_id, t, frame_path, total, note, kind) VALUES (?, ?, ?, NULL, ?, ?)"
+    frame_file = lambda t: str(config.FRAMES / f"snapshot-{v['id']}-{t:.3f}.jpg")
+    con.executemany(insert, [(v["id"], t, frame_file(t), model, "snapshot") for t in snaps])
+    if not first:
         return
-    snaps = snapshot_times(v["duration"], settings.for_run(v).fps)
     seconds = [(r["second"], r["detections"]) for r in con.execute("SELECT second, detections FROM seconds WHERE video_id = ?", (v["id"],))]
     best: dict[int, float] = {}  # later rows win: the busiest sample, and the earliest of a tie
     for r in con.execute(f"SELECT d.t, COUNT(*) AS n {AI_SAMPLES} GROUP BY d.t ORDER BY n, d.t DESC", (v["id"],)):
         best[int(r["t"])] = r["t"]
-    peaks = [t for t in pick_peaks(seconds, set(snaps), best) if t < v["duration"]]
-    model = config.DETECTORS.get(v["detector"], {}).get("label", v["detector"])
-    con.executemany(
-        "INSERT OR IGNORE INTO school_counts (video_id, t, frame_path, total, note, kind) VALUES (?, ?, ?, NULL, ?, ?)",
-        [(v["id"], t, str(config.FRAMES / f"snapshot-{v['id']}-{t:.3f}.jpg"), model, kind)
-         for kind, times in (("snapshot", snaps), ("peak", peaks)) for t in times],
-    )
+    peaks = [t for t in pick_peaks(seconds, on_grid, best) if t < v["duration"]]
+    con.executemany(insert, [(v["id"], t, frame_file(t), model, "peak") for t in peaks])
 
 
 def frame_boxes(con, video_id: str, t: float) -> list[dict] | None:
@@ -113,20 +173,20 @@ def ai_dots(con, video_id: str, t: float) -> list[dict]:
 def frames(con, video_id: str) -> list[dict]:
     """A video's frames by time. `rank` is the order to count them in when a person counts on their own."""
     rows = db.rows(con.execute(
-        f"SELECT id, kind, t, status, total, proposed, removed, added, blind, ai_shown FROM school_counts "
-        f"WHERE video_id = ? AND {FRAME_KINDS} ORDER BY t",
+        f"SELECT id, kind, t, status, total, proposed, removed, added, blind, ai_shown, invertebrates, species, visibility, comment "
+        f"FROM school_counts WHERE video_id = ? AND {FRAME_KINDS} ORDER BY t",
         (video_id,),
     ))
     for rank, row in enumerate(count_order(rows)):
         row["rank"] = rank
+        row["species"] = json.loads(row["species"] or "[]")
     return rows
 
 
 def count_order(rows: list[dict]) -> list[dict]:
     """Evenly spaced frames in a fixed random order, then peak frames by time.
 
-    Someone who stops early has then still covered the whole video. It's the order ml/bench.py used
-    for the same number of frames, so labels made there are the first frames offered here.
+    Someone who stops early has then still covered the whole window.
     """
     snaps = [r for r in rows if r["kind"] == "snapshot"]
     random.Random(config.SNAPSHOT_ORDER_SEED).shuffle(snaps)
@@ -135,12 +195,16 @@ def count_order(rows: list[dict]) -> list[dict]:
 
 def stats(con, video_id: str) -> dict:
     """Only frames a person saved reach these numbers. Could-not-see frames have no total at all."""
-    rows = db.rows(con.execute("SELECT kind, status, saved, total FROM school_counts WHERE video_id = ?", (video_id,)))
+    rows = db.rows(con.execute(
+        "SELECT kind, status, saved, total, invertebrates, species FROM school_counts WHERE video_id = ? AND kind != 'retired'", (video_id,),
+    ))
     snaps = [r for r in rows if r["kind"] == "snapshot"]
     peaks = [r for r in rows if r["kind"] == "peak"]
     counted = [r["total"] for r in snaps if r["status"] == "checked"]
     blind = sum(1 for r in snaps if r["status"] == "could_not_see")
     every = [r["total"] for r in rows if r["status"] == "checked" or (r["kind"] == "school" and r["saved"])]
+    invertebrates = [r["invertebrates"] or 0 for r in snaps if r["status"] == "checked"]
+    named = {s["name"] for r in snaps if r["status"] == "checked" for s in json.loads(r["species"] or "[]")}
     complete = bool(snaps) and len(counted) + blind == len(snaps)
     return {
         "frames_total": len(snaps),
@@ -151,6 +215,8 @@ def stats(con, video_id: str) -> dict:
         "peak_checked": sum(1 for r in peaks if r["status"] == "checked"),
         "peak_could_not_see": sum(1 for r in peaks if r["status"] == "could_not_see"),
         "mean_count": sum(counted) / len(counted) if counted else None,
+        "invertebrate_mean": sum(invertebrates) / len(invertebrates) if invertebrates else None,
+        "species_seen": sorted(named),
         "largest_count": max(every, default=None),
         "largest_label": "MaxN" if complete else "Largest count in checked frames",
         "complete": complete,
@@ -196,7 +262,7 @@ def blind_labels(con, root_id: str) -> dict[float, list[tuple[float, float]]]:
     """Dots from blind frames, by time. Runs of one video share them, since the footage is the same."""
     frames = db.rows(con.execute(
         "SELECT c.id, c.t FROM school_counts c JOIN videos v ON v.id = c.video_id "
-        "WHERE (v.id = ? OR v.source_id = ?) AND c.kind = 'snapshot' AND c.status = 'checked' AND c.blind = 1 ORDER BY c.id",
+        "WHERE (v.id = ? OR v.source_id = ?) AND c.kind IN ('snapshot', 'retired') AND c.status = 'checked' AND c.blind = 1 ORDER BY c.id",
         (root_id, root_id),
     ))
     out: dict[float, list[tuple[float, float]]] = {}

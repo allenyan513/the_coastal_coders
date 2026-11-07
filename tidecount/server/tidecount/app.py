@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="TideCount", lifespan=lifespan)
+app = FastAPI(title="Tideflow", lifespan=lifespan)
 for module in (videos, tracks, review, schools, snapshots, species, summary):
     app.include_router(module.router)
 app.include_router(web.router)  # last, because its catch-all path would hide the API

@@ -74,6 +74,16 @@ def decode_span(path: str, start: float, seconds: float, width: int, height: int
     ]
 
 
+def extract_clip(path: str, start: float, seconds: float, dst: Path) -> None:
+    """A short 1080p clip from the original, since small fish are lost at the proxy's 540p."""
+    subprocess.run(
+        [FFMPEG, "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{start:.3f}", "-i", path, "-t", f"{seconds:.3f}",
+         "-vf", "scale=-2:'min(1080,ih)',format=yuv420p", "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+         "-an", "-movflags", "+faststart", str(dst)],
+        check=True, capture_output=True,
+    )
+
+
 def extract_frame(path: str, t: float, dst: Path) -> None:
     subprocess.run(
         [FFMPEG, "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{t:.3f}", "-i", path,

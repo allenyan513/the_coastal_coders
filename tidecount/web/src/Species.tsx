@@ -33,7 +33,7 @@ export function Species() {
   return (
     <div className="stack" style={{ gap: 20 }}>
       <div>
-        <h1>Species list</h1>
+        <h1>Species wiki</h1>
         <p className="lede">AI only suggests fish from this list, built from records of fish seen in Nova Scotia. A person always makes the final call.</p>
       </div>
 

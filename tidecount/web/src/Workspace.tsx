@@ -5,7 +5,7 @@ import { guess, nameOf, pos, stateFor, topName, UNIDENTIFIED } from "./trackHelp
 import { KeyGroup, Shortcuts } from "./Shortcuts";
 import { VideoHeader } from "./VideoHeader";
 
-const RATES = [0.5, 1, 2, 4];
+const RATES = [0.25, 0.5, 1, 2, 4];
 const FRAME = 1 / 30;
 const KEYS: KeyGroup[] = [
   { title: "Video", keys: [["Space", "Play or pause"], ["← →", "Step one frame"], ["B", "Show or hide AI boxes"], ["G", "Show or hide the grid"]] },

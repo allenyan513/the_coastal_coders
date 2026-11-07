@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, clock, Summary, Video } from "./api";
-import { reviewProgress } from "./Library";
+import { countProgress } from "./Library";
 
 type Row = { video: Video; summary: Summary };
 
-/** Every analysed video side by side, grouped by site. One row per video: the run with the most review done. */
+/** Every analysed video side by side, grouped by site. One row per video: the run with the most points counted. */
 export function Reports() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState("");
@@ -22,7 +22,7 @@ export function Reports() {
     (rows ?? []).forEach((r) => {
       const root = r.video.source_id || r.video.id;
       const kept = best.get(root);
-      if (!kept || reviewProgress(r.summary).done > reviewProgress(kept.summary).done) best.set(root, r);
+      if (!kept || countProgress(r.summary).done > countProgress(kept.summary).done) best.set(root, r);
     });
     const out = new Map<string, Row[]>();
     best.forEach((r) => out.set(r.video.site || "No site set", [...(out.get(r.video.site || "No site set") ?? []), r]));
@@ -36,7 +36,7 @@ export function Reports() {
     <div className="stack" style={{ gap: 20 }}>
       <div>
         <h1>Reports</h1>
-        <p className="lede">Results a person confirmed, video by video. AI suggestions that nobody checked aren't counted.</p>
+        <p className="lede">The procedure's results, video by video. Only counts a person confirmed are included.</p>
       </div>
       {sites.map(([site, list]) => (
         <section className="panel" key={site}>
@@ -44,33 +44,30 @@ export function Reports() {
           <table className="cards">
             <thead>
               <tr>
-                <th>Video</th><th className="right">Length</th><th className="right">Watched</th><th className="right">Skipped by AI</th>
-                <th className="right">Fish entries</th><th className="right">Species named</th><th className="right">Average per snapshot</th><th className="right">Most in one frame</th><th />
+                <th>Video</th><th className="right">Length</th><th className="right">Window</th><th className="right">Points counted</th>
+                <th className="right">MeanCount</th><th className="right">Invertebrates per point</th><th className="right">Species</th><th>Visibility</th><th />
               </tr>
             </thead>
             <tbody>
-              {list.map(({ video: v, summary: s }) => {
-                const p = reviewProgress(s);
-                return (
-                  <tr key={v.id}>
-                    <td><Link className="vname" to={`/videos/${v.id}/summary`}>{v.name}</Link></td>
-                    <td className="num right" data-label="Length">{clock(v.duration)}</td>
-                    <td className="num right" data-label="Watched">{clock(p.done)} of {clock(p.total)}</td>
-                    <td className="num right" data-label="Skipped by AI">{clock(s.skipped)}</td>
-                    <td className="num right" data-label="Fish entries">{s.entries}</td>
-                    <td className="num right" data-label="Species named">{s.species_count}</td>
-                    <td className="num right" data-label="Average per snapshot">{s.snapshots.mean_count?.toFixed(2) ?? "—"}</td>
-                    <td className="num right" data-label="Most in one frame">{s.snapshots.largest_count ?? "—"}</td>
-                    <td className="right"><a className="btn" href={`/api/videos/${v.id}/export.csv`}>CSV</a></td>
-                  </tr>
-                );
-              })}
+              {list.map(({ video: v, summary: s }) => (
+                <tr key={v.id}>
+                  <td><Link className="vname" to={`/videos/${v.id}/summary`}>{v.name}</Link></td>
+                  <td className="num right" data-label="Length">{clock(v.duration)}</td>
+                  <td className="num right" data-label="Window">{clock(s.protocol.start)} to {clock(s.protocol.end)}</td>
+                  <td className="num right" data-label="Points counted">{s.snapshots.frames_checked} of {s.snapshots.frames_total}</td>
+                  <td className="num right" data-label="MeanCount">{s.snapshots.mean_count?.toFixed(2) ?? "—"}</td>
+                  <td className="num right" data-label="Invertebrates per point">{s.snapshots.invertebrate_mean?.toFixed(2) ?? "—"}</td>
+                  <td className="num right" data-label="Species">{s.species_observed.length}</td>
+                  <td data-label="Visibility">{s.protocol.visibility || "—"}</td>
+                  <td className="right"><a className="btn" href={`/api/videos/${v.id}/protocol.csv`}>Sheet</a></td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </section>
       ))}
       {!sites.length && <p className="meta">No analysed videos yet.</p>}
-      <p className="meta">Fish entries can count one fish twice if it leaves and comes back. A dash means that count hasn't been done.</p>
+      <p className="meta">A dash means that count hasn't been done.</p>
     </div>
   );
 }

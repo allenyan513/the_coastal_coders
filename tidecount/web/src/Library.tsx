@@ -1,47 +1,34 @@
 import { DragEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, clock, isLocal, ModelOption, Summary, Video } from "./api";
+import { Menu } from "./Menu";
+import { useUser } from "./session";
+import { SiteList, StationDialog, StationPicker, StationStats } from "./Surveys";
+import { setPlace, setPlaces, suggestStation, useSurveys } from "./surveyStore";
 
 const READY = "Ready to review";
 type Group = { root: string; runs: Video[] };
 
-/** Footage a person has to look at, and how much of it is done. */
-export function reviewProgress(s: Summary) {
-  const done = s.reviewed + s.could_not_see;
-  return { done, total: done + s.pending };
+/** Sub-sample points to count, and how many are done. */
+export function countProgress(s: Summary) {
+  return { done: s.snapshots.frames_done, total: s.snapshots.frames_total };
 }
 
-function Menu({ label, children }: { label: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const box = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: Event) => {
-      if (e instanceof KeyboardEvent ? e.key === "Escape" : !box.current?.contains(e.target as Node)) setOpen(false);
-    };
-    window.addEventListener("mousedown", close);
-    window.addEventListener("keydown", close);
-    return () => {
-      window.removeEventListener("mousedown", close);
-      window.removeEventListener("keydown", close);
-    };
-  }, [open]);
-  return (
-    <div className="menu" ref={box}>
-      <button className="btn" aria-label={label} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>⋯</button>
-      {open && <div className="menu-list" role="menu" onClick={() => setOpen(false)}>{children}</div>}
-    </div>
-  );
-}
-
+/** Surveys: one tree of sites, transects and stations, with each station's footage under it. */
 export function Library() {
+  const manager = useUser().role === "manager";
+  const data = useSurveys();
   const [videos, setVideos] = useState<Video[]>([]);
   const [summaries, setSummaries] = useState<Record<string, Summary>>({});
   const [models, setModels] = useState<ModelOption[]>([]);
   const [chosen, setChosen] = useState<Record<string, string>>({});
   const [detector, setDetector] = useState("");
-  const [site, setSite] = useState("");
+  const [pending, setPending] = useState<File | null>(null);
+  const [stationId, setStationId] = useState("");
   const [path, setPath] = useState("");
+  const [placing, setPlacing] = useState<{ root: string; name: string } | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [inboxOpen, setInboxOpen] = useState(false);
   const [params] = useSearchParams();
   const [importing, setImporting] = useState<boolean | null>(params.has("import") ? true : null);
   const [over, setOver] = useState(false);
@@ -93,35 +80,138 @@ export function Library() {
   }, [videos]);
 
   const labelOf = (key: string) => models.find((m) => m.key === key)?.label ?? key;
-  /** The run a row shows: the one picked, else the one with the most review done, else the first imported. */
+  /** The run a row shows: the one picked, else the one with the most points counted, else the first imported. */
   const shownRun = (g: Group) =>
     g.runs.find((v) => v.id === chosen[g.root])
-    ?? [...g.runs].sort((a, b) => (summaries[b.id] ? reviewProgress(summaries[b.id]).done : 0) - (summaries[a.id] ? reviewProgress(summaries[a.id]).done : 0))[0];
+    ?? [...g.runs].sort((a, b) => (summaries[b.id] ? countProgress(summaries[b.id]).done : 0) - (summaries[a.id] ? countProgress(summaries[a.id]).done : 0))[0];
 
-  const shown = groups.map(shownRun);
-  const sum = (pick: (s: Summary) => number) => shown.reduce((n, v) => n + (summaries[v.id] ? pick(summaries[v.id]) : 0), 0);
-  const working = videos.filter((v) => v.status === "Analyzing" || v.status === "Queued").length;
-  const failed = videos.filter((v) => v.status === "Failed").length;
   const showImport = importing ?? (videos.length === 0 && !error);
 
+  /** Holds the file until it has a station. Coastal Action's file names pre-fill it, for the person to confirm. */
+  const choose = (file: File) => {
+    setPending(file);
+    setStationId(suggestStation(data, file.name) || stationId);
+  };
   const drop = (e: DragEvent) => {
     e.preventDefault();
     setOver(false);
     const file = e.dataTransfer.files[0];
-    if (file) run(() => api.upload(file, site, detector));
+    if (file) choose(file);
+  };
+  const siteName = () => {
+    const transect = data.transects.find((t) => t.id === data.stations.find((s) => s.id === stationId)?.transectId);
+    return data.sites.find((s) => s.id === transect?.siteId)?.name ?? "";
+  };
+  const importTo = (send: (site: string) => Promise<{ id: string }>) => run(async () => {
+    const { id } = await send(siteName());
+    setPlace(id, stationId);
+    setPending(null);
+    setPath("");
+  });
+
+  const unfiled = groups.filter((g) => !data.places[g.root]);
+  const matches = Object.fromEntries(unfiled.flatMap((g) => {
+    const suggested = suggestStation(data, g.runs[0].name);
+    return suggested ? [[g.root, suggested] as const] : [];
+  }));
+  const matchCount = Object.keys(matches).length;
+
+  const row = (g: Group) => {
+    const v = shownRun(g);
+    const s = summaries[v.id];
+    const p = s ? countProgress(s) : null;
+    const ready = v.status === READY;
+    const started = !!p && p.done > 0;
+    const finished = !!p && p.total > 0 && p.done >= p.total;
+    const filed = !!data.places[g.root];
+    return (
+      <div className="vrow" key={g.root}>
+        {ready
+          ? <video className="thumb" src={`/api/videos/${v.id}/proxy#t=${Math.min(3, v.duration / 2).toFixed(1)}`} preload="metadata" muted playsInline tabIndex={-1} />
+          : <span className="thumb" />}
+        <div className="stack" style={{ gap: 4, minWidth: 0 }}>
+          {ready ? <Link className="vname" to={`/videos/${v.id}/snapshots`}>{v.name}</Link> : <span className="vname">{v.name}</span>}
+          <span className="meta">
+            {!filed && <><button className="link" onClick={() => setPlacing({ root: g.root, name: v.name })}>Choose station</button>{g.runs.length === 1 ? " · " : ""}</>}
+            {g.runs.length === 1 ? labelOf(v.detector) : ""}
+          </span>
+          {g.runs.length > 1 && (
+            <div className="row" style={{ gap: 4 }}>
+              {g.runs.map((r) => (
+                <button key={r.id} className="chip" style={{ height: 26 }} aria-pressed={r.id === v.id} onClick={() => setChosen({ ...chosen, [g.root]: r.id })}>
+                  {labelOf(r.detector)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <span className="num right hide-narrow">{v.duration ? clock(v.duration) : "—"}</span>
+        <div className="stack vprogress" style={{ gap: 6 }}>
+          {!ready && (
+            <div className="row">
+              <span className={`pill ${v.status === "Failed" ? "down" : "muted"}`}>{v.status}</span>
+              {v.status === "Analyzing" && <span className="meta">{v.stage} · {Math.round(v.progress * 100)}%</span>}
+              {v.error && <span className="meta">{v.error}</span>}
+            </div>
+          )}
+          {v.status === "Analyzing" && <span className="bar wide"><i style={{ width: `${v.progress * 100}%` }} /></span>}
+          {ready && (
+            <>
+              <div className="row">
+                <span className={`pill ${finished ? "up" : started ? "warn" : "accent"}`}>{finished ? "Counted" : started ? "Counting" : "Ready to count"}</span>
+                {p && <span className="num meta">{p.done} of {p.total} points</span>}
+              </div>
+              {p && <span className="bar wide"><i className={finished ? "up" : ""} style={{ width: `${(p.done / (p.total || 1)) * 100}%` }} /></span>}
+            </>
+          )}
+        </div>
+        <div className="row vactions" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
+          {v.status === "Failed" && <button className="btn" disabled={busy} onClick={() => run(() => api.retry(v.id))}>Retry</button>}
+          {ready && (
+            <>
+              <Link className={`btn ${finished ? "" : "go"}`} to={finished ? `/videos/${v.id}/summary` : `/videos/${v.id}/snapshots`}>
+                {finished ? "Open report" : started ? "Continue" : "Count"}
+              </Link>
+              <Menu label={`More for ${v.name}`}>
+                <Link role="menuitem" to={`/videos/${v.id}`}>Review footage</Link>
+                <Link role="menuitem" to={`/videos/${v.id}/summary`}>Report</Link>
+                <a role="menuitem" href={`/api/videos/${v.id}/protocol.csv`}>Export analysis sheet</a>
+                <button role="menuitem" onClick={() => setPlacing({ root: g.root, name: v.name })}>{filed ? "Move to another station" : "Choose station"}</button>
+              </Menu>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const groupsAt = (id: string) => groups.filter((g) => data.places[g.root] === id);
+  const videosAt = (id: string) => <div className="tree-videos">{groupsAt(id).map(row)}</div>;
+  const statsAt = (id: string): StationStats => {
+    const here = groupsAt(id).map((g) => summaries[shownRun(g).id]).map((s) => (s ? countProgress(s) : { done: 0, total: 0 }));
+    return { videos: here.length, done: here.reduce((n, p) => n + p.done, 0), total: here.reduce((n, p) => n + p.total, 0) };
+  };
+  /** Starts an import with the station already chosen, from the row that needs footage. */
+  const importInto = (id: string) => {
+    setStationId(id);
+    setImporting(true);
+    window.scrollTo({ top: 0 });
   };
 
   return (
     <div className="stack" style={{ gap: 20 }}>
       <div className="pagehead">
         <div>
-          <h1>Videos</h1>
-          <p className="lede">Import a video, let AI find the footage worth watching, then review, count and export.</p>
+          <h1>Surveys</h1>
+          <p className="lede">{editing ? "Add or change sites, transects and stations. Footage stays where it is." : "What's been filmed and counted at every station."}</p>
         </div>
-        <button className="btn primary" onClick={() => setImporting(!showImport)}>{showImport ? "Close import" : "Import video"}</button>
+        <div className="row">
+          {manager && <button className="btn tall" onClick={() => setEditing(!editing)}>{editing ? "Done" : "Edit structure"}</button>}
+          {!editing && <button className="btn primary" onClick={() => setImporting(!showImport)}>{showImport ? "Close import" : "Import video"}</button>}
+        </div>
       </div>
 
-      {showImport && (
+      {showImport && !editing && (
         <div className="panel panel-pad" style={{ gap: 12 }}>
           <div className="row" style={{ alignItems: "stretch", gap: 16 }}>
             <div
@@ -131,9 +221,14 @@ export function Library() {
               onDragLeave={() => setOver(false)}
               onDrop={drop}
             >
-              <b>{busy ? "Importing…" : <><span className="hide-phone">Drop a video here</span><span className="only-phone">Choose a video</span></>}</b>
-              <span className="meta">MP4, MOV, MKV or AVI. {isLocal ? "It's copied into this PC's TideCount folder and nowhere else." : "It's uploaded to the demo server."}</span>
-              <button className="btn" disabled={busy} onClick={() => input.current?.click()}>Choose file</button>
+              <b>{busy ? "Importing…" : pending ? pending.name : <><span className="hide-phone">Drop a video here</span><span className="only-phone">Choose a video</span></>}</b>
+              <span className="meta">{pending ? (stationId ? "Check the station, then import." : "Choose its station to import it.") : `MP4, MOV, MKV or AVI. ${isLocal ? "It's copied into this PC's Tideflow folder and nowhere else." : "It's uploaded to the demo server."}`}</span>
+              {pending ? (
+                <div className="row">
+                  <button className="btn" disabled={busy} onClick={() => setPending(null)}>Cancel</button>
+                  <button className="btn go" disabled={busy || !stationId} onClick={() => importTo((site) => api.upload(pending, site, detector))}>Import</button>
+                </div>
+              ) : <button className="btn" disabled={busy} onClick={() => input.current?.click()}>Choose file</button>}
               <input
                 ref={input}
                 type="file"
@@ -141,15 +236,13 @@ export function Library() {
                 hidden
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) run(() => api.upload(file, site, detector));
+                  if (file) choose(file);
                   e.target.value = "";
                 }}
               />
             </div>
             <div className="stack" style={{ flex: "1 1 260px" }}>
-              <label className="field">Site, used to group reports
-                <input value={site} onChange={(e) => setSite(e.target.value)} placeholder="Mahone Bay living shoreline" />
-              </label>
+              <StationPicker data={data} value={stationId} onChange={setStationId} />
               <details className="advanced">
                 <summary>Advanced: model and large files</summary>
                 <div className="stack">
@@ -160,9 +253,9 @@ export function Library() {
                   </label>
                   <div className="stack hide-phone">
                     <label className="field">File path on this PC, for files too large to upload
-                      <input value={path} onChange={(e) => setPath(e.target.value)} placeholder="D:\Surveys\GX010123.MP4" />
+                      <input value={path} onChange={(e) => { setPath(e.target.value); setStationId(suggestStation(data, e.target.value) || stationId); }} placeholder="D:\Surveys\GX010123.MP4" />
                     </label>
-                    <button className="btn" disabled={busy || !path.trim()} onClick={() => run(async () => { await api.importPath(path, site, detector); setPath(""); })}>
+                    <button className="btn" disabled={busy || !path.trim() || !stationId} onClick={() => importTo((site) => api.importPath(path, site, detector))}>
                       Import from path
                     </button>
                   </div>
@@ -174,85 +267,21 @@ export function Library() {
       )}
       {error && <p className="meta" style={{ color: "var(--down)" }}>{error}</p>}
 
-      <div className="panel kpis">
-        <div className="kpi"><span className="meta">Videos</span><b>{groups.length}</b></div>
-        <div className="kpi"><span className="meta">Footage imported</span><b>{clock(shown.reduce((n, v) => n + v.duration, 0))}</b></div>
-        <div className="kpi"><span className="meta">Left to review</span><b>{clock(sum((s) => s.pending))}</b></div>
-        <div className="kpi"><span className="meta">Skipped by AI</span><b>{clock(sum((s) => s.skipped))}</b></div>
-        {working > 0 && <div className="kpi"><span className="meta">Analyzing or queued</span><b>{working}</b></div>}
-        {failed > 0 && <div className="kpi"><span className="meta">Failed</span><b>{failed}</b></div>}
-      </div>
-
-      <div className="panel">
-        <div className="vcols">
-          <span /><span>Video</span><span className="right hide-narrow">Length</span><span className="hide-narrow">Progress</span><span />
-        </div>
-        {groups.map((g) => {
-          const v = shownRun(g);
-          const s = summaries[v.id];
-          const p = s ? reviewProgress(s) : null;
-          const ready = v.status === READY;
-          const started = !!p && p.done > 0;
-          const finished = !!p && p.total > 0 && p.done >= p.total;
-          return (
-            <div className="vrow" key={g.root}>
-              {ready
-                ? <video className="thumb" src={`/api/videos/${v.id}/proxy#t=${Math.min(3, v.duration / 2).toFixed(1)}`} preload="metadata" muted playsInline tabIndex={-1} />
-                : <span className="thumb" />}
-              <div className="stack" style={{ gap: 4, minWidth: 0 }}>
-                {ready ? <Link className="vname" to={`/videos/${v.id}`}>{v.name}</Link> : <span className="vname">{v.name}</span>}
-                <span className="meta">{v.site || "No site set"}{g.runs.length === 1 ? ` · ${labelOf(v.detector)}` : ""}</span>
-                {g.runs.length > 1 && (
-                  <div className="row" style={{ gap: 4 }}>
-                    {g.runs.map((r) => (
-                      <button key={r.id} className="chip" style={{ height: 26 }} aria-pressed={r.id === v.id} onClick={() => setChosen({ ...chosen, [g.root]: r.id })}>
-                        {labelOf(r.detector)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <span className="num right hide-narrow">{v.duration ? clock(v.duration) : "—"}</span>
-              <div className="stack vprogress" style={{ gap: 6 }}>
-                {!ready && (
-                  <div className="row">
-                    <span className={`pill ${v.status === "Failed" ? "down" : "muted"}`}>{v.status}</span>
-                    {v.status === "Analyzing" && <span className="meta">{v.stage} · {Math.round(v.progress * 100)}%</span>}
-                    {v.error && <span className="meta">{v.error}</span>}
-                  </div>
-                )}
-                {v.status === "Analyzing" && <span className="bar wide"><i style={{ width: `${v.progress * 100}%` }} /></span>}
-                {ready && (
-                  <>
-                    <div className="row">
-                      <span className={`pill ${finished ? "up" : started ? "warn" : "accent"}`}>{finished ? "Reviewed" : started ? "In review" : READY}</span>
-                      {p && <span className="num meta">{clock(p.done)} of {clock(p.total)} watched</span>}
-                    </div>
-                    {p && <span className="bar wide"><i className={finished ? "up" : ""} style={{ width: `${(p.done / (p.total || 1)) * 100}%` }} /></span>}
-                  </>
-                )}
-              </div>
-              <div className="row vactions" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
-                {v.status === "Failed" && <button className="btn" disabled={busy} onClick={() => run(() => api.retry(v.id))}>Retry</button>}
-                {ready && (
-                  <>
-                    <Link className={`btn ${finished ? "" : "go"}`} to={finished ? `/videos/${v.id}/summary` : `/videos/${v.id}`}>
-                      {finished ? "Open report" : started ? "Continue" : "Review"}
-                    </Link>
-                    <Menu label={`More for ${v.name}`}>
-                      <Link role="menuitem" to={`/videos/${v.id}/tracks`}>All tracks</Link>
-                      <Link role="menuitem" to={`/videos/${v.id}/snapshots`}>Snapshot count</Link>
-                      <Link role="menuitem" to={`/videos/${v.id}/summary`}>Report</Link>
-                      <a role="menuitem" href={`/api/videos/${v.id}/export.csv`}>Export CSV</a>
-                    </Menu>
-                  </>
-                )}
-              </div>
+      {manager && !editing && unfiled.length > 0 && (
+        <section className="panel inbox">
+          <div className="inbox-head">
+            <p><b>{unfiled.length} {unfiled.length === 1 ? "video needs" : "videos need"} a station</b>{matchCount > 0 && <span className="meta"> · {matchCount} can be filed from {matchCount === 1 ? "its name" : "their names"}</span>}</p>
+            <div className="row">
+              <button className="btn" onClick={() => setInboxOpen(!inboxOpen)}>{inboxOpen ? "Hide" : "Review"}</button>
+              {matchCount > 0 && <button className="btn go" onClick={() => setPlaces(matches)}>File {matchCount} by name</button>}
             </div>
-          );
-        })}
-        {groups.length === 0 && <p className="meta" style={{ padding: 16 }}>No videos yet. Import one to start.</p>}
-      </div>
+          </div>
+          {inboxOpen && unfiled.map(row)}
+        </section>
+      )}
+
+      <SiteList editing={editing} videosAt={videosAt} statsAt={statsAt} onImport={importInto} />
+      {placing && <StationDialog root={placing.root} name={placing.name} onClose={() => setPlacing(null)} />}
     </div>
   );
 }
