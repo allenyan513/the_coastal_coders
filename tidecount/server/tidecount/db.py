@@ -44,6 +44,16 @@ CREATE TABLE IF NOT EXISTS school_counts (
 CREATE TABLE IF NOT EXISTS school_dots (count_id INTEGER, x REAL, y REAL, source TEXT);
 CREATE TABLE IF NOT EXISTS frame_boxes (video_id TEXT, t REAL, x REAL, y REAL, w REAL, h REAL, conf REAL);
 CREATE INDEX IF NOT EXISTS frame_boxes_time ON frame_boxes (video_id, t);
+CREATE TABLE IF NOT EXISTS sites (
+  id TEXT PRIMARY KEY, name TEXT NOT NULL, coordinates TEXT DEFAULT '', flag TEXT DEFAULT '', archived INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS transects (
+  id TEXT PRIMARY KEY, site_id TEXT NOT NULL, name TEXT NOT NULL, archived INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS stations (
+  id TEXT PRIMARY KEY, transect_id TEXT NOT NULL, name TEXT NOT NULL, coordinates TEXT DEFAULT '', depth TEXT DEFAULT '',
+  archived INTEGER DEFAULT 0
+);
 CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY, video_id TEXT, type TEXT, payload TEXT DEFAULT '',
   created_at REAL DEFAULT ((julianday('now') - 2440587.5) * 86400.0)
@@ -69,8 +79,10 @@ def session():
         con.close()
 
 
-def init() -> None:
+def init() -> bool:
+    """Create or upgrade the tables. True when the survey tables are new, so the caller can add the sample."""
     with session() as con:
+        new_surveys = not con.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sites'").fetchone()
         con.executescript(SCHEMA)
         if "static" not in {r["name"] for r in con.execute("PRAGMA table_info(tracks)")}:
             con.execute("ALTER TABLE tracks ADD COLUMN static INTEGER DEFAULT 0")
@@ -78,7 +90,8 @@ def init() -> None:
         for name, kind in (("detector", "TEXT DEFAULT 'cfd-nano'"), ("source_id", "TEXT DEFAULT ''"),
                            ("analysis_s", "REAL DEFAULT 0"), ("frames", "INTEGER DEFAULT 0"),
                            ("settings_json", "TEXT DEFAULT ''"), ("settings_hash", "TEXT DEFAULT ''"),
-                           ("window_start", "REAL"), ("visibility", "TEXT DEFAULT ''"), ("juveniles", "INTEGER")):
+                           ("window_start", "REAL"), ("visibility", "TEXT DEFAULT ''"), ("juveniles", "INTEGER"),
+                           ("station_id", "TEXT DEFAULT ''"), ("filmed_on", "TEXT DEFAULT ''")):
             if name not in columns:
                 con.execute(f"ALTER TABLE videos ADD COLUMN {name} {kind}")
         columns = {r["name"] for r in con.execute("PRAGMA table_info(school_counts)")}
@@ -94,6 +107,7 @@ def init() -> None:
             "CREATE UNIQUE INDEX IF NOT EXISTS snapshot_frame ON school_counts (video_id, kind, t) "
             "WHERE kind IN ('snapshot', 'peak')"
         )
+    return new_surveys
 
 
 def rows(cur) -> list[dict]:

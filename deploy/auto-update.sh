@@ -55,6 +55,8 @@ deploy() {
 healthy() {
   local site url
   site=$(sed -n 's/^SITE_ADDRESS=//p' .env 2>/dev/null || true)
+  site=${site%%,*}  # the first address, if there are several
+  site=${site// /}
   url="${site:+https://$site}/api/videos"
   [ -n "$site" ] || url=http://127.0.0.1/api/videos
   for _ in $(seq 1 60); do
