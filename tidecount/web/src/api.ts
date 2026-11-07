@@ -1,3 +1,23 @@
+import type { YearRange } from "./yearRange";
+
+/** `&since=…&until=…` for the ends of a year range that are set. */
+const yearParams = (y: YearRange) => `${y.from !== null ? `&since=${y.from}` : ""}${y.to !== null ? `&until=${y.to}` : ""}`;
+
+/**
+ * Which OBIS datasets the map counts: one observation method, one dataset, or both (null = any).
+ * The server turns them into dataset ids from the region's dataset list, so the region goes too.
+ */
+export type RecordFilter = { method: RecordMethodFilter | null; dataset: string | null };
+export type RecordMethod = "survey" | "telemetry" | "edna" | "other";
+export type RecordMethodFilter = RecordMethod | "no_telemetry";
+export const NO_FILTER: RecordFilter = { method: null, dataset: null };
+export const isFiltered = (f: RecordFilter) => f.method !== null || f.dataset !== null;
+const methodParams = (f: RecordFilter) => `${f.method ? `&method=${f.method}` : ""}${f.dataset ? `&dataset=${encodeURIComponent(f.dataset)}` : ""}`;
+const filterParams = (region: string, f: RecordFilter) => (isFiltered(f) ? `&region=${region}${methodParams(f)}` : "");
+/** What an answer says it was filtered by, to tell a stale answer from the current one. */
+type FilterEcho = { method: string | null; dataset: string | null; datasets: number | null };
+export const matchesFilter = (echo: FilterEcho | undefined, f: RecordFilter) => (echo?.method ?? null) === f.method && (echo?.dataset ?? null) === f.dataset;
+
 /** False on the public demo, where uploads go to the server and not to this computer. */
 export const isLocal = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
 
@@ -74,6 +94,148 @@ export type Track = {
 
 export type SpeciesRow = { species: string; common: string; group: string; inat_obs: number; obis_nearshore_records: number; seine_records: number; confirmed: number };
 
+export type SpeciesImage = {
+  id: string;
+  url: string;
+  thumb_url?: string;
+  view: "side" | "underwater" | "in_hand" | "illustration" | "other";
+  caption: string;
+  creator: string;
+  license: string;
+  license_url: string;
+  source: string;
+  source_url: string;
+  place?: string;
+  verification: string;
+};
+export type SpeciesProfile = {
+  species: string;
+  curated: boolean;
+  taxon: {
+    scientific_name: string; authority: string; family: string; inat_taxon_id: number; inat_common_name?: string;
+    gbif_key: number; aphia_id?: number | null; resolved_on: string;
+  } | null;
+  profile: {
+    summary: string;
+    features: string[];
+    similar: { species: string; note: string }[];
+    sources: { label: string; url: string }[];
+    expert_reviewed: boolean;
+  } | null;
+  images: SpeciesImage[];
+  /** The name checked against WoRMS, or GBIF when WoRMS doesn't know it. Null when unchecked. */
+  names: SpeciesNames | null;
+  /** Other entries that list this species as easily confused with them. */
+  mentioned_by: { species: string; note: string }[];
+};
+export type SpeciesNames = {
+  source: "WoRMS" | "GBIF" | null;
+  status: string;
+  aphia_id: number | null;
+  accepted_name: string | null;
+  accepted_aphia_id?: number | null;
+  authority?: string;
+  family?: string;
+  url?: string;
+  synonyms: string[];
+  is_marine?: boolean;
+  is_brackish?: boolean;
+  is_freshwater?: boolean;
+};
+/** The photo a look-alike card shows (a side profile when there is one), with the credit its licence needs. */
+export type CompareImage = {
+  thumb: string; view: SpeciesImage["view"] | null;
+  creator: string; license: string; license_url: string; source: string; source_url: string;
+};
+export type SpeciesMediaSummary = Record<string, { image_count: number; thumb: string | null; compare?: CompareImage | null; has_profile: boolean }>;
+
+/** Shared by every OBIS answer: where it came from and how fresh it is. */
+type ObisMeta = { source: "OBIS"; fetched_at: number | null; cached: boolean; stale: boolean; citation: string };
+/** [west, south, east, north, record count] */
+export type ObisCell = [number, number, number, number, number];
+export type ObisGrid = ObisMeta & {
+  species: string; precision: number; since: number | null; until: number | null;
+  filter?: FilterEcho;
+  present: ObisCell[]; present_truncated: boolean;
+};
+export type ObisDataset = { id: string; title: string; records: number | null; institution: string; url: string; telemetry: boolean };
+/** Every dataset with records of the species in a region, with its method as its OBIS metadata states it. */
+export type ObisCatalog = ObisMeta & {
+  species: string; region: string; label: string;
+  /** False when OBIS lists more datasets than the server reads; filters are then refused. */
+  total: number; complete: boolean;
+  methods: { key: RecordMethod; label: string; datasets: number; records: number }[];
+  datasets: (ObisDataset & { method: RecordMethod })[];
+};
+export type ObisRecord = {
+  id: string; date: string; year: number | null; lat: number; lon: number;
+  uncertainty_m: number | null; depth_m: number | null; dataset: string; dataset_url: string;
+  institution: string; basis: string; recorded_by: string; count: string | number | null;
+  absent: boolean; name_as_recorded: string; license: string;
+};
+export type ObisRecords = ObisMeta & { species: string; total: number; records: ObisRecord[] };
+/** One sampling method's non-detections, as site-dates (one place, one day) rather than raw rows. */
+export type ObisNdMethod = {
+  method: string; label: string; site_dates: number; sites: number; detected_site_dates: number; absence_rows: number;
+  first_date: string | null; last_date: string | null;
+  datasets: { id: string; title: string; url: string; absence_rows: number; site_dates: number; sites: number }[];
+};
+export type ObisNonDetections = ObisMeta & {
+  species: string; region: string; label: string;
+  /** "queued" and "computing" mean a background job is working: ask again. */
+  status: "ok" | "none" | "too_many" | "computing" | "queued"; absence_rows: number;
+  /** Calculations ahead of this one while it waits. */
+  ahead?: number;
+  methods: ObisNdMethod[];
+  withheld: (ObisNdMethod & { reason: string })[];
+  points: { lat: number; lon: number; method: string; dates: number; first: string | null; last: string | null }[];
+  points_truncated?: boolean;
+};
+/**
+ * eDNA water-sample evidence, as sampling site-dates (one place, one day), never as sequence rows.
+ * A detection is DNA of the fish found in a sample. A non-detection is a sample from a dataset that
+ * reports its zeros in which none was found: not proof the fish was absent.
+ */
+export type EdnaDataset = {
+  id: string; title: string; url: string; marker: string;
+  detected_site_dates: number; nondetected_site_dates: number; withheld_site_dates: number; reports_nondetections: boolean;
+};
+export type EdnaPoint = { lat: number; lon: number; detected: number; not_detected: number; first: string | null; last: string | null };
+export type EdnaEvidence = ObisMeta & {
+  species: string; region: string; label: string;
+  /** "computing" with nothing else means the server is still fetching the detections. */
+  status: "ok" | "none" | "computing";
+  detections: { site_dates: number; sites: number; first_date: string | null; last_date: string | null } | null;
+  nondetections: {
+    state: "queued" | "computing" | "ready" | "none" | "too_many";
+    progress: { done: number; total: number } | null;
+    ahead?: number;
+    site_dates: number; sites: number; first_date: string | null; last_date: string | null;
+    withheld: { method: string; label: string; site_dates: number; reason: string }[];
+  };
+  datasets: EdnaDataset[];
+  by_year: { year: number; detected: number; not_detected: number }[];
+  points: EdnaPoint[];
+  points_truncated?: boolean;
+  notes: string[];
+  refreshing?: boolean;
+  /** The year range these counts are for (null = open), and every year the samples span, so a range with nothing in it can say where the samples are. */
+  range?: { since: number | null; until: number | null };
+  available?: { first_date: string | null; last_date: string | null };
+};
+export type ObisSummary = ObisMeta & {
+  species: string; region: string; label: string;
+  /** Occurrence records, not fish. There is deliberately no absence total: see ObisNonDetections. */
+  present: number; first_year: number | null; last_year: number | null; since_2010: number;
+  /** At least this share of records are tag detections from tracking studies, which repeat one fish many times. */
+  telemetry_share: number;
+  dataset_count: number;
+  /** Records for each year that has any (all years in the region), so any year range can be totalled here. */
+  by_year: { year: number; records: number }[];
+  datasets: ObisDataset[];
+  filter?: FilterEcho;
+};
+
 export type AccuracyRow = {
   id: string; name: string; site: string; detector: string; model: string;
   frames_total: number; frames_blind: number; frames_assisted: number; frames_could_not_see: number;
@@ -142,6 +304,11 @@ export type DiversityStats = {
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, init);
+  // A web page where data was expected means the server doesn't know this endpoint, usually
+  // because it's older than this page. Say so, instead of "Unexpected token '<'".
+  if ((res.headers.get("content-type") ?? "").startsWith("text/html")) {
+    throw new Error("The server doesn't know this request. It may be running older code than this page: restart TideCount and reload.");
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     throw new Error(body?.detail ?? `Request failed (${res.status})`);
@@ -159,6 +326,20 @@ export const api = {
   videos: () => call<Video[]>("/api/videos"),
   models: () => call<ModelOption[]>("/api/models"),
   species: () => call<SpeciesRow[]>("/api/species"),
+  speciesMedia: () => call<SpeciesMediaSummary>("/api/species/media"),
+  speciesProfile: (name: string) => call<SpeciesProfile>(`/api/species/${encodeURIComponent(name)}/profile`),
+  obisSummary: (name: string, region: string, filter: RecordFilter = NO_FILTER) =>
+    call<ObisSummary>(`/api/species/${encodeURIComponent(name)}/occurrences/summary?region=${region}${methodParams(filter)}`),
+  obisCatalog: (name: string, region: string) =>
+    call<ObisCatalog>(`/api/species/${encodeURIComponent(name)}/occurrences/datasets?region=${region}`),
+  obisGrid: (name: string, bbox: number[], precision: number, years: YearRange, region: string, filter: RecordFilter = NO_FILTER) =>
+    call<ObisGrid>(`/api/species/${encodeURIComponent(name)}/occurrences/grid?bbox=${bbox.join(",")}&precision=${precision}${yearParams(years)}${filterParams(region, filter)}`),
+  obisRecords: (name: string, bbox: number[], years: YearRange, region: string, filter: RecordFilter = NO_FILTER) =>
+    call<ObisRecords>(`/api/species/${encodeURIComponent(name)}/occurrences/records?bbox=${bbox.join(",")}${yearParams(years)}${filterParams(region, filter)}`),
+  obisEdna: (name: string, region: string, years: YearRange) =>
+    call<EdnaEvidence>(`/api/species/${encodeURIComponent(name)}/occurrences/edna?region=${region}${yearParams(years)}`),
+  obisNonDetections: (name: string, region: string) =>
+    call<ObisNonDetections>(`/api/species/${encodeURIComponent(name)}/occurrences/nondetections?region=${region}`),
   accuracy: () => call<{ videos: AccuracyRow[] }>("/api/accuracy"),
   compare: (id: string) => call<Comparison>(`/api/videos/${id}/compare`),
   reanalyze: (id: string, detector: string) => call<{ id: string }>(`/api/videos/${id}/reanalyze`, json("POST", { detector })),

@@ -20,6 +20,7 @@ import { Landing } from "./Landing";
 import { Settings } from "./Settings";
 import { Snapshots } from "./Snapshots";
 import { Species } from "./Species";
+import { SpeciesPage } from "./SpeciesPage";
 import { SummaryPage } from "./Summary";
 import { Team } from "./Team";
 import { Tracks } from "./Tracks";
@@ -139,6 +140,7 @@ function Shell() {
           <Route path="/analyse" element={<Navigate to="/workflow" replace />} />
           <Route path="/reports" element={<ManagerOnly><Reports /></ManagerOnly>} />
           <Route path="/species" element={<Species />} />
+          <Route path="/species/:name" element={<SpeciesPage />} />
           <Route path="/river" element={<River />} />
           <Route path="/team" element={<ManagerOnly><Team /></ManagerOnly>} />
           <Route path="/settings" element={<Settings />} />

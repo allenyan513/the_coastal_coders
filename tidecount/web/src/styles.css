@@ -749,3 +749,227 @@ textarea.record-input { height: auto; resize: vertical; }
   .ln-foot-grid > :first-child { grid-column: 1 / -1; }
   .ln-foot-fine { flex-direction: column; }
 }
+/* Species encyclopedia: rows that open a drawer, and the drawer itself. */
+tr.clickable { cursor: pointer; }
+tr.clickable:hover td, tr.clickable.open td { background: var(--panel-2); }
+tr.clickable.open td { background: var(--accent-soft); }
+.rowlink { padding: 0; background: none; border: 0; font: inherit; font-weight: 500; color: var(--text); text-align: left; }
+.rowlink:hover { color: var(--accent-ink); text-decoration: underline; }
+.pill.photos { margin-left: 8px; font-size: 11px; line-height: 18px; }
+
+.drawer-root { position: fixed; inset: 0; z-index: 40; }
+.drawer-scrim { position: absolute; inset: 0; background: rgba(16,24,40,.4); animation: drawer-fade .2s ease-out; }
+.drawer { position: absolute; top: 0; right: 0; bottom: 0; width: min(520px, 100vw); display: flex; flex-direction: column; background: var(--panel); border-left: 1px solid var(--border); box-shadow: -12px 0 32px rgba(16,24,40,.16); animation: drawer-in .24s cubic-bezier(.2,.8,.2,1); }
+.drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 16px 12px; border-bottom: 1px solid var(--border-2); }
+.drawer-head h2 { font-size: 22px; letter-spacing: -.4px; overflow-wrap: anywhere; }
+.drawer-head .sci { margin-top: 2px; color: var(--text-2); font-size: 14px; }
+.drawer-body { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 16px; display: flex; flex-direction: column; gap: 20px; }
+.drawer-body h3 { margin-bottom: 6px; font: 500 11px var(--mono); letter-spacing: .3px; text-transform: uppercase; color: var(--muted); }
+.drawer-body p + p { margin-top: 6px; }
+
+.gallery-main { margin: 0; }
+.gallery-frame { position: relative; aspect-ratio: 4 / 3; background: #101828; border-radius: 8px; overflow: hidden; }
+.gallery-frame img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.gallery-view { position: absolute; left: 8px; top: 8px; background: rgba(255,255,255,.92); }
+.credit { margin-top: 8px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.credit a, .drawer-body a { color: var(--accent-ink); }
+.credit .verify { display: block; margin-top: 2px; color: var(--muted-2); }
+.gallery-empty { display: grid; place-content: center; gap: 4px; min-height: 200px; padding: 16px; text-align: center; background: var(--panel-2); border: 1px dashed var(--border); border-radius: 8px; }
+.thumbs { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; padding-bottom: 2px; }
+.thumb { flex: none; width: 72px; height: 54px; padding: 0; background: #101828; border: 2px solid transparent; border-radius: 6px; overflow: hidden; }
+.thumb[aria-pressed="true"] { border-color: var(--accent); }
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.features { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.linklike { padding: 0; background: none; border: 0; color: var(--accent-ink); text-decoration: underline; }
+.note { margin-top: 10px; padding: 8px 10px; border-radius: 6px; font-size: 12px; }
+.note.warn { background: var(--warn-soft); color: var(--warn); }
+.facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border: 1px solid var(--border-2); border-radius: 8px; overflow: hidden; }
+.facts div { padding: 8px 12px; border-bottom: 1px solid var(--border-2); }
+.facts dt { font-size: 12px; color: var(--muted); }
+.facts dd { margin: 2px 0 0; font-weight: 600; }
+
+@keyframes drawer-in { from { transform: translateX(32px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes drawer-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes drawer-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* On a phone the drawer fills the screen and rises from the bottom, with a bigger close button. */
+@media (max-width: 720px) {
+  .drawer { width: 100vw; border-left: 0; box-shadow: none; animation-name: drawer-up; }
+  .drawer-head { position: sticky; top: 0; padding-top: max(16px, env(safe-area-inset-top)); background: var(--panel); }
+  .drawer-body { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+  .thumb { width: 84px; height: 63px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer, .drawer-scrim { animation: none; }
+}
+
+/* Species wiki drawer: tabs, name check, photo navigation, look-alike comparisons and the OBIS map. */
+.drawer { width: min(560px, 100vw); }
+.tabs { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border-2); background: var(--panel); overflow-x: auto; }
+.tab { position: relative; height: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--text-2); font-weight: 500; white-space: nowrap; }
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] { color: var(--accent-ink); border-bottom-color: var(--accent); }
+.tab-count { padding: 0 6px; border-radius: 999px; background: var(--panel-3); color: var(--text-2); font: 500 11px/18px var(--mono); }
+.name-check { margin-top: 6px; font-size: 12px; }
+.name-check.warn { color: var(--warn); }
+
+.gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: grid; place-items: center; background: rgba(255,255,255,.88); border: 0; border-radius: 50%; color: var(--text); font-size: 22px; line-height: 1; box-shadow: 0 1px 4px rgba(16,24,40,.25); }
+.gallery-nav.prev { left: 8px; }
+.gallery-nav.next { right: 8px; }
+
+.compare { display: flex; flex-direction: column; gap: 10px; }
+.compare-card { display: grid; grid-template-columns: 144px minmax(0, 1fr); gap: 12px; align-items: start; padding: 10px; border: 1px solid var(--border-2); border-radius: 8px; }
+.compare-photo { margin: 0; }
+.compare-photo img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #101828; border-radius: 6px; }
+/* Looks nothing like a photo on purpose: a dashed outline and words, no grey "image" block. */
+.compare-placeholder { display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 3; padding: 8px; border: 1.5px dashed var(--border); border-radius: 6px; background: transparent; color: var(--muted); font-size: 12px; line-height: 1.3; text-align: center; }
+.compare-text { min-width: 0; }
+.compare-credit { margin-top: 6px; font-size: 11px; color: var(--muted-2); overflow-wrap: anywhere; }
+.compare-credit a { color: var(--muted); }
+@media (max-width: 420px) { .compare-card { grid-template-columns: 1fr; } }
+details summary { cursor: pointer; font-size: 13px; color: var(--text-2); }
+details[open] summary { margin-bottom: 6px; }
+
+.map-controls { justify-content: space-between; align-items: flex-end; }
+.field.compact select, .field select { height: 32px; padding: 0 8px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font: inherit; font-size: 13px; }
+.map-wrap { position: relative; }
+.map { height: 340px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #dfe9f3; z-index: 0; }
+.map .basemap { filter: saturate(.35) brightness(1.04); }
+.map .leaflet-control-attribution { font-size: 10px; }
+.map-badge { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 500; padding: 3px 10px; background: rgba(16,24,40,.82); color: #fff; border-radius: 999px; font-size: 12px; pointer-events: none; }
+.map-empty { position: absolute; inset: auto 12px 12px 12px; z-index: 500; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px 12px; background: rgba(255,255,255,.95); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 12px; color: var(--text-2); }
+.legend span, .legend label { display: inline-flex; align-items: center; gap: 4px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; }
+.legend i.ring, .nd-method i.ring { display: inline-block; width: 11px; height: 11px; border: 2px solid; border-radius: 50%; background: #fff; vertical-align: -1px; }
+.nondetections { border: 1px solid var(--border-2); border-radius: 8px; padding: 10px 12px; }
+.nondetections > summary { font-weight: 500; color: var(--text); }
+.nd-method { padding: 8px 10px; border: 1px solid var(--border-2); border-radius: 6px; display: flex; flex-direction: column; gap: 4px; }
+.nd-withheld { font-size: 13px; }
+/* Not ".dot": that class is the video review's absolutely positioned fish marker. */
+.legend i.site-dot, .edna i.site-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; }
+.legend i.ring.dashed, .edna i.ring.dashed { border-style: dashed; }
+.edna i.ring { display: inline-block; width: 11px; height: 11px; border: 2px solid; border-radius: 50%; background: #fff; vertical-align: -1px; }
+.edna-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.edna-tile { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border: 1px solid var(--border-2); border-radius: 6px; min-width: 0; }
+.edna-tile b { font-size: 15px; }
+.edna-progress { display: block; height: 4px; border-radius: 2px; background: var(--border-2); overflow: hidden; }
+.edna-progress > span { display: block; height: 100%; background: #0e7c6b; transition: width .4s; }
+.edna-years { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.edna-years-head, .edna-years-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
+.edna-bar { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.edna-bar > i { display: block; height: 8px; min-width: 2px; border-radius: 2px; }
+.edna-bar > i.hollow { background: #fff; border: 1.5px dashed; box-sizing: border-box; }
+@media (max-width: 560px) { .edna-tiles { grid-template-columns: minmax(0, 1fr); } }
+.obis-totals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border: 1px solid var(--border-2); border-radius: 8px; }
+.obis-totals > div { padding: 8px 10px; border-right: 1px solid var(--border-2); min-width: 0; }
+.obis-totals > div:nth-child(4) { border-right: 0; }
+.obis-totals b { display: block; margin-top: 2px; font-size: 15px; overflow-wrap: anywhere; }
+.obis-totals > .meta { padding: 8px 10px; grid-column: 1 / -1; }
+.obis-totals .datasets { grid-column: 1 / -1; padding: 8px 10px; border-top: 1px solid var(--border-2); }
+.cell-list { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-size: 13px; }
+.cell-records { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--border-2); border-radius: 8px; background: var(--panel-2); }
+.records { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.records li { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid var(--border-2); font-size: 13px; }
+.records li:first-child { border-top: 0; }
+
+@media (max-width: 720px) {
+  .map { height: 300px; }
+  .obis-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .obis-totals > div:nth-child(2) { border-right: 0; }
+  .obis-totals > div:nth-child(-n+2) { border-bottom: 1px solid var(--border-2); }
+  .tab { flex: 1 0 auto; justify-content: center; }
+}
+.obis-totals .totals-note { grid-column: 1 / -1; margin: 0; border-radius: 0; border-top: 1px solid var(--border-2); }
+
+/* Year range: one bar, two handles. The two range inputs sit on top of each other; only their handles take the pointer. */
+.map-controls .year-range { flex: 1 1 100%; }
+.year-range { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.year-range-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.year-range-text { font-size: 14px; min-width: 7.5ch; }
+.year-range-presets { gap: 4px; margin-left: auto; }
+.year-range-bar { position: relative; height: 26px; }
+.year-range-track { position: absolute; left: 9px; right: 9px; top: 11px; height: 4px; border-radius: 2px; background: var(--border-2); }
+.year-range-fill { position: absolute; top: 0; bottom: 0; border-radius: 2px; background: var(--accent); }
+.year-range-input { position: absolute; inset: 0; width: 100%; height: 26px; margin: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+.year-range-input::-webkit-slider-runnable-track { background: none; height: 26px; }
+.year-range-input::-moz-range-track { background: none; height: 26px; }
+.year-range-input::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; pointer-events: all; width: 18px; height: 18px; margin-top: 4px; border-radius: 50%; background: #fff; border: 2px solid var(--accent); box-shadow: 0 1px 2px rgba(16, 24, 40, .25); cursor: grab; }
+.year-range-input::-moz-range-thumb { pointer-events: all; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid var(--accent); box-shadow: 0 1px 2px rgba(16, 24, 40, .25); cursor: grab; }
+.year-range-input:active::-webkit-slider-thumb { cursor: grabbing; }
+.year-range-input:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
+.year-range-input:focus-visible::-moz-range-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
+.year-range-ticks { position: relative; height: 14px; margin: 0 9px; font-size: 11px; color: var(--text-2); }
+.year-range-ticks span { position: absolute; top: 0; transform: translateX(-50%); }
+/* The end labels sit inside the bar instead of hanging past its edges. */
+.year-range-ticks span:first-child { transform: translateX(-9px); }
+.year-range-ticks span:last-child { transform: translateX(calc(-100% + 9px)); }
+.year-scope b { color: var(--text); }
+@media (max-width: 560px) { .year-range-presets { margin-left: 0; } }
+
+/* Method and dataset filter, under the year range. */
+.record-filters { flex: 1 1 100%; display: flex; flex-direction: column; gap: 6px; margin-top: 10px; font-size: 13px; }
+.record-filters .datasets summary { cursor: pointer; font-size: 13px; color: var(--text-2); }
+.record-filter-fields { gap: 8px 12px; align-items: flex-end; }
+.record-filter-fields .field { flex: 1 1 220px; min-width: 0; }
+.record-filter-fields select { width: 100%; max-width: 100%; }
+
+/* The drawer's Expand and Close. The map's two groups are invisible to the layout
+   (display: contents) in the drawer, and become two columns on the full species page. */
+.drawer-actions { flex: none; flex-wrap: nowrap; }
+.omap-main, .omap-side { display: contents; }
+
+/* The full species page (/species/<name>): the drawer's view in the main content area. Its layout
+   follows the width of that area, not the window's, so it works with the sidebar open or narrow. */
+.species-page { container-type: inline-size; width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.species-page-nav { display: flex; }
+.species-page-card { overflow: clip; } /* clip, not hidden, so the map page's right column can stay in view */
+.species-page-card .drawer-head { padding: 20px 24px 14px; }
+.species-page-card .drawer-head .sci { font-size: 15px; }
+.species-page-card .tabs { padding: 0 16px; }
+.species-page-card .drawer-body { overflow: visible; padding: 20px 24px 28px; }
+
+/* Photos: a photo of a sensible size, with the other photos beside it rather than a strip below. */
+.species-page .gallery-frame { max-height: 560px; }
+@container (min-width: 900px) {
+  .species-page .gallery { display: grid; grid-template-columns: minmax(0, 720px) minmax(200px, 1fr); gap: 12px 20px; align-items: start; }
+  .species-page .gallery > .row { grid-column: 1 / -1; }
+  .species-page .gallery .thumbs { margin-top: 0; flex-wrap: wrap; align-content: flex-start; overflow: visible; }
+  .species-page .gallery .thumb { width: 104px; height: 78px; }
+}
+
+/* Identify and Details: readable lines, look-alikes side by side, details in columns. */
+.species-page .identify-tab > section > p, .species-page .identify-tab .features { max-width: 80ch; }
+@container (min-width: 760px) {
+  .species-page .compare { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); }
+  .species-page .compare-card { grid-template-columns: 180px minmax(0, 1fr); }
+  .species-page .details-tab { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px 36px; align-items: start; }
+  /* Map: the year range and the method and dataset filter side by side. */
+  .species-page .map-filters { display: grid; grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr); gap: 0 24px; align-items: start; }
+  .species-page .map-filters .record-filters { margin-top: 0; }
+}
+
+/* Map: a larger map. When there is room, the map with its controls and totals on the left, and the
+   records of a picked cell, eDNA and net surveys on the right, about as wide as the drawer, so the
+   eDNA chart and dataset lists read as they do there. */
+.species-page .map { height: clamp(360px, 58vh, 640px); }
+@container (min-width: 1000px) {
+  .species-page .omap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 32%); gap: 16px 24px; align-items: start; }
+  .species-page .omap-main, .species-page .omap-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .species-page .omap-side { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; overscroll-behavior: contain; padding-right: 2px; }
+  .species-page .map { height: clamp(440px, 64vh, 760px); }
+}
+@media (max-width: 720px) {
+  .species-page-card .drawer-head, .species-page-card .drawer-body { padding-left: 14px; padding-right: 14px; }
+  .species-page-card .drawer-head h1 { font-size: 26px; letter-spacing: -.6px; }
+}
+
+/* When Tideflow last fetched a cached OBIS answer: quiet, under the map and in the eDNA section. */
+.fetched-note { font-size: 12px; color: var(--muted-2); }
+
+/* Occurrence-grid colours, at the end of the map legend. Saved in this browser. */
+.grid-palette { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; }
+.swatch { width: 26px; height: 18px; padding: 0; border: 1px solid rgba(16,24,40,.25); border-radius: 4px; cursor: pointer; }
+.swatch[aria-pressed="true"] { outline: 2px solid var(--text); outline-offset: 1px; }
+.swatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

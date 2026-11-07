@@ -1,0 +1,706 @@
+{
+ "version": 1,
+ "note": "First-draft identification notes written from standard public descriptions (FishBase, Wikipedia and regional field guides). None has been reviewed by a fish biologist yet. When a biologist signs one off, set expert_reviewed to true and add who and when in reviewed_by.",
+ "species": {
+  "Gadus morhua": {
+   "summary": "A stocky, three-finned cod with a chin barbel and a pale, arched lateral line. Colour ranges from olive-green to reddish-brown, usually with fine spots.",
+   "features": [
+    "Three dorsal fins and two anal fins, all rounded",
+    "Prominent barbel under the chin, about as long as the eye is wide or longer",
+    "Pale lateral line that arches over the pectoral fin",
+    "Upper jaw projects past the lower jaw",
+    "Tail is nearly square-edged, not deeply forked",
+    "Mottled or speckled sides; colour varies from green-brown to red"
+   ],
+   "similar": [
+    {"species": "Melanogrammus aeglefinus", "note": "Haddock has a dark lateral line and a dark blotch above the pectoral fin, and a smaller barbel."},
+    {"species": "Pollachius virens", "note": "Pollock has a pale straight lateral line, a lower jaw that sticks out and a forked tail."}
+   ],
+   "sources": [
+    {"label": "FishBase: Gadus morhua", "url": "https://www.fishbase.se/summary/Gadus-morhua.html"},
+    {"label": "Wikipedia: Atlantic cod", "url": "https://en.wikipedia.org/wiki/Atlantic_cod"}
+   ],
+   "expert_reviewed": false
+  },
+  "Melanogrammus aeglefinus": {
+   "summary": "A cod relative with a black lateral line and a dark thumbprint-like blotch above the pectoral fin. The back is purplish-grey and the belly is silvery-white.",
+   "features": [
+    "Dark (black) lateral line running straight along the side",
+    "Dark blotch on the side between the pectoral fin and the lateral line",
+    "Three dorsal fins; the first is tall and pointed",
+    "Small chin barbel and a small mouth with the upper jaw overhanging",
+    "Tail is slightly forked"
+   ],
+   "similar": [
+    {"species": "Gadus morhua", "note": "Cod has a pale arched lateral line, a larger barbel and no dark blotch."},
+    {"species": "Pollachius virens", "note": "Pollock has a pale lateral line, a lower jaw that sticks out and no blotch."}
+   ],
+   "sources": [
+    {"label": "FishBase: Melanogrammus aeglefinus", "url": "https://www.fishbase.se/summary/Melanogrammus-aeglefinus.html"},
+    {"label": "Wikipedia: Haddock", "url": "https://en.wikipedia.org/wiki/Haddock"}
+   ],
+   "expert_reviewed": false
+  },
+  "Pollachius virens": {
+   "summary": "A streamlined, fast-swimming cod relative with an olive-green to brown back, a silvery belly and a pale straight lateral line.",
+   "features": [
+    "Lower jaw projects past the upper jaw",
+    "Chin barbel is absent or very small",
+    "Pale lateral line that is nearly straight",
+    "Three dorsal fins and two anal fins",
+    "Tail is clearly forked, more so than in cod or haddock",
+    "Body is more slender than a cod, with a noticeably small head"
+   ],
+   "similar": [
+    {"species": "Gadus morhua", "note": "Cod has a big chin barbel, an arched pale lateral line and a squarer tail."},
+    {"species": "Melanogrammus aeglefinus", "note": "Haddock has a dark lateral line and a dark blotch above the pectoral fin."}
+   ],
+   "sources": [
+    {"label": "FishBase: Pollachius virens", "url": "https://www.fishbase.se/summary/Pollachius-virens.html"},
+    {"label": "Wikipedia: Pollachius virens", "url": "https://en.wikipedia.org/wiki/Pollachius_virens"}
+   ],
+   "expert_reviewed": false
+  },
+  "Clupea harengus": {
+   "summary": "A slender, silvery schooling fish with a blue-green back and a single dorsal fin near the middle of the body.",
+   "features": [
+    "One dorsal fin, set about halfway along the back",
+    "Pelvic fins sit below the dorsal fin",
+    "No visible lateral line on the body",
+    "Belly has a weak saw-edge of scutes",
+    "Deeply forked tail",
+    "Scales are large and easily lost, leaving the flanks bare"
+   ],
+   "similar": [
+    {"species": "Alosa pseudoharengus", "note": "Alewife has a deeper body and a larger eye."},
+    {"species": "Alosa sapidissima", "note": "American shad is much deeper-bodied and larger, with a row of dark spots behind the gill cover."}
+   ],
+   "sources": [
+    {"label": "FishBase: Clupea harengus", "url": "https://www.fishbase.se/summary/Clupea-harengus.html"},
+    {"label": "Wikipedia: Atlantic herring", "url": "https://en.wikipedia.org/wiki/Atlantic_herring"}
+   ],
+   "expert_reviewed": false
+  },
+  "Scomber scombrus": {
+   "summary": "A torpedo-shaped, fast-swimming fish with a blue-green back marked by dark wavy bars and a plain silvery belly.",
+   "features": [
+    "About 20 to 30 dark, wavy bars across the upper back and sides",
+    "Silvery-white belly with no markings",
+    "Two well separated dorsal fins",
+    "A row of small finlets behind the second dorsal and the anal fin",
+    "Deeply forked tail with a slim tail base",
+    "Small scales and no obvious scale pattern"
+   ],
+   "similar": [
+    {"species": "Sarda sarda", "note": "Atlantic bonito has oblique dark stripes on the back and a larger mouth with obvious teeth."},
+    {"species": "Euthynnus alletteratus", "note": "Little tunny has blotchy, wormlike markings on the back and dark spots below the pectoral fin."}
+   ],
+   "sources": [
+    {"label": "FishBase: Scomber scombrus", "url": "https://www.fishbase.se/summary/Scomber-scombrus.html"},
+    {"label": "Wikipedia: Atlantic mackerel", "url": "https://en.wikipedia.org/wiki/Atlantic_mackerel"}
+   ],
+   "expert_reviewed": false
+  },
+  "Pseudopleuronectes americanus": {
+   "summary": "A thick-bodied, right-eyed flatfish with a small mouth and a dark olive-brown to reddish upper side. The underside is white.",
+   "features": [
+    "Both eyes on the right side of the body",
+    "Small mouth with thick lips",
+    "Rounded tail",
+    "Nearly straight lateral line",
+    "Upper side olive-brown to reddish-brown, sometimes mottled; blind side white",
+    "Thick, oval body compared with most other flounders"
+   ],
+   "similar": [
+    {"species": "Scophthalmus aquosus", "note": "Windowpane is left-eyed, very thin and almost see-through."},
+    {"species": "Glyptocephalus cynoglossus", "note": "Witch flounder is more elongated and thinner, with a greyer body."}
+   ],
+   "sources": [
+    {"label": "FishBase: Pseudopleuronectes americanus", "url": "https://www.fishbase.se/summary/Pseudopleuronectes-americanus.html"},
+    {"label": "Wikipedia: Winter flounder", "url": "https://en.wikipedia.org/wiki/Winter_flounder"}
+   ],
+   "expert_reviewed": false
+  },
+  "Tautogolabrus adspersus": {
+   "summary": "A small, hardy wrasse of rocky shores and kelp with thick lips and a long, single dorsal fin. Colour varies a lot, from brown to blue-black and mottled.",
+   "features": [
+    "One long dorsal fin with a spiny front part and a soft rear part",
+    "Rounded tail",
+    "Thick lips and a pointed snout",
+    "Colour is variable: brown, grey, blue or reddish, often mottled",
+    "Rarely longer than about 30 cm and usually near rocks or kelp"
+   ],
+   "similar": [
+    {"species": "Tautoga onitis", "note": "Tautog is deeper and heavier, with a blunt head and, often, a white chin."}
+   ],
+   "sources": [
+    {"label": "FishBase: Tautogolabrus adspersus", "url": "https://www.fishbase.se/summary/Tautogolabrus-adspersus.html"},
+    {"label": "Wikipedia: Cunner", "url": "https://en.wikipedia.org/wiki/Cunner"}
+   ],
+   "expert_reviewed": false
+  },
+  "Hemitripterus americanus": {
+   "summary": "A big-headed, spiny bottom fish with fleshy flaps around the head and a very large mouth. Colour is mottled red, brown, purple or green.",
+   "features": [
+    "Large head with fleshy tabs and small flaps on the head and jaws",
+    "Very large mouth",
+    "Large fan-shaped pectoral fins",
+    "Spiny first dorsal fin, with a deep notch before the second",
+    "Rough, prickly skin",
+    "Can puff up with water when taken out"
+   ],
+   "similar": [
+    {"species": "Myoxocephalus scorpius", "note": "Shorthorn sculpin has a smaller mouth, smooth skin and spines on the gill cover instead of fleshy flaps."}
+   ],
+   "sources": [
+    {"label": "FishBase: Hemitripterus americanus", "url": "https://www.fishbase.se/summary/Hemitripterus-americanus.html"},
+    {"label": "Wikipedia: Sea raven", "url": "https://en.wikipedia.org/wiki/Sea_raven"}
+   ],
+   "expert_reviewed": false
+  },
+  "Myoxocephalus scorpius": {
+   "summary": "A broad-headed sculpin with spines on the gill cover, a wide mouth and big fan-like pectoral fins. Mottled brown or olive, often with darker bars.",
+   "features": [
+    "Large, broad head with a wide mouth",
+    "Spines on the gill cover (the upper spine is short)",
+    "Two dorsal fins, the first spiny",
+    "Large rounded pectoral fins",
+    "Mottled brown, olive or reddish; males can have an orange-red belly when breeding"
+   ],
+   "similar": [
+    {"species": "Myoxocephalus octodecemspinosus", "note": "Longhorn sculpin has a longer upper spine on the gill cover."},
+    {"species": "Hemitripterus americanus", "note": "Sea raven has fleshy flaps on the head and a larger mouth."}
+   ],
+   "sources": [
+    {"label": "FishBase: Myoxocephalus scorpius", "url": "https://www.fishbase.se/summary/Myoxocephalus-scorpius.html"},
+    {"label": "Wikipedia: Shorthorn sculpin", "url": "https://en.wikipedia.org/wiki/Shorthorn_sculpin"}
+   ],
+   "expert_reviewed": false
+  },
+  "Cyclopterus lumpus": {
+   "summary": "A rounded, plump fish with rows of bony knobs on thick skin and a sucker disc on the belly. Grey, blue-green or olive, and males turn orange-red when breeding.",
+   "features": [
+    "Globe-shaped body with a high ridge along the back",
+    "Rows of bony tubercles along the body",
+    "Pelvic fins are joined into a round sucker disc on the belly",
+    "Thick, scaleless skin",
+    "Males become reddish or orange in the breeding season"
+   ],
+   "similar": [
+    {"species": "Liparis atlanticus", "note": "Atlantic snailfish is much smaller, tadpole-shaped and has smooth skin without the bony knobs."}
+   ],
+   "sources": [
+    {"label": "FishBase: Cyclopterus lumpus", "url": "https://www.fishbase.se/summary/Cyclopterus-lumpus.html"},
+    {"label": "Wikipedia: Lumpfish", "url": "https://en.wikipedia.org/wiki/Lumpfish"}
+   ],
+   "expert_reviewed": false
+  },
+  "Anarhichas lupus": {
+   "summary": "A long, tapering bottom fish with a blunt head and strong canine teeth. Blue-grey to brown with dark vertical bars.",
+   "features": [
+    "Long, eel-like taper toward the tail",
+    "Large head and strong, protruding canine teeth",
+    "One long dorsal fin running from the head almost to the tail",
+    "No pelvic fins",
+    "Dark vertical bars or blotches on a grey-brown body"
+   ],
+   "similar": [
+    {"species": "Zoarces americanus", "note": "Ocean pout is also elongate but has a softer head, fleshy lips and no large canine teeth."}
+   ],
+   "sources": [
+    {"label": "FishBase: Anarhichas lupus", "url": "https://www.fishbase.se/summary/Anarhichas-lupus.html"},
+    {"label": "Wikipedia: Atlantic wolffish", "url": "https://en.wikipedia.org/wiki/Atlantic_wolffish"}
+   ],
+   "expert_reviewed": false
+  },
+  "Gasterosteus aculeatus": {
+   "summary": "A small, flattened fish with three separate spines along the back and a narrow tail base. Males turn red on the throat and belly when breeding.",
+   "features": [
+    "Usually three sharp spines in front of the dorsal fin",
+    "A strong spine on each pelvic fin",
+    "Narrow tail base with a small keel on each side",
+    "Bony plates along the sides (often a full row in sea-living fish)",
+    "Breeding males have a red throat and belly and blue eyes"
+   ],
+   "similar": [
+    {"species": "Apeltes quadracus", "note": "Fourspine stickleback has four separate dorsal spines."},
+    {"species": "Pungitius pungitius", "note": "Ninespine stickleback has about nine small dorsal spines and a more slender body."}
+   ],
+   "sources": [
+    {"label": "FishBase: Gasterosteus aculeatus", "url": "https://www.fishbase.se/summary/Gasterosteus-aculeatus.html"},
+    {"label": "Wikipedia: Three-spined stickleback", "url": "https://en.wikipedia.org/wiki/Three-spined_stickleback"}
+   ],
+   "expert_reviewed": false
+  },
+  "Fundulus heteroclitus": {
+   "summary": "A stocky, hardy killifish of salt marshes and estuaries with an upturned mouth. Males are darker with pale spots and a yellow-orange belly. Females are olive with faint bars.",
+   "features": [
+    "Blunt, flattened head with an upturned mouth",
+    "One dorsal fin set well back on the body",
+    "Rounded tail",
+    "Males: dark body with small silvery-white spots and a yellowish belly",
+    "Females: plainer olive-brown with faint vertical bars"
+   ],
+   "similar": [
+    {"species": "Fundulus diaphanus", "note": "Banded killifish is slimmer, with many thin vertical bars along the side."}
+   ],
+   "sources": [
+    {"label": "FishBase: Fundulus heteroclitus", "url": "https://www.fishbase.se/summary/Fundulus-heteroclitus.html"},
+    {"label": "Wikipedia: Mummichog", "url": "https://en.wikipedia.org/wiki/Mummichog"}
+   ],
+   "expert_reviewed": false
+  },
+  "Salmo salar": {
+   "summary": "A streamlined salmonid with an adipose fin. Sea-run fish are silver with dark spots mostly above the lateral line. Young fish in rivers (parr) have dark oval bars along the sides.",
+   "features": [
+    "Adipose fin behind the dorsal fin",
+    "Black spots mostly above the lateral line, often X-shaped",
+    "Slender tail base; tail only slightly forked or nearly straight",
+    "Upper jaw ends about level with the back of the eye",
+    "Parr: oval dark bars along the side with a few red spots"
+   ],
+   "similar": [
+    {"species": "Salmo trutta", "note": "Brown trout has a square tail and red spots with pale rings, and the upper jaw extends past the eye."},
+    {"species": "Salvelinus fontinalis", "note": "Brook trout has pale wormlike marks on the back and pale-edged lower fins."}
+   ],
+   "sources": [
+    {"label": "FishBase: Salmo salar", "url": "https://www.fishbase.se/summary/Salmo-salar.html"},
+    {"label": "Wikipedia: Atlantic salmon", "url": "https://en.wikipedia.org/wiki/Atlantic_salmon"}
+   ],
+   "expert_reviewed": false
+  },
+  "Squalus acanthias": {
+   "summary": "A small, slim shark with a spine in front of each of its two dorsal fins and no anal fin. Grey above with a pale belly, often with white spots when young.",
+   "features": [
+    "Two dorsal fins, each with a spine at the front",
+    "No anal fin",
+    "Slender body with a pointed snout",
+    "Grey to brownish back, pale belly; white spots are common on younger fish"
+   ],
+   "similar": [],
+   "sources": [
+    {"label": "FishBase: Squalus acanthias", "url": "https://www.fishbase.se/summary/Squalus-acanthias.html"},
+    {"label": "Wikipedia: Spiny dogfish", "url": "https://en.wikipedia.org/wiki/Spiny_dogfish"}
+   ],
+   "expert_reviewed": false
+  },
+  "Morone saxatilis": {
+   "summary": "A large, silvery bass with seven or eight dark stripes running along the sides. It has two separate dorsal fins.",
+   "features": [
+    "Seven or eight dark, unbroken stripes along the sides",
+    "Two dorsal fins that are separate, the first spiny",
+    "Forked tail",
+    "Olive, steel-blue or green back and silvery sides",
+    "Large mouth"
+   ],
+   "similar": [
+    {"species": "Morone americana", "note": "White perch is smaller and deeper-bodied, with faint stripes at most, and its two dorsal fins are joined at the base."}
+   ],
+   "sources": [
+    {"label": "FishBase: Morone saxatilis", "url": "https://www.fishbase.se/summary/Morone-saxatilis.html"},
+    {"label": "Wikipedia: Striped bass", "url": "https://en.wikipedia.org/wiki/Striped_bass"}
+   ],
+   "expert_reviewed": false
+  },
+  "Morone americana": {
+   "summary": "A deep-bodied, silvery-grey to olive perch-like fish of estuaries and lakes. It looks like a small, plain striped bass.",
+   "features": [
+    "Deep, flattened body with an arched back",
+    "Two dorsal fins joined at the base by a low membrane",
+    "Silvery-grey to olive sides, with no bold stripes",
+    "Forked tail"
+   ],
+   "similar": [
+    {"species": "Morone saxatilis", "note": "Striped bass is slimmer with bold dark stripes, and its two dorsal fins are fully separate."},
+    {"species": "Perca flavescens", "note": "Yellow perch is yellow with dark vertical bars."}
+   ],
+   "sources": [
+    {"label": "FishBase: Morone americana", "url": "https://www.fishbase.se/summary/Morone-americana.html"},
+    {"label": "Wikipedia: White perch", "url": "https://en.wikipedia.org/wiki/Morone_americana"}
+   ],
+   "expert_reviewed": false
+  },
+  "Alosa pseudoharengus": {
+   "summary": "A deep-bodied, silvery river herring that runs up Nova Scotia rivers to spawn in spring. Grey-green back and a single dark spot behind the gill cover.",
+   "features": [
+    "Deep, flattened body with a sharp saw-edged keel of scutes along the belly",
+    "One dark spot on the shoulder, just behind the gill cover",
+    "Large eye, wider than the snout is long",
+    "One dorsal fin near the middle of the back; deeply forked tail",
+    "Grey-green back and silvery sides"
+   ],
+   "similar": [
+    {"species": "Alosa aestivalis", "note": "Blueback herring is almost identical outside. Its eye is smaller (no wider than the snout is long), its back is bluer, and its body lining is dark, which needs a fish in hand."},
+    {"species": "Clupea harengus", "note": "Atlantic herring is slimmer, with a weaker belly keel and no shoulder spot."},
+    {"species": "Alosa sapidissima", "note": "American shad grows much larger and usually has a row of several dark spots behind the gill cover."}
+   ],
+   "sources": [
+    {"label": "FishBase: Alosa pseudoharengus", "url": "https://www.fishbase.se/summary/Alosa-pseudoharengus.html"},
+    {"label": "Wikipedia: Alewife", "url": "https://en.wikipedia.org/wiki/Alosa_pseudoharengus"}
+   ],
+   "expert_reviewed": false
+  },
+  "Alosa aestivalis": {
+   "summary": "A river herring very like the alewife, with a blue-green back. Alewife and blueback are often counted together as river herring because they are so hard to tell apart on video.",
+   "features": [
+    "Deep, flattened silvery body with a saw-edged belly keel",
+    "One dark shoulder spot behind the gill cover",
+    "Eye no wider than the snout is long, smaller than an alewife's",
+    "Dark blue-green back",
+    "Body cavity lining is dark, unlike an alewife's pale lining (only visible in hand)"
+   ],
+   "similar": [
+    {"species": "Alosa pseudoharengus", "note": "Alewife has a larger eye, a greyer back and a pale body lining."}
+   ],
+   "sources": [
+    {"label": "FishBase: Alosa aestivalis", "url": "https://www.fishbase.se/summary/Alosa-aestivalis.html"},
+    {"label": "Wikipedia: Blueback herring", "url": "https://en.wikipedia.org/wiki/Alosa_aestivalis"}
+   ],
+   "expert_reviewed": false
+  },
+  "Menidia menidia": {
+   "summary": "A small, slender schooling fish of beaches and estuaries. Almost see-through grey-green with a bright silver stripe along each side.",
+   "features": [
+    "Bright silver band running along the middle of the side",
+    "Slender, translucent grey-green body",
+    "Two dorsal fins, the first small and spiny",
+    "Small mouth",
+    "Schools in shallow water near shore"
+   ],
+   "similar": [
+    {"species": "Osmerus mordax", "note": "Rainbow smelt has a small fleshy adipose fin near the tail and a large mouth with visible teeth."},
+    {"species": "Ammodytes americanus", "note": "Sand lance is more eel-like, with one long dorsal fin, a jutting lower jaw and no pelvic fins."}
+   ],
+   "sources": [
+    {"label": "FishBase: Menidia menidia", "url": "https://www.fishbase.se/summary/Menidia-menidia.html"},
+    {"label": "Wikipedia: Atlantic silverside", "url": "https://en.wikipedia.org/wiki/Menidia_menidia"}
+   ],
+   "expert_reviewed": false
+  },
+  "Osmerus mordax": {
+   "summary": "A slender, silvery fish of coastal waters and rivers, with a large toothy mouth and a small adipose fin. Sides often shine pink, purple or blue.",
+   "features": [
+    "Small, fleshy adipose fin between the dorsal fin and the tail",
+    "Large mouth reaching back to about the middle of the eye, with obvious teeth",
+    "Slender silvery body, often with pink or purple iridescence",
+    "Deeply forked tail"
+   ],
+   "similar": [
+    {"species": "Menidia menidia", "note": "Atlantic silverside has no adipose fin, a small mouth and two dorsal fins."},
+    {"species": "Mallotus villosus", "note": "Capelin is similar in shape but has very small scales and, in spawning males, ridges of enlarged scales along the sides."}
+   ],
+   "sources": [
+    {"label": "FishBase: Osmerus mordax", "url": "https://www.fishbase.se/summary/Osmerus-mordax.html"},
+    {"label": "Wikipedia: Rainbow smelt", "url": "https://en.wikipedia.org/wiki/Osmerus_mordax"}
+   ],
+   "expert_reviewed": false
+  },
+  "Ammodytes americanus": {
+   "summary": "A small, very slender, eel-like silvery fish that buries itself in sand and swims in dense schools.",
+   "features": [
+    "Long, thin body",
+    "One long, low dorsal fin along most of the back",
+    "No pelvic fins",
+    "Pointed head with a lower jaw that juts past the upper",
+    "Forked tail"
+   ],
+   "similar": [
+    {"species": "Menidia menidia", "note": "Atlantic silverside is deeper-bodied, with two short dorsal fins and a bright silver side stripe."}
+   ],
+   "sources": [
+    {"label": "FishBase: Ammodytes americanus", "url": "https://www.fishbase.se/summary/Ammodytes-americanus.html"},
+    {"label": "Wikipedia: American sand lance", "url": "https://en.wikipedia.org/wiki/Ammodytes_americanus"}
+   ],
+   "expert_reviewed": false
+  },
+  "Scophthalmus aquosus": {
+   "summary": "A very thin, round, left-eyed flatfish. So thin that light shows through it, which gives it its name.",
+   "features": [
+    "Both eyes on the left side of the body",
+    "Body very thin and almost translucent",
+    "Nearly round outline",
+    "Front rays of the dorsal fin are long, free and branched",
+    "Large mouth",
+    "Upper side light brown with many small dark spots"
+   ],
+   "similar": [
+    {"species": "Pseudopleuronectes americanus", "note": "Winter flounder is right-eyed and thick-bodied, with a small mouth."}
+   ],
+   "sources": [
+    {"label": "FishBase: Scophthalmus aquosus", "url": "https://www.fishbase.se/summary/Scophthalmus-aquosus.html"},
+    {"label": "Wikipedia: Windowpane flounder", "url": "https://en.wikipedia.org/wiki/Scophthalmus_aquosus"}
+   ],
+   "expert_reviewed": false
+  },
+  "Myoxocephalus octodecemspinosus": {
+   "summary": "A sculpin with a very long spine on the upper corner of the gill cover. Mottled olive to brown with dark saddles across the back.",
+   "features": [
+    "Upper spine on the gill cover is very long, several times the length of the spine below it",
+    "Broad, flattened head and tapering body",
+    "Two dorsal fins, the first spiny",
+    "Large, fan-like pectoral fins",
+    "Dark saddles or bars across the back"
+   ],
+   "similar": [
+    {"species": "Myoxocephalus scorpius", "note": "Shorthorn sculpin's upper gill-cover spine is short, not much longer than the one below."},
+    {"species": "Hemitripterus americanus", "note": "Sea raven has fleshy flaps on the head and rough, prickly skin."}
+   ],
+   "sources": [
+    {"label": "FishBase: Myoxocephalus octodecemspinosus", "url": "https://www.fishbase.se/summary/Myoxocephalus-octodecemspinosus.html"},
+    {"label": "Wikipedia: Longhorn sculpin", "url": "https://en.wikipedia.org/wiki/Myoxocephalus_octodecemspinosus"}
+   ],
+   "expert_reviewed": false
+  },
+  "Pungitius pungitius": {
+   "summary": "A small, slender stickleback with a row of many short spines along the back.",
+   "features": [
+    "Usually about nine short, separate spines in front of the dorsal fin (from 7 to 12)",
+    "Slender body with a very thin tail base",
+    "A small spine on each pelvic fin",
+    "Breeding males turn black on the throat and belly"
+   ],
+   "similar": [
+    {"species": "Gasterosteus aculeatus", "note": "Threespine stickleback usually has three dorsal spines and a deeper body."},
+    {"species": "Apeltes quadracus", "note": "Fourspine stickleback usually has four dorsal spines that lean alternately left and right."}
+   ],
+   "sources": [
+    {"label": "FishBase: Pungitius pungitius", "url": "https://www.fishbase.se/summary/Pungitius-pungitius.html"},
+    {"label": "Wikipedia: Ninespine stickleback", "url": "https://en.wikipedia.org/wiki/Ninespine_stickleback"}
+   ],
+   "expert_reviewed": false
+  },
+  "Apeltes quadracus": {
+   "summary": "A small stickleback of eelgrass and salt marshes with a few long spines that lean alternately to each side.",
+   "features": [
+    "Usually four spines in front of the dorsal fin, leaning alternately left and right",
+    "No bony plates along the sides",
+    "Body mottled olive-brown",
+    "A spine on each pelvic fin"
+   ],
+   "similar": [
+    {"species": "Gasterosteus aculeatus", "note": "Threespine stickleback usually has three upright dorsal spines and bony plates along the side."},
+    {"species": "Pungitius pungitius", "note": "Ninespine stickleback has many more, shorter dorsal spines."}
+   ],
+   "sources": [
+    {"label": "FishBase: Apeltes quadracus", "url": "https://www.fishbase.se/summary/Apeltes-quadracus.html"},
+    {"label": "Wikipedia: Fourspine stickleback", "url": "https://en.wikipedia.org/wiki/Fourspine_stickleback"}
+   ],
+   "expert_reviewed": false
+  },
+  "Fundulus diaphanus": {
+   "summary": "A slender killifish of lakes, streams and brackish water with many thin dark bars along an olive side.",
+   "features": [
+    "Many thin, dark vertical bars along the side",
+    "Slender body, slimmer than a mummichog",
+    "Flattened head with a small, upturned mouth",
+    "One dorsal fin set well back; rounded tail"
+   ],
+   "similar": [
+    {"species": "Fundulus heteroclitus", "note": "Mummichog is stockier, and females are plainer with only faint bars."}
+   ],
+   "sources": [
+    {"label": "FishBase: Fundulus diaphanus", "url": "https://www.fishbase.se/summary/Fundulus-diaphanus.html"},
+    {"label": "Wikipedia: Banded killifish", "url": "https://en.wikipedia.org/wiki/Banded_killifish"}
+   ],
+   "expert_reviewed": false
+  },
+  "Salvelinus fontinalis": {
+   "summary": "A colourful char of cold streams and lakes. Dark green back with pale wormlike markings and red spots ringed in blue on the sides.",
+   "features": [
+    "Pale, wormlike markings on the dark back and the dorsal fin",
+    "Red spots with blue halos on the sides",
+    "Lower fins have a white front edge, then a black stripe",
+    "Tail almost square",
+    "Adipose fin present"
+   ],
+   "similar": [
+    {"species": "Salmo trutta", "note": "Brown trout has dark spots on a lighter brown body and no white-edged lower fins or wormlike markings."},
+    {"species": "Salmo salar", "note": "Atlantic salmon has black spots mostly above the lateral line and a forked tail."}
+   ],
+   "sources": [
+    {"label": "FishBase: Salvelinus fontinalis", "url": "https://www.fishbase.se/summary/Salvelinus-fontinalis.html"},
+    {"label": "Wikipedia: Brook trout", "url": "https://en.wikipedia.org/wiki/Brook_trout"}
+   ],
+   "expert_reviewed": false
+  },
+  "Salmo trutta": {
+   "summary": "An introduced trout with a golden-brown to silvery body marked with dark spots, often with some red spots ringed in pale.",
+   "features": [
+    "Black spots on the back, sides and dorsal fin, many with pale rings",
+    "Usually a few red or orange spots on the sides",
+    "Tail is nearly square with few or no spots",
+    "Upper jaw extends past the back of the eye in adults",
+    "Adipose fin present, often with an orange edge"
+   ],
+   "similar": [
+    {"species": "Salmo salar", "note": "Atlantic salmon has a slimmer tail base, a more forked tail and X-shaped black spots with few or no red."},
+    {"species": "Salvelinus fontinalis", "note": "Brook trout has pale wormlike markings on the back and white-edged lower fins."}
+   ],
+   "sources": [
+    {"label": "FishBase: Salmo trutta", "url": "https://www.fishbase.se/summary/Salmo-trutta.html"},
+    {"label": "Wikipedia: Brown trout", "url": "https://en.wikipedia.org/wiki/Brown_trout"}
+   ],
+   "expert_reviewed": false
+  },
+  "Zoarces americanus": {
+   "summary": "A long, eel-like bottom fish with a large head, fleshy lips and long fins that run around the tail.",
+   "features": [
+    "Long, tapering body",
+    "Large head with thick, fleshy lips",
+    "Long dorsal and anal fins joined around the tail",
+    "A short section of small spines near the rear of the dorsal fin",
+    "Mottled yellowish-brown to grey"
+   ],
+   "similar": [
+    {"species": "Anarhichas lupus", "note": "Atlantic wolffish has big protruding canine teeth and dark vertical bars, and its fins aren't joined around the tail."},
+    {"species": "Anguilla rostrata", "note": "American eel has a smaller head, a jutting lower jaw and a dorsal fin that starts far behind the head."}
+   ],
+   "sources": [
+    {"label": "FishBase: Zoarces americanus", "url": "https://www.fishbase.se/summary/Zoarces-americanus.html"},
+    {"label": "Wikipedia: Ocean pout", "url": "https://en.wikipedia.org/wiki/Zoarces_americanus"}
+   ],
+   "expert_reviewed": false
+  },
+  "Pholis gunnellus": {
+   "summary": "A small, ribbon-like fish of rocky shores and tide pools, with a row of dark eyespots along the base of its long dorsal fin.",
+   "features": [
+    "Long, very flattened, eel-like body",
+    "A row of about 9 to 13 dark spots, each edged in pale, along the base of the dorsal fin",
+    "A dark bar running down through the eye",
+    "Long, low dorsal fin along the whole back",
+    "Tiny pelvic fins"
+   ],
+   "similar": [
+    {"species": "Ulvaria subbifurcata", "note": "Radiated shanny has a dark blotch on the front of the dorsal fin and dark lines radiating from the eye."},
+    {"species": "Anguilla rostrata", "note": "American eel has a rounder body with no spots, and its dorsal fin starts well behind the head."}
+   ],
+   "sources": [
+    {"label": "FishBase: Pholis gunnellus", "url": "https://www.fishbase.se/summary/Pholis-gunnellus.html"},
+    {"label": "Wikipedia: Rock gunnel", "url": "https://en.wikipedia.org/wiki/Rock_gunnel"}
+   ],
+   "expert_reviewed": false
+  },
+  "Anguilla rostrata": {
+   "summary": "A snake-like fish of rivers, estuaries and the coast, with one long fin that runs from the middle of the back around the tail to the belly.",
+   "features": [
+    "Long, round body",
+    "Dorsal fin starts well behind the pectoral fins and joins the tail and anal fin in one continuous fin",
+    "Lower jaw juts slightly past the upper",
+    "Small pectoral fins and no pelvic fins",
+    "Skin looks smooth; colour ranges from yellow-brown to dark olive or silvery"
+   ],
+   "similar": [
+    {"species": "Zoarces americanus", "note": "Ocean pout has a large head with fleshy lips and fins that start just behind the head."},
+    {"species": "Pholis gunnellus", "note": "Rock gunnel is flattened, with a row of spots along the dorsal fin, which runs the whole length of the back."}
+   ],
+   "sources": [
+    {"label": "FishBase: Anguilla rostrata", "url": "https://www.fishbase.se/summary/Anguilla-rostrata.html"},
+    {"label": "Wikipedia: American eel", "url": "https://en.wikipedia.org/wiki/American_eel"}
+   ],
+   "expert_reviewed": false
+  },
+  "Microgadus tomcod": {
+   "summary": "A small cod relative of estuaries and shallow coasts with three dorsal fins, a chin barbel and a rounded tail.",
+   "features": [
+    "Three dorsal fins and two anal fins",
+    "Small chin barbel",
+    "Rounded tail",
+    "Pelvic fins with a long, thread-like ray",
+    "Mottled olive to brown"
+   ],
+   "similar": [
+    {"species": "Gadus morhua", "note": "A young Atlantic cod has a squarer tail, a pale arched lateral line and pelvic fins without the long thread."},
+    {"species": "Pollachius virens", "note": "Pollock has a forked tail and a lower jaw that sticks out."}
+   ],
+   "sources": [
+    {"label": "FishBase: Microgadus tomcod", "url": "https://www.fishbase.se/summary/Microgadus-tomcod.html"},
+    {"label": "Wikipedia: Atlantic tomcod", "url": "https://en.wikipedia.org/wiki/Atlantic_tomcod"}
+   ],
+   "expert_reviewed": false
+  },
+  "Perca flavescens": {
+   "summary": "A freshwater perch with a yellow to golden body crossed by six to eight dark vertical bars.",
+   "features": [
+    "Six to eight dark vertical bars on yellow to greenish sides",
+    "Two separate dorsal fins, the first spiny",
+    "Lower fins can be orange, especially in breeding males",
+    "Slightly forked tail"
+   ],
+   "similar": [
+    {"species": "Morone americana", "note": "White perch is silvery with no dark bars, and its dorsal fins are joined at the base."},
+    {"species": "Micropterus dolomieu", "note": "Smallmouth bass is bronze-brown with fainter bars, and its two dorsal fins are joined."}
+   ],
+   "sources": [
+    {"label": "FishBase: Perca flavescens", "url": "https://www.fishbase.se/summary/Perca-flavescens.html"},
+    {"label": "Wikipedia: Yellow perch", "url": "https://en.wikipedia.org/wiki/Yellow_perch"}
+   ],
+   "expert_reviewed": false
+  },
+  "Micropterus dolomieu": {
+   "summary": "An introduced bass of Nova Scotia lakes and rivers. Bronze to brown, often with faint dark vertical bars and red eyes.",
+   "features": [
+    "Bronze to olive-brown body, often with faint vertical bars",
+    "Two dorsal fins joined, with a shallow notch between the spiny and soft parts",
+    "Upper jaw ends at about the middle of the eye",
+    "Red to orange eyes are common"
+   ],
+   "similar": [
+    {"species": "Perca flavescens", "note": "Yellow perch is yellow with bold bars, and its dorsal fins are fully separate."}
+   ],
+   "sources": [
+    {"label": "FishBase: Micropterus dolomieu", "url": "https://www.fishbase.se/summary/Micropterus-dolomieu.html"},
+    {"label": "Wikipedia: Smallmouth bass", "url": "https://en.wikipedia.org/wiki/Smallmouth_bass"}
+   ],
+   "expert_reviewed": false
+  },
+  "Esox niger": {
+   "summary": "A long, slim pike with a duck-bill snout and a dark chain-like pattern on green-gold sides.",
+   "features": [
+    "Dark, chain-like network of lines on the sides",
+    "Long, flattened duck-bill snout with many teeth",
+    "Dorsal and anal fins set far back near the tail",
+    "A dark vertical bar below the eye"
+   ],
+   "similar": [],
+   "sources": [
+    {"label": "FishBase: Esox niger", "url": "https://www.fishbase.se/summary/Esox-niger.html"},
+    {"label": "Wikipedia: Chain pickerel", "url": "https://en.wikipedia.org/wiki/Chain_pickerel"}
+   ],
+   "expert_reviewed": false
+  },
+  "Catostomus commersonii": {
+   "summary": "A round-bodied bottom feeder of lakes and rivers with a downturned, sucker-like mouth with thick fleshy lips.",
+   "features": [
+    "Mouth underneath the snout, with thick, fleshy, papillose lips",
+    "Long, round body; olive-brown back and pale belly",
+    "One dorsal fin near the middle of the back",
+    "Small scales, crowded toward the head"
+   ],
+   "similar": [
+    {"species": "Semotilus atromaculatus", "note": "Creek chub has a mouth at the front of the head and a dark spot at the front of the dorsal fin."}
+   ],
+   "sources": [
+    {"label": "FishBase: Catostomus commersonii", "url": "https://www.fishbase.se/summary/Catostomus-commersonii.html"},
+    {"label": "Wikipedia: White sucker", "url": "https://en.wikipedia.org/wiki/White_sucker"}
+   ],
+   "expert_reviewed": false
+  },
+  "Liparis atlanticus": {
+   "summary": "A small, tadpole-shaped fish with soft, loose, smooth skin and a sucker disc on the belly.",
+   "features": [
+    "Tadpole-shaped body, widest at the head",
+    "Soft, smooth, scaleless skin that looks jelly-like",
+    "Round sucker disc on the belly",
+    "Long dorsal and anal fins reaching back toward the tail"
+   ],
+   "similar": [
+    {"species": "Cyclopterus lumpus", "note": "Lumpfish is rounder and much larger, with rows of bony knobs on its skin."}
+   ],
+   "sources": [
+    {"label": "FishBase: Liparis atlanticus", "url": "https://www.fishbase.se/summary/Liparis-atlanticus.html"},
+    {"label": "Wikipedia: Atlantic seasnail", "url": "https://en.wikipedia.org/wiki/Liparis_atlanticus"}
+   ],
+   "expert_reviewed": false
+  }
+ }
+}
