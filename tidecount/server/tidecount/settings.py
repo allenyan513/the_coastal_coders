@@ -33,12 +33,14 @@ class DetectorSettings(Strict):
     width: int = Field(960, ge=0)
     queue_threshold: float = Field(0.3, gt=0, lt=1)
     dot_threshold: float = Field(0.15, gt=0, lt=1)
+    freeze_threshold: float = Field(0.25, gt=0, lt=1)
 
 
 class DetectorOverride(Strict):
     width: int | None = Field(None, ge=0)
     queue_threshold: float | None = Field(None, gt=0, lt=1)
     dot_threshold: float | None = Field(None, gt=0, lt=1)
+    freeze_threshold: float | None = Field(None, gt=0, lt=1)
 
 
 class Tracker(Strict):

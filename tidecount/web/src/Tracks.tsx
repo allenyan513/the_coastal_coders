@@ -18,7 +18,7 @@ const SORT_KEYS = Object.keys(SORTS);
 const PICKER_SIZE = 5;
 const KEYS: KeyGroup[] = [
   { title: "Move and select", keys: [["← → ↑ ↓", "Move between tracks"], ["Shift+arrows", "Extend the selection"], ["Space", "Select or unselect"], ["⌘/Ctrl+A", "Select all shown"], ["Esc", "Clear the selection"]] },
-  { title: "Decide", keys: [["C", "Confirm"], ["1 2 3 4 5", "Name with a button in the bar"], ["U", "Fish, unidentified"], ["X", "Not a fish"], ["M", "Same fish, merge"], ["Z", "Undo"]] },
+  { title: "Decide", keys: [["C", "Confirm"], ["1 2 3 4 5", "Name with a button in the bar"], ["U", "Unidentified fish"], ["X", "Not a fish"], ["M", "Same fish, merge"], ["Z", "Undo"]] },
   { title: "View", keys: [["Enter O", "Watch the track in the video"], ["F", "Undecided or all"], ["S", "Change the sort"]] },
 ];
 
@@ -367,8 +367,8 @@ export function Tracks() {
               <kbd>{i + 1}</kbd>{p.name}{p.ai ? "?" : ""}
             </button>
           ))}
-          <button className="btn" disabled={none} onClick={() => name(UNIDENTIFIED)}><kbd>U</kbd>{UNIDENTIFIED}</button>
-          <button className="btn" disabled={none} onClick={reject}><kbd>X</kbd>Not a fish</button>
+          <button className="btn" disabled={none} onClick={() => name(UNIDENTIFIED)}><kbd>U</kbd>Unidentified fish</button>
+          <button className="btn reject" disabled={none} onClick={reject}><kbd>X</kbd>Not a fish</button>
           <button className="btn" disabled={picked.length < 2} onClick={merge}><kbd>M</kbd>Same fish, merge</button>
         </div>
         <p className={`meta sheet-note ${overlapping ? "warn" : ""}`}>

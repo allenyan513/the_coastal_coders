@@ -14,6 +14,7 @@ fps = 2                      # frames looked at per second of video
 width = 960                  # detectors see this width, and 0 means the original width
 queue_threshold = 0.3        # a box at or above this can put footage in the review queue
 dot_threshold = 0.15         # a box at or above this becomes an AI dot in a snapshot or school count
+freeze_threshold = 0.25      # Freeze frame on the Video tab offers every box at or above this as a possible fish
 
 # Confidence isn't comparable between models, so a detector with its own values gets a block:
 #

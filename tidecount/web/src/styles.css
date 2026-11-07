@@ -3,6 +3,7 @@
   --text: #101828; --text-2: #475467; --muted: #5b6472; --muted-2: #98a2b3;
   --accent: #1f5eff; --accent-ink: #1d4ed8; --accent-soft: #eaf0ff;
   --up: #0f7b4f; --up-soft: #e6f4ec; --down: #c2410c; --down-ink: #9a3412; --down-soft: #fdede6;
+  --red: #d92d20; --red-ink: #b42318; --red-soft: #fef3f2;
   --warn: #b45309; --warn-soft: #fef3c7; --amber: #d97706; --skip: #c3cbd8;
   --display: "Bricolage Grotesque Variable", "Geist Variable", system-ui, sans-serif;
   --sans: "Geist Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -159,6 +160,10 @@ button.side-link { width: 100%; background: none; border: 0; font: inherit; font
 .btn.tall { height: 44px; }
 .btn.primary { height: 44px; padding: 0 16px; background: var(--accent); border-color: var(--accent); color: #fff; font-size: 14px; font-weight: 600; }
 .btn.block { width: 100%; }
+/* Not a fish, wherever it appears: a red outline and a red X. */
+.btn.reject { border-color: var(--red); color: var(--red-ink); }
+.btn.reject:hover:not(:disabled) { background: var(--red-soft); border-color: var(--red-ink); color: var(--red-ink); }
+.btn.reject kbd { border-color: var(--red); color: var(--red); font-weight: 700; }
 .chip { height: 32px; padding: 0 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; color: var(--text-2); font-size: 12px; font-weight: 500; }
 .chip[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: #fff; }
 
@@ -186,10 +191,7 @@ td { padding: 8px 12px; font-size: 13.5px; border-top: 1px solid var(--border-2)
 .bar { height: 6px; background: var(--panel-3); border-radius: 3px; overflow: hidden; width: 120px; }
 .bar i { display: block; height: 100%; background: var(--accent); }
 
-.workspace { display: grid; grid-template-columns: 220px minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
-.queue { max-height: calc(100vh - 150px); overflow-y: auto; }
-.queue-item { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; padding: 10px 12px; background: var(--panel); border: 0; border-bottom: 1px solid var(--border-2); text-align: left; }
-.queue-item[aria-pressed="true"] { background: var(--accent-soft); }
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
 .stage { position: relative; width: 100%; overflow: hidden; background: #101828; border-radius: 8px; }
 .stage video, .stage img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .overlay { position: absolute; inset: 0; }
@@ -202,6 +204,8 @@ td { padding: 8px 12px; font-size: 13.5px; border-top: 1px solid var(--border-2)
 .stage-note { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 6px 12px; background: var(--accent); color: #fff; border-radius: 6px; font-size: 13px; font-weight: 600; white-space: nowrap; pointer-events: none; }
 .stage.adding { cursor: crosshair; box-shadow: 0 0 0 3px var(--accent); touch-action: none; user-select: none; }
 .stage.adding .fishbox { pointer-events: none; }
+.fishbox.maybe { border: 2px dashed #ffc94d; background: rgba(255, 201, 77, .08); }
+.fishbox.maybe span { background: rgba(122, 79, 0, .92); }
 .fishbox.draft { border: 2px solid var(--accent); background: rgba(31,94,255,.15); }
 .fishbox.draft.busy { animation: following 1s ease-in-out infinite alternate; }
 @keyframes following { from { background: rgba(31,94,255,.1); } to { background: rgba(31,94,255,.35); } }
@@ -217,7 +221,6 @@ td { padding: 8px 12px; font-size: 13.5px; border-top: 1px solid var(--border-2)
 .species { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 44px; padding: 6px 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; text-align: left; }
 .species[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
 .crop { width: 100%; max-height: 150px; object-fit: contain; background: #101828; border-radius: 6px; }
-.tally { display: flex; justify-content: space-between; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--border-2); font-size: 13px; }
 .dot { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; padding: 0; border: 2px solid #fff; border-radius: 50%; background: var(--accent); }
 .dot.user { background: var(--up); }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 16px; background: var(--text); color: #fff; border-radius: 6px; font-size: 13px; z-index: 30; }
@@ -238,17 +241,9 @@ td { padding: 8px 12px; font-size: 13.5px; border-top: 1px solid var(--border-2)
 
 @media (max-width: 1180px) {
   .workspace { grid-template-columns: minmax(0, 1fr); }
-  .queue { max-height: 260px; }
   .split { grid-template-columns: minmax(0, 1fr); }
 }
 
-.tracklist { max-height: 300px; overflow-y: auto; }
-.trackrow { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-top: 1px solid var(--border-2); }
-.trackrow.on { background: var(--accent-soft); }
-.trackrow input { margin: 0; width: 16px; height: 16px; flex: none; }
-.trackrow img, .nocrop { width: 44px; height: 32px; flex: none; object-fit: cover; background: #101828; border-radius: 4px; }
-.trackname { flex: 1 1 auto; min-width: 0; padding: 0; background: none; border: 0; text-align: left; font-size: 13px; color: var(--text); }
-.trackname small { display: block; font-size: 11px; color: var(--muted); }
 
 .field select, .run-model { height: 38px; padding: 0 8px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font: inherit; font-size: 13px; max-width: 280px; }
 .run-model { height: 36px; max-width: 150px; color: var(--text-2); }
@@ -293,6 +288,14 @@ kbd { margin-right: 4px; padding: 0 4px; border: 1px solid currentColor; border-
 .crumb:hover { color: var(--text); }
 .crumb-sep { color: var(--muted-2); }
 .vhead-name { overflow-wrap: anywhere; }
+.tabs { display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.tab { height: 40px; padding: 0 14px; display: inline-flex; align-items: center; gap: 8px; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--text-2); font-size: 14px; font-weight: 500; text-decoration: none; white-space: nowrap; }
+.tab:hover { color: var(--text); border-bottom-color: var(--muted-2); }
+.tab[aria-current] { color: var(--accent-ink); border-bottom-color: var(--accent); font-weight: 600; }
+.tab-count { padding: 1px 6px; background: var(--panel-3); border-radius: 999px; color: var(--muted); font-size: 11px; font-weight: 500; }
+.tab[aria-current] .tab-count { background: var(--accent-soft); color: var(--accent-ink); }
+.tab-count.ok { background: var(--up-soft); color: var(--up); }
+/* Numbered step pills, used by the Import dialog's three steps. */
 .steps { display: flex; align-items: center; gap: 8px 26px; flex-wrap: wrap; }
 .step { position: relative; height: 40px; padding: 0 14px 0 8px; display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; color: var(--text-2); font-size: 13px; font-weight: 500; text-decoration: none; white-space: nowrap; }
 .step + .step::before { content: ""; position: absolute; left: -23px; top: 50%; width: 20px; height: 1px; background: var(--muted-2); }
@@ -339,9 +342,6 @@ a.vname:hover { color: var(--accent-ink); }
 .sbar-row { display: grid; grid-template-columns: minmax(120px, 200px) minmax(0, 1fr) 36px; gap: 12px; align-items: center; padding: 7px 12px; border-top: 1px solid var(--border-2); font-size: 13.5px; }
 .sbar-row:hover { background: var(--panel-2); }
 .sbar { display: block; height: 10px; min-width: 3px; background: var(--accent); border-radius: 0 4px 4px 0; }
-.guesses summary { cursor: pointer; font-size: 12px; color: var(--muted); }
-.guesses[open] summary { margin-bottom: 8px; }
-.guesses .species { color: var(--text-2); }
 
 @media (max-width: 900px) {
   .vcols { display: none; }
@@ -354,13 +354,87 @@ a.vname:hover { color: var(--accent-ink); }
 
 .review-page { height: calc(100vh - 52px); }
 .review-page .workspace { flex: 1 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
-.review-page .queue { max-height: none; }
-.review-mid { min-height: 0; overflow-y: auto; }
-.review-mid .stage { flex: none; margin: 0 auto; }
+/* Picture sliders beside the video; the player bar and timeline run under both. */
+/* Picture | video | find-fish tools. The video column is as wide as the video can be at this height,
+   the player bar sits under the video only, and the timeline runs under all three. */
+.review-mid {
+  --video-w: max(320px, calc((100vh - 380px) * var(--ratio, 1.78)));
+  min-height: 0; overflow-y: auto; display: grid; gap: 12px; align-content: start;
+  grid-template-columns: 210px min(var(--video-w), calc(100% - 210px - 180px - 24px)) minmax(180px, 1fr);
+}
+/* The side columns run down beside the player bar too, so the sliders get that height as well. */
+.review-mid > .picture-col { grid-column: 1; grid-row: 1 / span 2; }
+.review-mid > .stage { grid-column: 2; grid-row: 1; }
+.review-mid > .video-tools { grid-column: 3; grid-row: 1 / span 2; }
+.review-mid > .player-controls { grid-column: 2; justify-content: center; }
+.review-mid > .player-timeline { grid-column: 1 / -1; }
+.video-tools { align-self: start; display: flex; flex-direction: column; gap: 10px; }
+.fish-nav { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px; padding: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+.fish-nav .btn { height: 40px; padding: 0; font-size: 20px; line-height: 1; }
+.fish-count { min-width: 0; display: flex; flex-direction: column; align-items: center; line-height: 1.2; white-space: nowrap; }
+.fish-count b { font-size: 13px; font-weight: 600; color: var(--text); }
+.fish-count small { font-size: 11px; color: var(--muted); }
+/* Desktop: the timeline sits on the bottom edge, the same height as the segment actions beside it. */
+@media (min-width: 1181px) {
+  .review-mid { grid-template-rows: auto auto minmax(0, 1fr); }
+  .review-mid > .player-timeline { align-self: end; }
+  .review-mid > .player-timeline, .review-page .side-actions { min-height: 160px; }
+  .review-page .side-actions { justify-content: flex-end; }
+}
+.btn.tool { position: relative; height: auto; min-height: 72px; padding: 12px 14px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; border: 0; color: #fff; text-align: left; white-space: normal; }
+.btn.tool b { font-size: 15px; font-weight: 600; }
+.btn.tool small { font-size: 12px; opacity: .85; }
+.btn.tool kbd { position: absolute; top: 10px; right: 10px; margin: 0; border-color: rgba(255, 255, 255, .7); opacity: .9; }
+.btn.tool.add { background: var(--up); }
+.btn.tool.add:hover { background: #0b6440; }
+.btn.tool.redetect { background: var(--accent); }
+.btn.tool.redetect:hover { background: var(--accent-ink); }
+.btn.tool[aria-pressed="true"] { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .85), 0 0 0 2px var(--text); }
+.switches { display: flex; flex-direction: column; gap: 8px; }
+.switch-key { margin-left: auto; }
+/* Laptop widths: narrower side columns and title-only tool buttons, so the video keeps its size. */
+@media (max-width: 1500px) {
+  .review-mid { grid-template-columns: 184px min(var(--video-w), calc(100% - 184px - 140px - 24px)) minmax(140px, 1fr); }
+  .btn.tool { min-height: 56px; padding: 10px 12px; }
+  .btn.tool b { font-size: 14px; padding-right: 22px; }
+  .btn.tool small { display: none; }
+  .fish-nav { grid-template-columns: 32px minmax(0, 1fr) 32px; gap: 4px; padding: 4px; }
+  .fish-nav .btn { height: 36px; }
+  .fish-nav .fish-word { display: none; }
+}
+@media (min-width: 1181px) and (max-width: 1500px) {
+  .workspace { grid-template-columns: minmax(0, 1fr) 280px; }
+}
+/* The video sets the row's height; the sliders scroll if a short screen makes them taller than it. */
+.picture-col { align-self: stretch; contain: size; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+@media (max-height: 820px) {
+  .picture-col { gap: 8px; padding: 10px 14px; }
+  .picture-col .picture-sliders { gap: 4px; }
+  .picture-col .slider { gap: 2px; }
+  .picture-col .switches { gap: 4px; }
+  .picture-col .picture-presets { gap: 4px; }
+  .picture-col .picture-presets .chip { height: 28px; }
+  .picture-col > .btn { height: 30px; }
+  .picture-col > .meta { display: none; }
+  /* The species list is always on the track card, so it packs tighter here too. */
+  .side-col .species { min-height: 36px; padding: 4px 12px; }
+  .side-col .crop { max-height: 120px; object-fit: contain; }
+}
+.picture-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.picture-head .btn { height: 28px; padding: 0 8px; }
+.picture-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.picture-sliders { display: flex; flex-direction: column; gap: 10px; }
+.slider { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-2); }
+.slider-head { display: flex; justify-content: space-between; gap: 8px; }
+.slider input { width: 100%; margin: 0; accent-color: var(--accent); }
+.switch { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+.switch input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+.review-mid .stage { flex: none; margin: 0; }
 .side-col { min-height: 0; display: flex; flex-direction: column; gap: 12px; }
-.side-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-.side-scroll > * { flex: none; }
-.side-actions { flex: none; box-shadow: 0 -6px 16px rgba(16, 24, 40, .06); }
+.side-col > * { flex: none; }
+/* Only on short screens with a long species list: the track card scrolls, the actions below always stay in view. */
+.side-col > .panel:first-child { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
+.side-actions { margin-top: auto; box-shadow: 0 -6px 16px rgba(16, 24, 40, .06); }
 .btn.primary kbd, .btn.go kbd { border-color: rgba(255, 255, 255, .7); opacity: .9; }
 
 .help-back { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(16, 24, 40, .45); }
@@ -411,7 +485,6 @@ button.step:disabled { opacity: .5; }
 @media (max-width: 1180px) {
   .review-page { height: auto; }
   .review-page .workspace { grid-template-rows: auto; }
-  .review-page .queue { max-height: 260px; }
   .help-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
@@ -478,6 +551,8 @@ button.step:disabled { opacity: .5; }
   .sticky-first th:first-child, .sticky-first td:first-child { position: sticky; left: 0; z-index: 1; min-width: 132px; background: var(--panel); box-shadow: 1px 0 0 var(--border-2); }
   .sticky-first th:first-child { background: var(--panel-2); }
 
+  .tabs { width: 100%; flex-wrap: nowrap; overflow-x: auto; }
+  .tab { height: 44px; padding: 0 12px; }
   .steps { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
   .step { height: 48px; padding: 0 8px 0 6px; gap: 6px; border-radius: 10px; font-size: 12px; line-height: 1.15; white-space: normal; }
   .step .meta, .step + .step::before { display: none; }
@@ -490,7 +565,14 @@ button.step:disabled { opacity: .5; }
   .player-controls { order: 2; }
   .side-col { order: 3; }
   .player-timeline { order: 4; }
-  .review-page .queue { order: 5; }
+  .review-mid > .picture-col, .review-mid > .stage, .review-mid > .video-tools, .review-mid > .player-controls, .review-mid > .player-timeline { grid-column: auto; grid-row: auto; }
+  .video-tools { order: 3; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fish-nav { grid-column: 1 / -1; }
+  .btn.tool { min-height: 60px; padding: 10px 12px; }
+  .btn.tool b { font-size: 14px; }
+  .btn.tool small { display: none; }
+  .picture-col { order: 5; contain: none; overflow: visible; }
+  .picture-sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .side-actions { position: sticky; bottom: env(safe-area-inset-bottom); z-index: 4; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .side-actions p { grid-column: 1 / -1; }
   .side-actions .row { display: contents; }
