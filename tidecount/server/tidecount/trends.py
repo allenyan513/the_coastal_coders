@@ -5,8 +5,9 @@ are made-up DEMO data from make_demo(), so the Fish and water trends page can sh
 will look. Every demo row has source 'demo', and the page labels it. Reviewed videos filmed at a
 water site are saved in the same table with source 'video', by link.py.
 
-Plain functions on a database connection, so they can be tested without HTTP. Run
-`python -m tidecount.trends demo` from server/ to (re)make the demo data.
+Plain functions on a database connection, so they can be tested without HTTP. The app makes the
+demo data by itself the first time it starts with this table. Run `python -m tidecount.trends demo`
+from server/ to remake it, or delete it with: DELETE FROM fish_counts WHERE source = 'demo'.
 """
 import math
 import random
@@ -249,6 +250,11 @@ def make_demo(con, first_year: int = 2015, last_year: int = 2025, seed: int = 7)
     con.execute("DELETE FROM fish_counts WHERE source = 'demo'")
     con.executemany("INSERT INTO fish_counts (site_id, date, species, count, source) VALUES (?, ?, ?, ?, 'demo')", rows)
     return len(rows)
+
+
+def has_fish_table(con) -> bool:
+    """Whether this database has had a fish_counts table yet. The app makes demo data only the first time."""
+    return bool(con.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'fish_counts'").fetchone())
 
 
 def poisson(rng: random.Random, mean: float) -> int:

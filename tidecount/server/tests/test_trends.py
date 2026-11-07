@@ -140,3 +140,24 @@ def test_compare_pairs_surveys_with_nearby_water_readings():
     assert c["pairs"] == 3  # the August survey has no reading within 15 days
     assert c["spearman"] == approx(1) and c["strength"] == "strong positive"
     assert len(c["fish"]["points"]) == 4 and "z" in c["fish"]["points"][0]
+
+
+# Starting the app.
+
+def test_a_new_database_gets_water_and_demo_fish_once(tmp_path, monkeypatch):
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "new.db")  # as on a computer that has never run the app
+
+    def count(source):
+        with db.session() as con:
+            return con.execute("SELECT COUNT(*) AS n FROM fish_counts WHERE source = ?", (source,)).fetchone()["n"]
+
+    with TestClient(app):
+        pass
+    assert count("demo") > 2000
+    with db.session() as con:
+        assert con.execute("SELECT COUNT(*) AS n FROM water_readings").fetchone()["n"] > 20000
+        con.execute("DELETE FROM fish_counts WHERE source = 'demo'")  # someone removes the demo data
+
+    with TestClient(app):  # the next start
+        pass
+    assert count("demo") == 0
