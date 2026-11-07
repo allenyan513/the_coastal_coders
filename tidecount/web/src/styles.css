@@ -30,7 +30,8 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .shell { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: 208px minmax(0, 1fr); }
 .shell:has(.side.rail) { grid-template-columns: 56px minmax(0, 1fr); }
 .side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 20px; padding: 16px 12px; background: var(--panel); border-right: 1px solid var(--border); }
-.brand { padding: 4px 8px; font: 800 20px/1 var(--display); letter-spacing: -.4px; color: var(--text); text-decoration: none; }
+.brand { padding: 4px 8px; display: flex; align-items: center; gap: 8px; font: 800 20px/1 var(--display); letter-spacing: -.4px; color: var(--text); text-decoration: none; }
+.brand img, .start-brand img { flex: none; width: 28px; height: 28px; }
 .side-nav { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; }
 .side-label { padding: 0 8px 6px; font: 500 11px var(--mono); letter-spacing: .3px; text-transform: uppercase; color: var(--muted); }
 .side-link { height: 36px; padding: 0 8px; display: flex; align-items: center; gap: 10px; border-radius: 6px; color: var(--text-2); font-weight: 500; text-decoration: none; }
@@ -39,7 +40,8 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 button.side-link { width: 100%; background: none; border: 0; font: inherit; font-weight: 500; text-align: left; }
 .side.rail button.side-link { width: 40px; }
 .side.rail { padding: 16px 8px; align-items: center; }
-.side.rail .brand { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; background: var(--text); color: #fff; border-radius: 8px; font-size: 16px; }
+.side.rail .brand { padding: 0; }
+.side.rail .brand img { width: 32px; height: 32px; }
 .side.rail .side-label, .side.rail .side-link span { display: none; }
 .side.rail .side-link { width: 40px; padding: 0; justify-content: center; }
 .side-settings { margin-top: auto; }
@@ -328,7 +330,7 @@ a.vname:hover { color: var(--accent-ink); }
 
 .start { min-height: 100vh; min-height: 100dvh; max-width: 940px; margin: 0 auto; padding: 32px 24px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 56px; align-items: center; }
 .start-main { display: flex; flex-direction: column; gap: 24px; }
-.start-brand { font: 800 20px/1 var(--display); letter-spacing: -.4px; }
+.start-brand { display: flex; align-items: center; gap: 8px; font: 800 20px/1 var(--display); letter-spacing: -.4px; }
 .start h1 { font-size: 46px; }
 .start .lede { margin-top: 12px; font-size: 17px; line-height: 1.45; }
 .start-actions { display: flex; flex-direction: column; gap: 10px; max-width: 420px; }

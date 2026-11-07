@@ -23,7 +23,7 @@ export function Start() {
   return (
     <main className="start">
       <div className="start-main">
-        <p className="start-brand">Tideflow</p>
+        <p className="start-brand"><img src="/favicon.svg" alt="" />Tideflow</p>
         <div>
           <h1>Count fish in underwater video.</h1>
           <p className="lede">Follow your video analysis procedure, frame by frame, while AI points out where the fish are. A person confirms every count.</p>
