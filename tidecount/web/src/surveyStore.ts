@@ -16,24 +16,29 @@ export type SurveyData = {
   stations: Station[];
   /** Station by video, keyed by the first import of it, so re-runs with another model share a station. */
   places: Record<string, string>;
+  /** The day a video was filmed, as YYYY-MM-DD, keyed like places. It gives reports their seasons. */
+  filmedOn: Record<string, string>;
 };
 
 type Kind = "sites" | "transects" | "stations";
 type Item<K extends Kind> = SurveyData[K][number];
 
-const KEY = "tideflow-structure";
+const KEY = "tideflow-structure-v2";
 
-/** Sample names only. Coastal Action's real sites are still an open question in the PRD, so nothing here is a fact about them. */
+/**
+ * Sample structure. The place names are real, but these sites, transects and stations are made up:
+ * Coastal Action's actual list is still an open question in the PRD.
+ */
 function seed(): SurveyData {
-  const station = (transectId: string, n: number): Station => ({ id: `${transectId}-s${n}`, transectId, name: `STAT${n}`, coordinates: "", depth: "", archived: false });
+  const site = (id: string, name: string, flag: Flag): Site => ({ id, name, coordinates: "", flag, archived: false });
+  const transect = (id: string, siteId: string, name: string): Transect => ({ id, siteId, name, archived: false });
+  const stationsOf = (transectId: string) => [1, 2, 3].map((n): Station => ({ id: `${transectId}-s${n}`, transectId, name: `STAT${n}`, coordinates: "", depth: "", archived: false }));
   return {
-    sites: [{ id: "sample-site", name: "Sample site", coordinates: "", flag: "treatment", archived: false }],
-    transects: [
-      { id: "t1", siteId: "sample-site", name: "T1", archived: false },
-      { id: "t2", siteId: "sample-site", name: "T2", archived: false },
-    ],
-    stations: [1, 2, 3].flatMap((n) => [station("t1", n), station("t2", n)]).sort((a, b) => a.id.localeCompare(b.id)),
+    sites: [site("mahone-bay", "Mahone Bay Living Shoreline", "treatment"), site("lahave", "LaHave River Estuary", "reference")],
+    transects: [transect("t1", "mahone-bay", "T1"), transect("t2", "mahone-bay", "T2"), transect("l1", "lahave", "T1"), transect("l2", "lahave", "T2")],
+    stations: ["t1", "t2", "l1", "l2"].flatMap(stationsOf),
     places: {},
+    filmedOn: {},
   };
 }
 
@@ -82,6 +87,10 @@ export function setPlace(videoRoot: string, stationId: string) {
   commit({ ...data, places: { ...data.places, [videoRoot]: stationId } });
 }
 
+export function setFilmedOn(videoRoot: string, date: string) {
+  commit({ ...data, filmedOn: { ...data.filmedOn, [videoRoot]: date } });
+}
+
 export function setPlaces(next: Record<string, string>) {
   commit({ ...data, places: { ...data.places, ...next } });
 }
@@ -109,6 +118,16 @@ export function removeItem(kind: Kind, id: string) {
     transects: data.transects.filter((t) => !transects.includes(t.id)),
     stations: data.stations.filter((s) => !stations.includes(s.id)),
   });
+}
+
+export const NO_DATE = "No date";
+
+/** The season of a YYYY-MM-DD date. December to February is the winter of the December's year. */
+export function season(date: string) {
+  const [year, month] = date.split("-").map(Number);
+  if (!year || !month) return NO_DATE;
+  if (month <= 2) return `Winter ${year - 1}`;
+  return `${month <= 5 ? "Spring" : month <= 8 ? "Summer" : month <= 11 ? "Fall" : "Winter"} ${year}`;
 }
 
 /** Stations that can take new footage, labelled with their transect, grouped by site. */

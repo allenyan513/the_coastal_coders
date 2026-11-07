@@ -96,6 +96,28 @@ button.side-link { width: 100%; background: none; border: 0; font: inherit; font
 .btn.danger { background: var(--down); border-color: var(--down); color: #fff; font-weight: 600; }
 .btn.danger:hover { background: var(--down-ink); border-color: var(--down-ink); color: #fff; }
 
+.report-site select { min-width: 180px; }
+.pagehead:has(.report-site) .row { align-items: flex-end; }
+.sample-note { padding: 10px 12px; background: var(--warn-soft); border: 1px solid var(--amber); border-radius: 8px; font-size: 13px; }
+.rhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.rlegend { gap: 16px; font-size: 12px; color: var(--text-2); }
+.rlegend span { display: flex; align-items: center; gap: 6px; }
+.rlegend i { width: 12px; height: 12px; background: #8aa8f8; border-radius: 3px; }
+.rlegend i.latest { background: var(--accent); }
+.rchart { padding: 28px 16px 12px; display: flex; gap: 24px; overflow-x: auto; }
+.rgroup { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.rgroup-bars { display: flex; gap: 8px; }
+.rtransect { padding-top: 6px; border-top: 1px solid var(--border); text-align: center; font-weight: 600; font-size: 13px; }
+.rstation { flex: 1 1 0; min-width: 44px; display: flex; flex-direction: column; gap: 6px; }
+.rbars { height: 200px; display: flex; align-items: flex-end; justify-content: center; gap: 2px; border-bottom: 1px solid var(--muted-2); }
+.rbar { position: relative; flex: 0 1 32px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
+.rbar i { display: block; min-height: 1px; background: #8aa8f8; border-radius: 4px 4px 0 0; }
+.rbar.latest i { background: var(--accent); }
+.rvalue { position: relative; margin-bottom: 3px; color: var(--text); font-size: 11px; font-weight: 600; text-align: center; }
+.rtip { position: absolute; left: 50%; bottom: calc(100% - 28px); z-index: 5; transform: translateX(-50%); display: none; padding: 4px 8px; background: var(--text); color: #fff; border-radius: 4px; font-size: 12px; white-space: nowrap; pointer-events: none; }
+.rbar:hover .rtip, .rbar:focus-visible .rtip { display: block; }
+.rlabel { color: var(--text-2); font-size: 12px; text-align: center; }
+
 .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; max-width: 860px; }
 .settings-card { padding: 16px; gap: 14px; }
 .river-empty { padding: 48px 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }

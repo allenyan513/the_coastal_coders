@@ -3,8 +3,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api, clock, isLocal, ModelOption, Summary, Video } from "./api";
 import { Menu } from "./Menu";
 import { useUser } from "./session";
-import { SiteList, StationDialog, StationPicker, StationStats } from "./Surveys";
-import { setPlace, setPlaces, suggestStation, useSurveys } from "./surveyStore";
+import { FilmedOn, SiteList, StationDialog, StationPicker, StationStats } from "./Surveys";
+import { season, setFilmedOn, setPlace, setPlaces, suggestStation, useSurveys } from "./surveyStore";
 
 const READY = "Ready to review";
 type Group = { root: string; runs: Video[] };
@@ -25,6 +25,7 @@ export function Library() {
   const [detector, setDetector] = useState("");
   const [pending, setPending] = useState<File | null>(null);
   const [stationId, setStationId] = useState("");
+  const [filmed, setFilmed] = useState("");
   const [path, setPath] = useState("");
   const [placing, setPlacing] = useState<{ root: string; name: string } | null>(null);
   const [editing, setEditing] = useState(false);
@@ -105,6 +106,7 @@ export function Library() {
   const importTo = (send: (site: string) => Promise<{ id: string }>) => run(async () => {
     const { id } = await send(siteName());
     setPlace(id, stationId);
+    if (filmed) setFilmedOn(id, filmed);
     setPending(null);
     setPath("");
   });
@@ -132,8 +134,10 @@ export function Library() {
         <div className="stack" style={{ gap: 4, minWidth: 0 }}>
           {ready ? <Link className="vname" to={`/videos/${v.id}/snapshots`}>{v.name}</Link> : <span className="vname">{v.name}</span>}
           <span className="meta">
-            {!filed && <><button className="link" onClick={() => setPlacing({ root: g.root, name: v.name })}>Choose station</button>{g.runs.length === 1 ? " · " : ""}</>}
-            {g.runs.length === 1 ? labelOf(v.detector) : ""}
+            {!filed && <><button className="link" onClick={() => setPlacing({ root: g.root, name: v.name })}>Choose station</button>{" · "}</>}
+            {filed && !data.filmedOn[g.root] && <><button className="link" onClick={() => setPlacing({ root: g.root, name: v.name })}>Add filmed date</button>{" · "}</>}
+            {data.filmedOn[g.root] ? `${season(data.filmedOn[g.root])} · ` : ""}
+            {labelOf(v.detector)}
           </span>
           {g.runs.length > 1 && (
             <div className="row" style={{ gap: 4 }}>
@@ -176,7 +180,7 @@ export function Library() {
                 <Link role="menuitem" to={`/videos/${v.id}`}>Review footage</Link>
                 <Link role="menuitem" to={`/videos/${v.id}/summary`}>Report</Link>
                 <a role="menuitem" href={`/api/videos/${v.id}/protocol.csv`}>Export analysis sheet</a>
-                <button role="menuitem" onClick={() => setPlacing({ root: g.root, name: v.name })}>{filed ? "Move to another station" : "Choose station"}</button>
+                <button role="menuitem" onClick={() => setPlacing({ root: g.root, name: v.name })}>{filed ? "Station and date" : "Choose station"}</button>
               </Menu>
             </>
           )}
@@ -243,6 +247,7 @@ export function Library() {
             </div>
             <div className="stack" style={{ flex: "1 1 260px" }}>
               <StationPicker data={data} value={stationId} onChange={setStationId} />
+              <FilmedOn value={filmed} onChange={setFilmed} />
               <details className="advanced">
                 <summary>Advanced: model and large files</summary>
                 <div className="stack">

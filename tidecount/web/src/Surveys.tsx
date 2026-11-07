@@ -1,7 +1,7 @@
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { Menu } from "./Menu";
 import {
-  activeTree, Flag, newId, placeLabel, removeItem, resetSurveys, saveItem, setArchived, setPlace,
+  activeTree, Flag, newId, placeLabel, removeItem, resetSurveys, saveItem, setArchived, setFilmedOn, setPlace,
   Site, Station, suggestStation, SurveyData, Transect, useSurveys, videoCount,
 } from "./surveyStore";
 
@@ -343,21 +343,32 @@ export function StationPicker({ data, value, onChange }: { data: SurveyData; val
   );
 }
 
+export function FilmedOn({ value, onChange }: { value: string; onChange: (date: string) => void }) {
+  return (
+    <label className="field">Filmed on
+      <input type="date" value={value} onChange={(e) => onChange(e.target.value)} />
+      <span>Reports compare seasons by this date.</span>
+    </label>
+  );
+}
+
 /** File a video under a station. A name like T1-STAT2 411.MP4 pre-fills it, for the person to confirm. */
 export function StationDialog({ root, name, onClose }: { root: string; name: string; onClose: () => void }) {
   const data = useSurveys();
   const current = data.places[root];
   const suggested = current ? "" : suggestStation(data, name);
   const [stationId, pick] = useState(current ?? suggested);
+  const [date, setDate] = useState(data.filmedOn[root] ?? "");
   return (
     <Modal title={name} onClose={onClose}>
       <div className="stack">
         {suggested && <p className="meta">Filled in from the file name. Check it's right.</p>}
         {current && <p className="meta">Now: {placeLabel(data, current)}</p>}
         <StationPicker data={data} value={stationId} onChange={pick} />
+        <FilmedOn value={date} onChange={setDate} />
         <div className="row" style={{ justifyContent: "flex-end" }}>
           <button className="btn" onClick={onClose}>Cancel</button>
-          <button className="btn go" disabled={!stationId} onClick={() => { setPlace(root, stationId); onClose(); }}>Save</button>
+          <button className="btn go" disabled={!stationId} onClick={() => { setPlace(root, stationId); setFilmedOn(root, date); onClose(); }}>Save</button>
         </div>
       </div>
     </Modal>
