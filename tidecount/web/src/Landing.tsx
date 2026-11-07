@@ -162,7 +162,7 @@ export function Landing() {
     [`${Math.round(f.skippedShare(f.summarised) * 100)}%`, "of the footage set aside by AI as empty, so nobody has to watch it"],
     ["100%", "of the counts in a report confirmed by a person"],
     [String(f.species.length), "Nova Scotia species the AI suggests from, and no others"],
-    [hours(f.hours), `of survey video scanned, across ${f.videos} videos`],
+    [hours(f.hours), `of survey video scanned, across ${f.videos} ${f.videos === 1 ? "video" : "videos"}`],
   ];
   const named = f.species.filter((s) => s.confirmed > 0).length;
   const topSpecies = [...f.species].sort((a, b) => b.inat_obs - a.inat_obs).slice(0, 6);
