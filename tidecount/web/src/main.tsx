@@ -7,7 +7,7 @@ import { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { Accuracy } from "./Accuracy";
-import { Analyse, MyTasks } from "./Board";
+import { MyTasks, Workflow } from "./Board";
 import { Compare } from "./Compare";
 import { Library } from "./Library";
 import { Login } from "./Login";
@@ -16,10 +16,10 @@ import { Reports } from "./Reports";
 import { River } from "./River";
 import { School } from "./School";
 import { homeLabel, SessionProvider, useSession, useUser } from "./session";
+import { Landing } from "./Landing";
 import { Settings } from "./Settings";
 import { Snapshots } from "./Snapshots";
 import { Species } from "./Species";
-import { Start } from "./Start";
 import { SummaryPage } from "./Summary";
 import { Team } from "./Team";
 import { Tracks } from "./Tracks";
@@ -54,8 +54,8 @@ function Sidebar() {
   // and both still open from their own addresses for anyone tuning Tideflow.
   const inAccuracy = pathname.startsWith("/accuracy") || pathname.startsWith("/models") || pathname.endsWith("/compare") || search.includes("from=accuracy");
   const items = [
-    { to: "/", label: homeLabel(user.role), icon: manager ? "videos" as const : "tasks" as const, on: (pathname === "/" || inVideo) && !inAccuracy },
-    { to: "/analyse", label: "Analyse", icon: "board" as const, on: pathname.startsWith("/analyse") },
+    { to: "/workspace", label: homeLabel(user.role), icon: manager ? "videos" as const : "tasks" as const, on: (pathname === "/workspace" || inVideo) && !inAccuracy },
+    { to: "/workflow", label: "Workflow", icon: "board" as const, on: pathname.startsWith("/workflow") },
     ...(manager ? [{ to: "/reports", label: "Reports", icon: "reports" as const, on: pathname.startsWith("/reports") }] : []),
     { to: "/species", label: "Species wiki", icon: "species" as const, on: pathname.startsWith("/species") },
     { to: "/river", label: "Fish and water trends", icon: "river" as const, on: pathname.startsWith("/river") },
@@ -63,7 +63,7 @@ function Sidebar() {
   ];
   return (
     <aside className={`side ${inVideo ? "rail" : ""}`}>
-      <Link to="/" className="brand" aria-label="Tideflow"><img src="/favicon.svg" alt="" />{!inVideo && "Tideflow"}</Link>
+      <Link to="/workspace" className="brand" aria-label="Tideflow"><img src="/favicon.svg" alt="" />{!inVideo && "Tideflow"}</Link>
       <nav className="side-nav" aria-label="Workspace">
         <p className="side-label">Workspace</p>
         {items.map((i) => (
@@ -79,7 +79,7 @@ function Sidebar() {
   );
 }
 
-/** Volunteers open their tasks and managers open the surveys. The QR page's upload link stays open to both. */
+/** Volunteers open their tasks and managers open the surveys. The front page's upload link stays open to both. */
 function Home() {
   const user = useUser();
   const [params] = useSearchParams();
@@ -87,7 +87,7 @@ function Home() {
 }
 
 function ManagerOnly({ children }: { children: ReactNode }) {
-  return useUser().role === "manager" ? children : <Navigate to="/" replace />;
+  return useUser().role === "manager" ? children : <Navigate to="/workspace" replace />;
 }
 
 function Shell() {
@@ -99,8 +99,9 @@ function Shell() {
       <Sidebar />
       <main className="page">
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/analyse" element={<Analyse />} />
+          <Route path="/workspace" element={<Home />} />
+          <Route path="/workflow" element={<Workflow />} />
+          <Route path="/analyse" element={<Navigate to="/workflow" replace />} />
           <Route path="/reports" element={<ManagerOnly><Reports /></ManagerOnly>} />
           <Route path="/species" element={<Species />} />
           <Route path="/river" element={<River />} />
@@ -125,7 +126,9 @@ function App() {
     <SessionProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/start" element={<Start />} />
+          <Route path="/" element={<Landing />} />
+          {/* Old QR codes and links still lead somewhere. */}
+          <Route path="/start" element={<Navigate to="/" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="*" element={<Shell />} />
         </Routes>

@@ -21,7 +21,7 @@ import json
 import random
 import statistics
 
-from . import config, db, settings
+from . import config, db, settings, surveys
 
 FRAME_KINDS = "kind IN ('snapshot', 'peak')"
 AI_SAMPLES = (
@@ -286,7 +286,7 @@ def accuracy(con) -> dict:
             boxes += len(near)
             found += claimed(near, dots)
         rows.append({
-            "id": v["id"], "name": v["name"], "site": v["site"], "detector": v["detector"],
+            "id": v["id"], "name": v["name"], "site": surveys.where(con, v)["site"], "detector": v["detector"],
             "model": config.DETECTORS.get(v["detector"], {}).get("label", v["detector"]),
             "frames_total": len(mine),
             "frames_blind": len(labels),

@@ -5,6 +5,8 @@ export type Video = {
   id: string;
   name: string;
   site: string;
+  station_id: string;
+  filmed_on: string;
   duration: number;
   width: number;
   height: number;
@@ -79,6 +81,8 @@ export type AccuracyRow = {
 };
 
 export type Dot = { x: number; y: number; source: "ai" | "user" };
+/** A box AI drew on one analysed frame, below the confidence that starts a track. */
+export type FrameBox = { x: number; y: number; w: number; h: number; conf: number };
 export type SchoolCount = { id: number; t: number; dots: Dot[]; model: string };
 
 export type ReportPoint = {
@@ -171,14 +175,28 @@ export const api = {
   fishSeries: (siteId: string, metric: string, deseason = false) =>
     call<FishSeries>(`/api/fish/sites/${siteId}/series?metric=${encodeURIComponent(metric)}&deseason=${deseason}`),
   diversity: (id: string) => call<DiversityStats>(`/api/videos/${id}/stats/diversity`),
-  upload: (file: File, site: string, detector: string) => {
-    const form = new FormData();
-    form.append("file", file);
-    form.append("site", site);
-    form.append("detector", detector);
-    return call<{ id: string }>("/api/videos", { method: "POST", body: form });
-  },
-  importPath: (path: string, site: string, detector: string) => call<{ id: string }>("/api/videos/import-path", json("POST", { path, site, detector })),
+  /**
+   * Over XHR rather than fetch, so a large file can show how much has gone. `onProgress` gets 0 to 1.
+   * The station and filmed date go in the same request, so the video is filed wherever it was uploaded from.
+   */
+  upload: (file: File, place: Placement, detector: string, onProgress?: (share: number) => void) =>
+    new Promise<{ id: string }>((resolve, reject) => {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("detector", detector);
+      form.append("station_id", place.station_id);
+      form.append("filmed_on", place.filmed_on);
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/videos");
+      xhr.responseType = "json";
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.(e.loaded / e.total); };
+      xhr.onload = () => xhr.status < 300
+        ? resolve(xhr.response)
+        : reject(new Error(xhr.response?.detail ?? `Request failed (${xhr.status})`));
+      xhr.onerror = () => reject(new Error("The upload stopped. Check the connection and try again."));
+      xhr.send(form);
+    }),
+  importPath: (path: string, place: Placement, detector: string) => call<{ id: string }>("/api/videos/import-path", json("POST", { path, detector, ...place })),
   retry: (id: string) => call(`/api/videos/${id}/retry`, { method: "POST" }),
   decide: (trackId: number, state: string, species: string | null) => call(`/api/tracks/${trackId}/decision`, json("PUT", { state, species })),
   undo: (trackId: number) => call(`/api/tracks/${trackId}/decision`, { method: "DELETE" }),
@@ -187,11 +205,36 @@ export const api = {
   unmerge: (trackId: number) => call<{ ids: number[] }>(`/api/tracks/${trackId}/unmerge`, { method: "POST" }),
   addFish: (id: string, t: number, box: { x: number; y: number; w: number; h: number }) =>
     call<{ id: number; points: number; seconds: number }>(`/api/videos/${id}/tracks`, json("POST", { t, ...box })),
+  frameBoxes: (id: string, t: number) => call<{ t: number; threshold: number; boxes: FrameBox[] }>(`/api/videos/${id}/frame-boxes?t=${t}`),
   removeFish: (trackId: number) => call(`/api/tracks/${trackId}`, { method: "DELETE" }),
   segmentStatus: (segmentId: number, status: string) => call(`/api/segments/${segmentId}/status`, json("POST", { status })),
   event: (id: string, type: string, payload = {}) => call(`/api/videos/${id}/events`, json("POST", { type, payload })),
   startSchool: (id: string, t: number) => call<SchoolCount>(`/api/videos/${id}/school-counts`, json("POST", { t })),
   saveSchool: (countId: number, dots: Dot[], removed: number) => call(`/api/school-counts/${countId}`, json("PUT", { dots, removed })),
+};
+
+/** Where and when a video was filmed. Blank strings mean not set. */
+export type Placement = { station_id: string; filmed_on: string };
+export type SurveyKind = "sites" | "transects" | "stations";
+
+/** The survey structure. The rules, like unique names and no deleting filed footage, are checked on the server. */
+export const surveyApi = {
+  /** Shaped like the web's SurveyData, so it can be used as it comes. */
+  tree: () => call<SurveyTree>("/api/surveys"),
+  add: (kind: SurveyKind, item: Record<string, unknown>) => call<{ id: string }>(`/api/surveys/${kind}`, json("POST", item)),
+  change: (kind: SurveyKind, id: string, patch: Record<string, unknown>) => call(`/api/surveys/${kind}/${id}`, json("PATCH", patch)),
+  remove: (kind: SurveyKind, id: string) => call(`/api/surveys/${kind}/${id}`, { method: "DELETE" }),
+  /** A field left out stays as it is. */
+  place: (videoId: string, place: Partial<Placement>) => call(`/api/videos/${videoId}/place`, json("PUT", place)),
+  placeMany: (stationByVideo: Record<string, string>) => call("/api/videos/places", json("PUT", { items: stationByVideo })),
+};
+
+export type SurveyTree = {
+  sites: { id: string; name: string; coordinates: string; flag: "" | "treatment" | "reference"; archived: boolean }[];
+  transects: { id: string; siteId: string; name: string; archived: boolean }[];
+  stations: { id: string; transectId: string; name: string; coordinates: string; depth: string; archived: boolean }[];
+  places: Record<string, string>;
+  filmedOn: Record<string, string>;
 };
 
 export function clock(seconds: number): string {

@@ -7,7 +7,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from .. import config, db, models, settings
+from .. import config, db, models, settings, surveys
 from .common import check_detector, get_video
 
 router = APIRouter()
@@ -41,8 +41,8 @@ def reanalyze(video_id: str, body: Reanalyze):
             raise HTTPException(409, "This video already has a run with that model.")
         new_id = uuid.uuid4().hex[:10]
         con.execute(
-            "INSERT INTO videos (id, name, path, site, detector, source_id) VALUES (?, ?, ?, ?, ?, ?)",
-            (new_id, v["name"], v["path"], v["site"], body.detector, root),
+            "INSERT INTO videos (id, name, path, site, detector, source_id, station_id, filmed_on) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (new_id, v["name"], v["path"], v["site"], body.detector, root, v["station_id"], v["filmed_on"]),
         )
     return {"id": new_id}
 
@@ -88,9 +88,12 @@ def list_videos():
 
 
 @router.post("/api/videos")
-def upload_video(file: UploadFile = File(...), site: str = Form(""), detector: str = Form("")):
+def upload_video(file: UploadFile = File(...), site: str = Form(""), detector: str = Form(""),
+                 station_id: str = Form(""), filmed_on: str = Form("")):
+    """Upload a video, filed under its station in the same request, so a phone's upload lands in the right place."""
     detector = detector or settings.current().default_detector
     check_detector(detector)
+    check_place(station_id, filmed_on)
     video_id = uuid.uuid4().hex[:10]
     name = Path(file.filename or "video").name
     target = config.VIDEOS / f"{video_id}{Path(name).suffix or '.mp4'}"
@@ -98,8 +101,8 @@ def upload_video(file: UploadFile = File(...), site: str = Form(""), detector: s
         shutil.copyfileobj(file.file, out, 1024 * 1024)
     with db.session() as con:
         con.execute(
-            "INSERT INTO videos (id, name, path, site, detector) VALUES (?, ?, ?, ?, ?)",
-            (video_id, name, str(target), site, detector),
+            "INSERT INTO videos (id, name, path, site, detector, station_id, filmed_on) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (video_id, name, str(target), site, detector, station_id, filmed_on),
         )
     return {"id": video_id}
 
@@ -108,6 +111,8 @@ class ImportPath(BaseModel):
     path: str
     site: str = ""
     detector: str = ""
+    station_id: str = ""
+    filmed_on: str = ""
 
 
 @router.post("/api/videos/import-path")
@@ -115,16 +120,26 @@ def import_path(body: ImportPath):
     """Reference a large file where it is, without copying it."""
     detector = body.detector or settings.current().default_detector
     check_detector(detector)
+    check_place(body.station_id, body.filmed_on)
     path = Path(body.path.strip().strip('"'))
     if not path.is_file():
         raise HTTPException(400, "That file doesn't exist on this computer.")
     video_id = uuid.uuid4().hex[:10]
     with db.session() as con:
         con.execute(
-            "INSERT INTO videos (id, name, path, site, detector) VALUES (?, ?, ?, ?, ?)",
-            (video_id, path.name, str(path), body.site, detector),
+            "INSERT INTO videos (id, name, path, site, detector, station_id, filmed_on) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (video_id, path.name, str(path), body.site, detector, body.station_id, body.filmed_on),
         )
     return {"id": video_id}
+
+
+def check_place(station_id: str, filmed_on: str) -> None:
+    """Checked before the file is saved, so a bad station doesn't leave an upload behind."""
+    with db.session() as con:
+        try:
+            surveys.check_place(con, station_id, filmed_on)
+        except surveys.Problem as e:
+            raise HTTPException(e.status, str(e)) from None
 
 
 @router.post("/api/videos/{video_id}/retry")

@@ -1,21 +1,25 @@
 import { FormEvent, useState } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { accountEmail, Role, ROLES, useSession } from "./session";
+import { acceptInvite, findMember } from "./teamStore";
 
 /** Only follow paths inside the app, so a crafted link can't send someone elsewhere after sign-in. */
 function safeNext(next: string | null) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/workspace";
 }
 
 export function Login() {
   const { user, signIn } = useSession();
   const [params] = useSearchParams();
-  const [role, setRole] = useState<Role>("volunteer");
+  // An invite link from the Team page carries ?invite=<id>, which picks the role it was sent for.
+  const invited = findMember(params.get("invite"));
+  const [role, setRole] = useState<Role>(invited?.role ?? "volunteer");
 
   if (user) return <Navigate to={safeNext(params.get("next"))} replace />;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
+    if (invited?.status === "invited") acceptInvite(invited.id);
     signIn(role);
   };
 
@@ -26,6 +30,7 @@ export function Login() {
           <p className="login-brand">Tideflow</p>
           <p className="lede">From footage to findings, in one place.</p>
         </div>
+        {invited && <p className="hint">You're invited to Tideflow as a {ROLES[invited.role].label.toLowerCase()} ({invited.email}).</p>}
         <div className="login-roles" role="group" aria-label="Sign in as">
           {(Object.keys(ROLES) as Role[]).map((r) => (
             <button key={r} type="button" className="chip" aria-pressed={r === role} onClick={() => setRole(r)}>{ROLES[r].label}</button>

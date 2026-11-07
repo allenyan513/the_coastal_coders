@@ -1,29 +1,29 @@
-import { PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { api, clock, Segment, Track, VideoDetail } from "./api";
-import { guess, nameOf, pos, stateFor, topName, UNIDENTIFIED } from "./trackHelpers";
+import { api, clock, FrameBox, Segment, Track, VideoDetail } from "./api";
+import { guess, nameOf, pos, stateFor, UNIDENTIFIED } from "./trackHelpers";
 import { KeyGroup, Shortcuts } from "./Shortcuts";
 import { VideoHeader } from "./VideoHeader";
+import { PicturePanel, pictureFilter, SharpenFilter, usePicture } from "./Picture";
 
 const RATES = [0.25, 0.5, 1, 2, 4];
 const FRAME = 1 / 30;
+/** The double arrows, and Shift with an arrow key, jump this many frames. */
+const JUMP = 10;
 const KEYS: KeyGroup[] = [
-  { title: "Video", keys: [["Space", "Play or pause"], ["← →", "Step one frame"], ["B", "Show or hide AI boxes"], ["G", "Show or hide the grid"]] },
-  { title: "The selected track", keys: [["C", "Confirm"], ["X", "Not a fish, or remove a fish you added"], ["1 2 3", "Name it with a suggestion"], ["U", "Fish, unidentified"], ["Z", "Undo the last decision or added fish"]] },
-  { title: "The segment", keys: [["A", "Add fish AI missed: drag a box around each"], ["Esc", "Stop adding"], ["N", "Mark reviewed and go to the next"]] },
+  { title: "Video", keys: [["Space", "Play or pause"], ["← →", "Step one frame"], ["Shift ← →", `Jump ${JUMP} frames`], ["B", "Show or hide AI boxes"], ["G", "Show or hide the grid"]] },
+  { title: "Find fish", keys: [["A", "Add fish AI missed: drag a box around each"], ["F", "Redetect this frame: show fish AI was less sure of"], ["Esc", "Stop adding, or hide redetected boxes"], ["[ ]", "Previous or next track in the whole video"]] },
+  { title: "The selected box", keys: [["1 2 3", "Confirm a suggested species"], ["C or U", "Unidentified fish"], ["X", "Not a fish, or remove a fish you added"], ["Z", "Undo the last decision or added fish"]] },
+  { title: "The segment", keys: [["N", "Mark reviewed and go to the next"]] },
 ];
 /** A click with no drag still adds a fish, with a box this size around the click. */
 const CLICK_BOX = { w: 0.1, h: 0.08 };
 type Past = { id: number; added?: boolean };
 type Rect = { x: number; y: number; w: number; h: number };
+/** Boxes from Freeze frame: the analysed frame they belong to, and the ones nobody has decided yet. */
+type Frozen = { t: number; threshold: number; boxes: FrameBox[] };
 
 const inSeg = (t: Track, s: Segment) => t.first_t < s.end && t.last_t > s.start;
-
-function segLabel(s: Segment) {
-  if (s.status === "could_not_see") return { text: "Could not see", tone: "warn" };
-  if (s.status === "reviewed") return s.is_audit ? { text: "Audit, reviewed", tone: "accent" } : { text: "Reviewed", tone: "up" };
-  return { text: "Needs review", tone: "muted" };
-}
 
 export function Workspace() {
   const { id = "" } = useParams();
@@ -39,15 +39,16 @@ export function Workspace() {
   const [rate, setRate] = useState(1);
   const [boxes, setBoxes] = useState(true);
   const [grid, setGrid] = useState(false);
-  const [gray, setGray] = useState(false);
-  const [enhance, setEnhance] = useState(false);
+  const [picture, setPicture] = usePicture();
+  const [original, setOriginal] = useState(false);  // held down: the footage as filmed, to compare
   const [full, setFull] = useState(false);
   const [addMode, setAddMode] = useState(false);
   const [draft, setDraft] = useState<Rect | null>(null);
   const [following, setFollowing] = useState(false);
   const [siteSpecies, setSiteSpecies] = useState<string[]>([]);
   const [toast, setToast] = useState("");
-  const [checked, setChecked] = useState<number[]>([]);
+  const [frozen, setFrozen] = useState<Frozen | null>(null);
+  const [maybe, setMaybe] = useState<number | null>(null);  // which frozen box is selected
   const history = useRef<Past[]>([]);
   const dragFrom = useRef<{ x: number; y: number } | null>(null);
   const opening = useRef<Track | null>(null);
@@ -76,6 +77,7 @@ export function Workspace() {
   const segTracks = useMemo(() => (seg ? tracks.filter((t) => inSeg(t, seg) && t.state !== "Rejected") : []), [seg, tracks]);
   const undecided = segTracks.filter((t) => !t.state);
   const current = tracks.find((t) => t.id === selected) ?? null;
+  const possible = maybe !== null ? frozen?.boxes[maybe] ?? null : null;
 
   useEffect(() => {
     const el = player.current;
@@ -107,7 +109,7 @@ export function Workspace() {
       if (!inSeg(asked, seg)) setFull(true);
     }
     setAdding(false);
-    setChecked([]);
+    unfreeze();
     api.event(id, "segment_open", { segment: seg.id });
   }, [segId]);
 
@@ -115,6 +117,10 @@ export function Workspace() {
     if (!seg || full || !playing || !player.current) return;
     if (time >= seg.end) player.current.pause();
   }, [time, seg, full, playing]);
+
+  useEffect(() => {
+    if (frozen && Math.abs(time - frozen.t) > 0.1) unfreeze();
+  }, [time]);
 
   const seek = (t: number) => {
     if (player.current) player.current.currentTime = t;
@@ -134,22 +140,12 @@ export function Workspace() {
   const patch = (trackId: number, state: Track["state"], species: string | null) =>
     setTracks((all) => all.map((t) => (t.id === trackId ? { ...t, state, decided_species: species } : t)));
 
-  const nextOpen = (afterId: number) => {
-    const rest = segTracks.filter((t) => !t.state && t.id !== afterId);
-    setSelected(rest[0]?.id ?? null);
-    if (rest[0]) {
-      player.current?.pause();
-      seek(rest[0].first_t);
-    }
-  };
-
   const decide = useCallback(async (t: Track, species: string) => {
     const state = stateFor(t, species);
     patch(t.id, state, species);
-    history.current.push({ id: t.id });
-    if (!t.manual) nextOpen(t.id);  // a fish a person added stays selected, so its new name is seen
+    history.current.push({ id: t.id });  // the track stays selected, so the video doesn't jump
     await api.decide(t.id, state, species);
-  }, [segTracks]);
+  }, []);
 
   /** Take back a fish a person added. It leaves no record, unlike Not a fish on an AI track. */
   const remove = useCallback(async (trackId: number) => {
@@ -164,9 +160,8 @@ export function Workspace() {
     if (t.manual) return remove(t.id);
     patch(t.id, "Rejected", null);
     history.current.push({ id: t.id });
-    nextOpen(t.id);
     await api.decide(t.id, "Rejected", null);
-  }, [segTracks, remove]);
+  }, [remove]);
 
   const undo = useCallback(async () => {
     const last = history.current.pop();
@@ -185,33 +180,6 @@ export function Workspace() {
     flash("Decision undone");
   }, [tracks, remove]);
 
-  const toggleChecked = (trackId: number) =>
-    setChecked((all) => (all.includes(trackId) ? all.filter((n) => n !== trackId) : [...all, trackId]));
-
-  const mergeChecked = async () => {
-    const { id: kept } = await api.merge(checked);
-    setTracks(await api.tracks(id));
-    setSelected(kept);
-    setChecked([]);
-    history.current = [];
-    flash(`Merged ${checked.length} tracks into one fish`);
-  };
-
-  const applyChecked = async (reject: boolean) => {
-    const picked = tracks.filter((t) => checked.includes(t.id));
-    const plans = picked.map((t) => {
-      const species = topName(t);
-      return { t, state: (reject ? "Rejected" : stateFor(t, species)) as Track["state"], species: reject ? null : species };
-    });
-    setTracks((all) => all.map((t) => {
-      const plan = plans.find((p) => p.t.id === t.id);
-      return plan ? { ...t, state: plan.state, decided_species: plan.species } : t;
-    }));
-    plans.forEach((p) => history.current.push({ id: p.t.id }));
-    setChecked([]);
-    await Promise.all(plans.map((p) => api.decide(p.t.id, p.state as string, p.species)));
-  };
-
   const finish = async (status: "reviewed" | "could_not_see") => {
     if (!seg) return;
     await api.segmentStatus(seg.id, status);
@@ -224,9 +192,72 @@ export function Workspace() {
     else navigate(`/videos/${id}/summary`);
   };
 
-  const school = () => {
+  /** Step through every fish in the video by track number, wrapping at the ends. A fish in another
+   *  segment opens that segment, so the queue and the fish card stay in step. */
+  const fishOrder = useMemo(() => [...tracks].sort((a, b) => a.id - b.id), [tracks]);
+  const fishIndex = fishOrder.findIndex((t) => t.id === selected);
+  const goFish = (dir: 1 | -1) => {
+    if (!fishOrder.length) return;
+    let at: number;
+    if (fishIndex >= 0) at = (fishIndex + dir + fishOrder.length) % fishOrder.length;
+    else {
+      // Nothing selected: start from the fish nearest the playhead in the direction asked.
+      const ahead = fishOrder.findIndex((t) => t.first_t >= time);
+      at = dir === 1 ? Math.max(ahead, 0) : (ahead <= 0 ? fishOrder.length - 1 : ahead - 1);
+    }
+    const t = fishOrder[at];
     player.current?.pause();
-    navigate(`/videos/${id}/school?t=${player.current?.currentTime ?? time}&seg=${seg?.id ?? ""}`);
+    setMaybe(null);
+    const home = queue.find((s) => t.first_t >= s.start && t.first_t < s.end) ?? queue.find((s) => inSeg(t, s));
+    if (home && home.id !== segId) {
+      opening.current = t;  // the segment effect selects it and seeks to it once the segment opens
+      setSegId(home.id);
+      return;
+    }
+    setSelected(t.id);
+    seek(t.first_t);
+    if (seg && !inSeg(t, seg)) setFull(true);  // in footage AI skipped, so don't stop at this segment's end
+  };
+
+  const unfreeze = () => {
+    setFrozen(null);
+    setMaybe(null);
+  };
+
+  /** Pause, and show every box AI drew on this frame at a lower confidence than the one that starts tracks. */
+  const freeze = async () => {
+    const el = player.current;
+    if (!el) return;
+    el.pause();
+    setAdding(false);
+    try {
+      const got = await api.frameBoxes(id, el.currentTime);
+      seek(got.t);  // the boxes belong to the analysed frame nearest here, so show that frame
+      setFrozen(got);
+      setMaybe(null);
+      flash(got.boxes.length
+        ? `${got.boxes.length} possible fish AI was less sure of. Click one to decide.`
+        : "No other possible fish on this frame");
+      api.event(id, "freeze_frame", { t: got.t, offered: got.boxes.length, threshold: got.threshold });
+    } catch (err) {
+      flash(`Couldn't freeze: ${(err as Error).message}`);
+    }
+  };
+
+  const pickMaybe = (i: number) => {
+    setMaybe(i);
+    setSelected(null);
+  };
+
+  /** Settle a frozen box: confirmed, it becomes a fish like one a person drew; rejected, it's logged and goes. */
+  const settleMaybe = async (fish: boolean) => {
+    if (!frozen || !possible) return;
+    const { t } = frozen;
+    const box = { x: possible.x, y: possible.y, w: possible.w, h: possible.h };
+    setFrozen({ ...frozen, boxes: frozen.boxes.filter((b) => b !== possible) });
+    setMaybe(null);
+    if (fish) await addBox(box, t);
+    else api.event(id, "freeze_box_rejected", { t, ...box, conf: possible.conf });
   };
 
   const setAdding = (on: boolean) => {
@@ -268,9 +299,15 @@ export function Workspace() {
       ? { x: Math.min(from.x, to.x), y: Math.min(from.y, to.y), w: Math.abs(to.x - from.x), h: Math.abs(to.y - from.y) }
       : { x: to.x - CLICK_BOX.w / 2, y: to.y - CLICK_BOX.h / 2, ...CLICK_BOX };
     setDraft(box);
+    await addBox(box, player.current?.currentTime ?? time);
+    setDraft(null);
+  };
+
+  /** A fish AI missed or wasn't sure of: followed through the video, counted, and selected. */
+  const addBox = async (box: Rect, at: number) => {
     setFollowing(true);
     try {
-      const added = await api.addFish(id, player.current?.currentTime ?? time, box);
+      const added = await api.addFish(id, at, box);
       setTracks(await api.tracks(id));
       setSelected(added.id);
       history.current.push({ id: added.id, added: true });
@@ -283,7 +320,6 @@ export function Workspace() {
     } catch (err) {
       flash(`Not added: ${(err as Error).message}`);
     }
-    setDraft(null);
     setFollowing(false);
   };
 
@@ -292,18 +328,24 @@ export function Workspace() {
       if (["INPUT", "SELECT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)) return;
       const key = e.key.toLowerCase();
       if (key === " ") { e.preventDefault(); toggle(); }
-      else if (key === "arrowleft") step(-1);
-      else if (key === "arrowright") step(1);
+      else if (key === "arrowleft") step(e.shiftKey ? -JUMP : -1);
+      else if (key === "arrowright") step(e.shiftKey ? JUMP : 1);
       else if (key === "z") undo();
       else if (key === "b") setBoxes((v) => !v);
       else if (key === "g") setGrid((v) => !v);
       else if (key === "a") setAdding(!addMode);
-      else if (key === "escape") setAdding(false);
+      else if (key === "f") { if (frozen) unfreeze(); else freeze(); }
+      else if (key === "]") goFish(1);
+      else if (key === "[") goFish(-1);
+      else if (key === "escape") { setAdding(false); unfreeze(); }
       else if (key === "n") finish("reviewed");
+      else if (possible) {
+        if (key === "c") settleMaybe(true);
+        else if (key === "x") settleMaybe(false);
+      }
       else if (current) {
-        if (key === "c") { if (!current.manual) decide(current, topName(current)); }  // an added fish is counted already
+        if (key === "c" || key === "u") decide(current, UNIDENTIFIED);
         else if (key === "x") reject(current);
-        else if (key === "u") decide(current, UNIDENTIFIED);
         else if (["1", "2", "3"].includes(key) && current.candidates[+key - 1]) decide(current, nameOf(current.candidates[+key - 1]));
       }
     };
@@ -316,14 +358,6 @@ export function Workspace() {
     const p = pos(t, time);
     return p ? [{ track: t, box: p }] : [];
   }), [tracks, time, selected]);
-
-  const tally = useMemo(() => {
-    const counts = new Map<string, number>();
-    tracks.forEach((t) => {
-      if (t.decided_species && t.state !== "Rejected") counts.set(t.decided_species, (counts.get(t.decided_species) ?? 0) + 1);
-    });
-    return [...counts].sort((a, b) => b[1] - a[1]);
-  }, [tracks]);
 
   const bars = useMemo(() => {
     if (!video) return [];
@@ -346,42 +380,28 @@ export function Workspace() {
   ));
   const done = queue.filter((s) => s.status !== "needs_review").length;
   const ratio = (video.width || 16) / (video.height || 9);
-  const toWatch = queue.reduce((n, s) => n + s.end - s.start, 0);
-  const filter = [gray ? "grayscale(1)" : "", enhance ? "contrast(1.35) brightness(1.2) saturate(1.2)" : ""].join(" ").trim() || "none";
+  const filter = original ? "none" : pictureFilter(picture, "sharpen");
 
   return (
     <div className="stack review-page">
       <VideoHeader id={id} step="review" view="segments" review={{ done, total: queue.length }} />
 
+      <SharpenFilter id="sharpen" amount={picture.sharpness} />
       <div className="workspace">
-        <section className="panel queue" aria-label="Review queue">
-          <div className="panel-head">
-            <h2>Review queue</h2>
-            <p className="num meta">{clock(toWatch)} to watch of {clock(video.duration)}</p>
-          </div>
-          {queue.map((s) => {
-            const label = segLabel(s);
-            const here = tracks.filter((t) => inSeg(t, s) && t.state !== "Rejected");
-            const added = here.filter((t) => t.manual).length;
-            const fish = here.length - added;
-            return (
-              <button key={s.id} className="queue-item" aria-pressed={s.id === segId} onClick={() => setSegId(s.id)}>
-                <span className="num" style={{ fontSize: 13, fontWeight: 600 }}>{clock(s.start)}–{clock(s.end)}</span>
-                <span className="meta">
-                  {s.is_dense ? "Dense school" : s.low_vis ? "Low visibility" : s.kind === "active" ? "AI detections" : "No AI detections"}
-                  {fish ? ` · ${fish} AI ${fish === 1 ? "track" : "tracks"}` : ""}
-                  {added ? ` · ${added} added by you` : ""}
-                </span>
-                <span className={`pill ${label.tone}`}>{label.text}</span>
-              </button>
-            );
-          })}
-        </section>
-
-        <section className="stack review-mid" aria-label="Video">
+        <section className="review-mid" aria-label="Video" style={{ "--ratio": ratio } as CSSProperties}>
+          <PicturePanel value={picture} onChange={setPicture} onCompare={setOriginal}>
+            <label className="switch">
+              <input type="checkbox" checked={boxes} onChange={() => setBoxes(!boxes)} />
+              <span>AI boxes</span><kbd className="switch-key">B</kbd>
+            </label>
+            <label className="switch">
+              <input type="checkbox" checked={grid} onChange={() => setGrid(!grid)} />
+              <span>Grid</span><kbd className="switch-key">G</kbd>
+            </label>
+          </PicturePanel>
           <div
             className={`stage ${addMode ? "adding" : ""}`}
-            style={{ aspectRatio: `${ratio}`, width: `min(100%, max(320px, calc((100vh - 380px) * ${ratio})))` }}
+            style={{ aspectRatio: `${ratio}` }}
             onPointerDown={onDown}
             onPointerMove={onMove}
             onPointerUp={onUp}
@@ -407,12 +427,23 @@ export function Workspace() {
                     className={`fishbox ${t.state === "Confirmed" ? "done" : t.state === "Corrected" ? "fixed" : ""} ${t.id === selected ? "sel" : ""}`}
                     style={{ left: `${x * 100}%`, top: `${y * 100}%`, width: `${w * 100}%`, height: `${h * 100}%` }}
                     aria-label={`Track ${t.id}, ${state}, ${name}`}
-                    onClick={(e) => { e.stopPropagation(); setSelected(t.id); player.current?.pause(); }}
+                    onClick={(e) => { e.stopPropagation(); setSelected(t.id); setMaybe(null); player.current?.pause(); }}
                   >
                     <span>#{t.id} · {state} · {name}</span>
                   </button>
                 );
               })}
+              {frozen?.boxes.map((b, i) => (
+                <button
+                  key={`maybe-${b.x}-${b.y}`}
+                  className={`fishbox maybe ${i === maybe ? "sel" : ""}`}
+                  style={{ left: `${b.x * 100}%`, top: `${b.y * 100}%`, width: `${b.w * 100}%`, height: `${b.h * 100}%` }}
+                  aria-label={`Possible fish, ${Math.round(b.conf * 100)}% sure`}
+                  onClick={(e) => { e.stopPropagation(); pickMaybe(i); }}
+                >
+                  <span>Possible · {Math.round(b.conf * 100)}%</span>
+                </button>
+              ))}
               {draft && <div className={`fishbox draft ${following ? "busy" : ""}`} style={{ left: `${draft.x * 100}%`, top: `${draft.y * 100}%`, width: `${draft.w * 100}%`, height: `${draft.h * 100}%` }} />}
             </div>
             <span className="stamp">{clock(time)} / {clock(video.duration)}</span>
@@ -420,17 +451,35 @@ export function Workspace() {
           </div>
 
           <div className="panel row player-controls" style={{ padding: 8 }}>
+            <button className="btn" style={{ width: 36, padding: 0 }} onClick={() => step(-JUMP)} title={`Back ${JUMP} frames (Shift + left arrow)`} aria-label={`Back ${JUMP} frames`}>«</button>
             <button className="btn" style={{ width: 36, padding: 0 }} onClick={() => step(-1)} title="Back one frame (left arrow)" aria-label="Back one frame">‹</button>
             <button className="btn" style={{ minWidth: 68 }} onClick={toggle} title="Space">{playing ? "Pause" : "Play"}</button>
             <button className="btn" style={{ width: 36, padding: 0 }} onClick={() => step(1)} title="Forward one frame (right arrow)" aria-label="Forward one frame">›</button>
-            <select className="run-model num" style={{ width: 96 }} aria-label="Playback speed" value={rate} onChange={(e) => setRate(Number(e.target.value))}>
-              {RATES.map((r) => <option key={r} value={r}>{r}× speed</option>)}
+            <button className="btn" style={{ width: 36, padding: 0 }} onClick={() => step(JUMP)} title={`Forward ${JUMP} frames (Shift + right arrow)`} aria-label={`Forward ${JUMP} frames`}>»</button>
+            <select className="run-model num" style={{ width: 84 }} aria-label="Playback speed" title="Playback speed" value={rate} onChange={(e) => setRate(Number(e.target.value))}>
+              {RATES.map((r) => <option key={r} value={r}>{r}×</option>)}
             </select>
-            <span className="spacer" />
-            <button className="chip" aria-pressed={boxes} onClick={() => setBoxes(!boxes)}>AI boxes</button>
-            <button className="chip" aria-pressed={grid} onClick={() => setGrid(!grid)}>Grid</button>
-            <button className="chip" aria-pressed={enhance} onClick={() => setEnhance(!enhance)}>Enhance</button>
-            <button className="chip" aria-pressed={gray} onClick={() => setGray(!gray)}>Grayscale</button>
+          </div>
+
+          <div className="video-tools" aria-label="Find fish">
+            <button className="btn tool add" aria-pressed={addMode} onClick={() => setAdding(!addMode)}>
+              <b>{addMode ? "Done adding" : "Add missed fish"}</b>
+              <small>{addMode ? "Esc to stop" : "Drag a box around a fish AI missed"}</small>
+              <kbd>{addMode ? "Esc" : "A"}</kbd>
+            </button>
+            <button className="btn tool redetect" aria-pressed={!!frozen} onClick={() => (frozen ? unfreeze() : freeze())}>
+              <b>{frozen ? "Hide redetected" : "Redetect this frame"}</b>
+              <small>{frozen ? `${frozen.boxes.length} possible fish left to decide` : "Show fish AI was less sure of"}</small>
+              <kbd>F</kbd>
+            </button>
+            <div className="fish-nav" role="group" aria-label="Step through fish">
+              <button className="btn" disabled={!fishOrder.length} onClick={() => goFish(-1)} title="Previous track ([)" aria-label="Previous track">‹</button>
+              <span className="fish-count">
+                <b className="num"><span className="fish-word">Track </span>{current ? `#${current.id}` : "–"}</b>
+                <small className="num">{fishIndex < 0 ? `${fishOrder.length} tracks` : `${fishIndex + 1} of ${fishOrder.length}`}</small>
+              </span>
+              <button className="btn" disabled={!fishOrder.length} onClick={() => goFish(1)} title="Next track (])" aria-label="Next track">›</button>
+            </div>
           </div>
 
           <div className="panel panel-pad player-timeline">
@@ -461,8 +510,20 @@ export function Workspace() {
         </section>
 
         <aside className="side-col" aria-label="Details">
-          <div className="side-scroll">
-          {current ? (
+          {possible && frozen ? (
+            <div className="panel panel-pad">
+              <div className="row" style={{ justifyContent: "space-between" }}>
+                <h2>Possible fish</h2>
+                <span className="pill warn">Low confidence</span>
+              </div>
+              <p className="meta num">Detector {possible.conf.toFixed(2)} · {clock(frozen.t)}</p>
+              <p className="meta">AI wasn't sure enough to track this. Confirm it and it's followed through the video and counted, like a fish you added.</p>
+              <div className="row">
+                <button className="btn primary" style={{ flex: 1 }} disabled={following} onClick={() => settleMaybe(true)}><kbd>C</kbd>Confirm fish</button>
+                <button className="btn tall reject" onClick={() => settleMaybe(false)}><kbd>X</kbd>Not a fish</button>
+              </div>
+            </div>
+          ) : current ? (
             <div className="panel panel-pad">
               <div className="row" style={{ justifyContent: "space-between" }}>
                 <h2 className="num">Track #{current.id}</h2>
@@ -474,21 +535,18 @@ export function Workspace() {
               <p className="meta num">{current.manual ? `Counted as ${current.decided_species ?? UNIDENTIFIED}` : `Detector ${current.conf.toFixed(2)}`} · {clock(current.first_t)}–{clock(current.last_t)}</p>
               {!!current.manual && current.points.length < 2 && <p className="meta">AI couldn't follow this fish, so its box marks one moment.</p>}
               {!!current.static && !current.state && <p className="meta" style={{ color: "var(--warn)" }}>This barely moves. It may be background, not a fish.</p>}
-              {guess(current) && <p className="meta">Suggested species, from the site list</p>}
-              {guess(current) && speciesButtons}
-              {guess(current) && <button className="btn tall" onClick={() => decide(current, UNIDENTIFIED)}>Fish, unidentified</button>}
-              {!current.manual && (
-                <div className="row">
-                  <button className="btn primary" style={{ flex: 1 }} onClick={() => decide(current, topName(current))}><kbd>C</kbd>{guess(current) ? `Confirm ${guess(current)}` : "Confirm fish"}</button>
-                  <button className="btn tall" onClick={() => reject(current)}><kbd>X</kbd>Not a fish</button>
-                </div>
-              )}
-              {!guess(current) && !!current.candidates.length && (
-                <details className="guesses" key={current.id}>
-                  <summary>Name the species. AI isn't sure, so its guesses are hidden.</summary>
-                  <div className="stack" style={{ gap: 8 }}>{speciesButtons}</div>
-                </details>
-              )}
+              {current.candidates.length > 0
+                ? <p className="meta">{guess(current) ? "Pick the species to confirm it" : "AI's best guesses, not sure. Pick one if it's right"}</p>
+                : <p className="meta">{current.manual ? "AI's species guesses can take a moment. You can type it below." : "Too small for AI to guess the species. Type it below."}</p>}
+              {speciesButtons}
+              <div className="row" style={{ flexWrap: "nowrap" }}>
+                <button className="btn primary" style={{ flex: 1, minWidth: 0 }} aria-pressed={current.decided_species === UNIDENTIFIED} onClick={() => decide(current, UNIDENTIFIED)}>
+                  <kbd>C</kbd>Unidentified fish
+                </button>
+                <button className="btn tall reject" onClick={() => reject(current)}>
+                  <kbd>X</kbd>{current.manual ? "Remove this fish" : "Not a fish"}
+                </button>
+              </div>
               <input
                 key={`name-${current.id}`}
                 className="name-species"
@@ -504,67 +562,20 @@ export function Workspace() {
                 }}
               />
               <datalist id="site-species">{siteSpecies.map((n) => <option key={n} value={n} />)}</datalist>
-              {!!current.manual && <button className="btn" onClick={() => remove(current.id)}><kbd>X</kbd>Remove this fish</button>}
-              <button className="btn" onClick={() => { player.current?.pause(); seek(current.first_t); }}>Show this fish in the video</button>
               <p className="meta">Applies to the whole track.</p>
             </div>
           ) : (
             <div className="panel panel-pad">
               <h2>{seg?.is_dense ? "Dense school" : seg?.low_vis ? "Hard to see" : segTracks.length ? "All tracks decided" : "No AI suggestions here"}</h2>
               <p style={{ color: "var(--text-2)", fontSize: 13 }}>
-                {seg?.is_dense ? "Freeze a frame and count with dots." : seg?.low_vis ? "If you can't read this footage, mark it Could not see." : segTracks.length ? "Move on, or add a fish AI missed." : "Watch this segment. If you spot a fish, add it."}
+                {seg?.is_dense ? "Freeze the frame to see fish AI was less sure of." : seg?.low_vis ? "If you can't read this footage, mark it Could not see." : segTracks.length ? "Move on, or add a fish AI missed." : "Watch this segment. If you spot a fish, add it."}
               </p>
             </div>
           )}
 
-          {segTracks.length > 0 && (
-            <div className="panel">
-              <div className="panel-head">
-                <h2>Tracks in this segment</h2>
-                <p className="meta">Tick pieces of one fish to merge them, or tick several to decide together.</p>
-              </div>
-              <div className="tracklist">
-                {segTracks.map((t) => (
-                  <label key={t.id} className={`trackrow ${t.id === selected ? "on" : ""}`}>
-                    <input type="checkbox" checked={checked.includes(t.id)} onChange={() => toggleChecked(t.id)} />
-                    {t.has_crop ? <img src={`/api/tracks/${t.id}/crop`} alt="" /> : <span className="nocrop" />}
-                    <button
-                      className="trackname"
-                      onClick={(e) => { e.preventDefault(); setSelected(t.id); player.current?.pause(); seek(t.first_t); }}
-                    >
-                      <span className="num">#{t.id}</span> {t.decided_species ?? guess(t) ?? "Fish"}
-                      <small>{t.manual ? "Added by you" : t.state ?? (t.static ? "Barely moves" : "Suggested")} · {clock(t.first_t)}</small>
-                    </button>
-                  </label>
-                ))}
-              </div>
-              {checked.length > 0 && (
-                <div className="panel-pad">
-                  <button className="btn" disabled={checked.length < 2} onClick={mergeChecked}>Same fish, merge {checked.length}</button>
-                  <div className="row">
-                    <button className="btn" style={{ flex: 1 }} onClick={() => applyChecked(false)}>Confirm {checked.length}</button>
-                    <button className="btn" style={{ flex: 1 }} onClick={() => applyChecked(true)}>Not fish</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="panel">
-            <div className="panel-head"><h2>Confirmed so far</h2></div>
-            {tally.map(([name, n]) => <div className="tally" key={name}><span>{name}</span><span className="num">{n}</span></div>)}
-            {!tally.length && <p className="meta" style={{ padding: 12 }}>Nothing confirmed yet. AI suggestions don't count.</p>}
-          </div>
-
-          </div>
-
           <div className="panel panel-pad side-actions" aria-label="This segment">
             {undecided.length > 0 && <p className="meta" style={{ color: "var(--warn)" }}>{undecided.length} undecided will stay out of results.</p>}
-            <div className="row" style={{ flexWrap: "nowrap" }}>
-              <button className="btn" style={{ flex: 1 }} aria-pressed={addMode} onClick={() => setAdding(!addMode)}><kbd>{addMode ? "Esc" : "A"}</kbd>{addMode ? "Done adding" : "Add missed fish"}</button>
-              <button className="btn" style={{ flex: 1 }} onClick={() => finish("could_not_see")}>Could not see</button>
-            </div>
-            <button className="btn" onClick={school}>Freeze frame and count school</button>
+            <button className="btn" onClick={() => finish("could_not_see")}>Could not see</button>
             <button className="btn primary" onClick={() => finish("reviewed")}><kbd>N</kbd>Mark reviewed, next</button>
           </div>
         </aside>
