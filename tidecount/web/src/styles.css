@@ -46,6 +46,8 @@ button.side-link { width: 100%; background: none; border: 0; font: inherit; font
 .side.rail .side-label, .side.rail .side-link span { display: none; }
 .side.rail .side-link { width: 40px; padding: 0; justify-content: center; }
 .side-settings { margin-top: auto; }
+/* Phone-only parts of the bar: short labels and the More tab with its sheet. */
+.side-short, .side-link.side-more, .more-back { display: none; }
 .avatar { flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; object-fit: cover; }
 .page { padding: 20px 24px 32px; min-width: 0; }
 
@@ -525,6 +527,15 @@ button.step:disabled { opacity: .5; }
   .side-link { flex: 1 0 72px; height: 58px; padding: 0; flex-direction: column; justify-content: center; gap: 3px; font-size: 11px; white-space: nowrap; }
   .side-link[aria-current] { background: none; }
   .side-link[aria-current] svg { stroke-width: 2.4; }
+  /* At most five tabs, so each one keeps a readable label without scrolling. */
+  .side-link { flex: 1 1 0; min-width: 0; }
+  .side-full, .side-link.in-more { display: none; }
+  .side-short { display: inline; }
+  .side-link.side-more { display: flex; width: auto; font-size: 11px; }
+  .more-back { position: fixed; inset: 0 0 calc(58px + env(safe-area-inset-bottom)); z-index: 19; display: flex; align-items: flex-end; background: rgba(16, 24, 40, .35); }
+  .more-sheet { width: 100%; padding: 8px 8px 12px; display: flex; flex-direction: column; background: var(--panel); border-radius: 14px 14px 0 0; box-shadow: 0 -8px 24px rgba(16, 24, 40, .14); }
+  .more-link { height: 48px; padding: 0 12px; display: flex; align-items: center; gap: 12px; border-radius: 8px; color: var(--text); font-weight: 500; text-decoration: none; }
+  .more-link[aria-current] { background: var(--accent-soft); color: var(--accent-ink); }
 
   .pagehead .btn.primary { width: 100%; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
