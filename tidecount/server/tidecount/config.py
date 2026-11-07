@@ -13,6 +13,9 @@ EXPORTS = DATA / "exports"
 WEIGHTS = ROOT / "data" / "weights"
 WEB_DIST = ROOT / "web" / "dist"
 SPECIES_CSV = Path(__file__).parent / "species.csv"
+SPECIES_MEDIA = Path(__file__).parent / "species_media.json"        # images, credits, licences
+SPECIES_PROFILES = Path(__file__).parent / "species_profiles.json"  # identification notes
+SPECIES_TAXONOMY = Path(__file__).parent / "species_taxonomy.json"  # names checked against WoRMS
 
 CFD_RELEASE = "https://github.com/WildHackers/community-fish-detector/releases/download/2026.07.06-release/"
 DETECTORS = {
