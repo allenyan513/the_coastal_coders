@@ -81,6 +81,28 @@ def import_file(path: str) -> int:
         )
     return len(readings)
 
+
+def sites(con) -> list[dict]:
+    """Every sampling site, with when it was first and last sampled and how many visits."""
+    return db.rows(con.execute(
+        "SELECT site_id, site_name, lat, lon, MIN(date) AS first_date, MAX(date) AS last_date, COUNT(DISTINCT date) AS visits "
+        "FROM water_readings "
+        "GROUP BY site_id ORDER BY site_name"
+    ))
+
+
+def series(con, site_id: str, measurement: str) -> dict:
+    """One measurement at one site, oldest first, for a chart."""
+    rows = db.rows(con.execute(
+        "SELECT date, value FROM water_readings WHERE site_id = ? AND measurement = ? "
+        "ORDER BY date", 
+        (site_id, measurement),
+    ))
+    found = con.execute("SELECT unit FROM water_readings WHERE measurement = ? LIMIT 1", (measurement,)).fetchone()
+    unit = "" if found is None else found["unit"]  # no readings of this measurement at all: no unit to show
+    return {"site_id": site_id, "measurement": measurement, "unit": unit, "points": rows}
+
+
 if __name__ == "__main__":
     db.init()
     count = import_file(sys.argv[1])
