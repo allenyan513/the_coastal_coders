@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, clock, Summary } from "./api";
+import { api, clock, DiversityStats, MaxnStats, Summary } from "./api";
 import { VideoHeader } from "./VideoHeader";
 
 export function SummaryPage() {
   const { id = "" } = useParams();
   const [s, setS] = useState<Summary | null>(null);
 
+  const [m, setM] = useState<MaxnStats | null>(null);
+
   useEffect(() => { api.summary(id).then(setS); }, [id]);
+  // MaxN loads on its own, so if it fails the rest of the report still shows.
+  useEffect(() => { api.maxn(id).then(setM).catch(() => setM(null)); }, [id]);
+  const [dv, setDv] = useState<DiversityStats | null>(null);
+  useEffect(() => { api.diversity(id).then(setDv).catch(() => setDv(null)); }, [id]);
   if (!s) return <p className="meta">Loading…</p>;
 
   const total = s.video.duration || 1;
@@ -16,6 +22,8 @@ export function SummaryPage() {
   const school = s.schools.reduce((n, c) => n + c.total, 0);
   const snap = s.snapshots;
   const most = Math.max(1, ...s.species.map((r) => r.entries));
+  const mostMaxn = Math.max(1, ...(m?.species ?? []).map((r) => r.maxn));
+  const mayRise = m?.partial ? `May rise: ${m.undecided_tracks} ${m.undecided_tracks === 1 ? "track" : "tracks"} not decided yet.` : "";
   const parts = [
     { name: "Reviewed", value: s.reviewed, color: "var(--up)" },
     { name: "Could not see", value: s.could_not_see, color: "var(--amber)" },
@@ -81,6 +89,16 @@ export function SummaryPage() {
           <b>{snap.largest_count ?? "—"}</b>
           <small className="meta">{snap.largest_count === null ? "Needs the snapshot count" : snap.largest_label}</small>
         </div>
+        {m && (
+          <div className="kpi">
+            <span className="meta">Most confirmed fish at once</span>
+            <b>{m.maxn}</b>
+            <small className="meta num">
+              {m.maxn_t === null ? "Nothing confirmed yet" : `MaxN from tracks, at ${clock(m.maxn_t)}`}
+              {mayRise && <><br />{mayRise}</>}
+            </small>
+          </div>
+        )}
         <div className="kpi">
           <span className="meta">Fish entries</span>
           <b>{s.entries}</b>
@@ -105,6 +123,60 @@ export function SummaryPage() {
             ))}
             {!s.species.length && <p className="meta" style={{ padding: 12 }}>Nothing confirmed yet.</p>}
           </section>
+          {m && (
+            <section className="panel">
+              <div className="panel-head">
+                <h2>MaxN by species</h2>
+              </div>
+              {m.species.map((r) => (
+                <div className="sbar-row" key={r.species} title={`${r.species}: up to ${r.maxn} at once${r.t === null ? "" : `, first at ${clock(r.t)}`}`}>
+                  <span>{r.species}{r.t !== null && <small className="meta num"> at {clock(r.t)}</small>}</span>
+                  <span><i className="sbar" style={{ width: `${(r.maxn / mostMaxn) * 100}%` }} /></span>
+                  <span className="num right">{r.maxn}</span>
+                </div>
+              ))}
+              {!m.species.length && <p className="meta" style={{ padding: 12 }}>Nothing confirmed yet.</p>}
+              <p className="meta" style={{ padding: "8px 12px 12px", lineHeight: 1.6 }}>
+                The most confirmed fish of each species on screen at the same moment. One fish split into several tracks can't
+                raise it. AI often misses fish in a dense school, so it can be lower than the hand count. {mayRise}
+              </p>
+            </section>
+          )}
+          {dv && (
+            <section className="panel">
+              <div className="panel-head">
+                <h2>Species diversity</h2>
+              </div>
+              <div className="kpis">
+                <div className="kpi">
+                  <span className="meta">Shannon index (H)</span>
+                  <b>{fixed(dv.shannon)}</b>
+                  <small className="meta">0 is one species. Higher means more species, more evenly split.</small>
+                </div>
+                <div className="kpi">
+                  <span className="meta">Evenness (J)</span>
+                  <b>{fixed(dv.evenness)}</b>
+                  <small className="meta">From 0 to 1. 1 means every species is equally common.</small>
+                </div>
+                <div className="kpi">
+                  <span className="meta">Simpson's diversity (1 − D)</span>
+                  <b>{fixed(dv.simpson_diversity)}</b>
+                  <small className="meta">Chance two fish picked at random are different species.</small>
+                </div>
+                <div className="kpi">
+                  <span className="meta">Inverse Simpson (1 / D)</span>
+                  <b>{fixed(dv.inverse_simpson)}</b>
+                  <small className="meta">Effective number of equally common species.</small>
+                </div>
+              </div>
+              <p className="meta" style={{ padding: "8px 12px 12px", lineHeight: 1.6 }}>
+                From {dv.richness} named species, using each species' MaxN as its count.
+                {dv.unidentified_maxn > 0 && ` ${dv.unidentified_maxn} unidentified ${dv.unidentified_maxn === 1 ? "fish is" : "fish are"} left out.`}
+                {dv.richness < 2 && " Diversity needs at least two named species, so some values are blank."}
+                {dv.partial && " May change: some tracks are not decided yet."}
+              </p>
+            </section>
+          )}
           {!!s.schools.length && (
             <section className="panel" style={{ overflowX: "auto" }}>
               <div className="panel-head"><h2>School counts</h2></div>
@@ -135,4 +207,9 @@ export function SummaryPage() {
       </div>
     </div>
   );
+}
+
+/** A number to two decimal places, or a dash when there is no value. */
+function fixed(v: number | null): string {
+  return v === null ? "—" : v.toFixed(2);
 }
