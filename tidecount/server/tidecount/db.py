@@ -48,6 +48,11 @@ CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY, video_id TEXT, type TEXT, payload TEXT DEFAULT '',
   created_at REAL DEFAULT ((julianday('now') - 2440587.5) * 86400.0)
 );
+CREATE TABLE IF NOT EXISTS water_readings(
+site_id TEXT, site_name TEXT, lat REAL, lon REAL, date TEXT, time TEXT, 
+measurement TEXT, value REAL, unit TEXT
+);
+CREATE INDEX IF NOT EXISTS water_site_date ON water_readings (site_id, date);
 """
 
 
@@ -77,7 +82,8 @@ def init() -> None:
         columns = {r["name"] for r in con.execute("PRAGMA table_info(videos)")}
         for name, kind in (("detector", "TEXT DEFAULT 'cfd-nano'"), ("source_id", "TEXT DEFAULT ''"),
                            ("analysis_s", "REAL DEFAULT 0"), ("frames", "INTEGER DEFAULT 0"),
-                           ("settings_json", "TEXT DEFAULT ''"), ("settings_hash", "TEXT DEFAULT ''")):
+                           ("settings_json", "TEXT DEFAULT ''"), ("settings_hash", "TEXT DEFAULT ''"),
+                           ("water_site_id", "TEXT DEFAULT ''"), ("recorded_on", "TEXT DEFAULT ''")):
             if name not in columns:
                 con.execute(f"ALTER TABLE videos ADD COLUMN {name} {kind}")
         columns = {r["name"] for r in con.execute("PRAGMA table_info(school_counts)")}
