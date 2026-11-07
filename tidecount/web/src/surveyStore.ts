@@ -140,6 +140,12 @@ export function activeTree(d: SurveyData) {
   }));
 }
 
+/** The site a station sits under, if it still exists. */
+export function siteOf(d: SurveyData, stationId?: string) {
+  const transect = d.transects.find((t) => t.id === d.stations.find((s) => s.id === stationId)?.transectId);
+  return d.sites.find((s) => s.id === transect?.siteId);
+}
+
 /** Where a video belongs, in words. Archived items still read correctly on old records. */
 export function placeLabel(d: SurveyData, stationId?: string) {
   const station = d.stations.find((s) => s.id === stationId);

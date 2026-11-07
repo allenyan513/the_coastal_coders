@@ -163,13 +163,23 @@ export const api = {
   summary: (id: string) => call<Summary>(`/api/videos/${id}/summary`),
   maxn: (id: string) => call<MaxnStats>(`/api/videos/${id}/stats/maxn`),
   diversity: (id: string) => call<DiversityStats>(`/api/videos/${id}/stats/diversity`),
-  upload: (file: File, site: string, detector: string) => {
-    const form = new FormData();
-    form.append("file", file);
-    form.append("site", site);
-    form.append("detector", detector);
-    return call<{ id: string }>("/api/videos", { method: "POST", body: form });
-  },
+  /** Over XHR rather than fetch, so a large file can show how much has gone. `onProgress` gets 0 to 1. */
+  upload: (file: File, site: string, detector: string, onProgress?: (share: number) => void) =>
+    new Promise<{ id: string }>((resolve, reject) => {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("site", site);
+      form.append("detector", detector);
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/videos");
+      xhr.responseType = "json";
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.(e.loaded / e.total); };
+      xhr.onload = () => xhr.status < 300
+        ? resolve(xhr.response)
+        : reject(new Error(xhr.response?.detail ?? `Request failed (${xhr.status})`));
+      xhr.onerror = () => reject(new Error("The upload stopped. Check the connection and try again."));
+      xhr.send(form);
+    }),
   importPath: (path: string, site: string, detector: string) => call<{ id: string }>("/api/videos/import-path", json("POST", { path, site, detector })),
   retry: (id: string) => call(`/api/videos/${id}/retry`, { method: "POST" }),
   decide: (trackId: number, state: string, species: string | null) => call(`/api/tracks/${trackId}/decision`, json("PUT", { state, species })),
