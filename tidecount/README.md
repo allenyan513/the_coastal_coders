@@ -1,8 +1,8 @@
-# TideCount
+# Tideflow
 
-A local web workbench for reviewing underwater fish video. AI analyzes a video in advance and a technician confirms, corrects and counts. Only decisions a person made reach the summary.
+From footage to findings, in one place. A local web workbench for reviewing underwater fish video. AI analyzes a video in advance and a technician confirms, corrects and counts. Only decisions a person made reach the summary.
 
-This is an early prototype. See the [PRD](https://github.com/allenyan513/RBC_HUBHACKS_2026/issues/13) and [technical design](https://github.com/allenyan513/RBC_HUBHACKS_2026/issues/14).
+This is an early prototype. The product was renamed from TideCount on 2026-11-07; the code package, folder and environment variables keep the old `tidecount` name. See the [PRD](https://github.com/allenyan513/RBC_HUBHACKS_2026/issues/13) and [technical design](https://github.com/allenyan513/RBC_HUBHACKS_2026/issues/14).
 
 ## Folders
 
@@ -29,7 +29,7 @@ Then open http://localhost:8000. The first run installs dependencies and downloa
 
 ## On a phone
 
-Open `/start`, for example https://coastalaction.ligangyan.com/start. It says what TideCount is and has one tap into a sample video, a sample report or an upload.
+Open `/start`, for example https://coastalaction.ligangyan.com/start. It says what Tideflow is and has one tap into a sample video, a sample report or an upload.
 
 On a computer, **Open on phone** in the sidebar shows a large QR code for that page, so a room can scan it from the screen. For slides and print, `pnpm qr` in `web/` writes `demo/qr/start.png` and `start.svg`. Pass another address to change where they lead: `pnpm qr https://example.com/start`.
 
@@ -60,7 +60,9 @@ The Ultralytics package is AGPL-3.0. Models run on Apple GPU or CUDA when availa
 
 ## Snapshot counts
 
-**Snapshot count**, in the Workspace and the Summary, is a fixed job: about 120 frames per video hour. You check one frame every 30 seconds, plus up to 5 peak frames, the moments with the highest AI count. It gives two standard measures that don't need fish identities, so a fish split into several tracks can't inflate them:
+The app has three steps for a video: **Count frames**, **Find species**, which is optional, and **Report**.
+
+**Count frames** follows Coastal Action's draft video analysis procedure. You choose a 15-minute analysis window, and the app suggests where it can start from how clear the water is. You check one frame every 60 seconds in the window, 15 in all, plus up to 5 peak frames, the moments with the highest AI count. At each frame you can watch 5 seconds either side at 0.25×, and record invertebrates, species, visibility and notes. **Export analysis sheet** gives one row per frame, with the results below. The window, the spacing and the context are in `[protocol]` in `settings.toml`, because the procedure is still a draft. It gives two standard measures that don't need fish identities, so a fish split into several tracks can't inflate them:
 
 - **MeanCount** is the average count over the evenly spaced frames. Peak frames aren't evenly spaced, so they never feed it.
 - **MaxN** is the largest count in any one frame, including saved school counts. Until every snapshot frame is done, the app calls it "Largest count in checked frames", because MaxN isn't reported from a partial review.
@@ -125,7 +127,7 @@ uv run python ../ml/bench.py fetch --split dev
 uv run python ../ml/bench.py frames --split dev
 ```
 
-Then mark the fish in the app. On the Videos page, add each `data/bench/<id>/clip.mp4` by its file path, and put the video's id in the site field so you can tell the clips apart. When analysis has finished, open the snapshot count, choose **Count on my own**, and put one dot on each fish. About 30 to 40 frames per video is enough for a first score. Then copy those counts into the benchmark and score:
+Then mark the fish in the app. On the Videos page, add each `data/bench/<id>/clip.mp4` by its file path, and put the video's id in the site field so you can tell the clips apart. When analysis has finished, open the snapshot count, choose **Count on my own**, and put one dot on each fish. The count now offers 15 frames per video, so a first score needs more videos. Then copy those counts into the benchmark and score:
 
 ```bash
 uv run python ../ml/bench.py pull --split dev
@@ -143,7 +145,7 @@ uv run python ../ml/bench.py score --split dev
 |---|---|
 | `fetch` | Downloads each video at up to 1080p and cuts the clip. The `dev` downloads total about 8 GB, and the three `locked` ones about 5.4 GB |
 | `frames` | Saves one full-size frame every 30 seconds |
-| `pull` | Copies the frames counted on your own in the app into each video's `labels.json`. The app's snapshot frames are at the same times, so the names match. A frame that already has an answer keeps it |
+| `pull` | Copies the frames counted on your own in the app into each video's `labels.json`. Only frames at the same times as `frames` match, and the app now takes its frames on Coastal Action's grid, so few will. Set `[protocol]` to `trim_start_s = 15` and `every_s = 30`, with a long `window_s`, to label for the benchmark. A frame that already has an answer keeps it |
 | `detect` | Runs five setups on those frames: today's app, CFD Small, CFD Medium, and Nano and Medium with tiles |
 | `scan` | Optional and slow. Runs a setup over the whole clip at the app's frame rate, so the score sheet shows how much footage lands in the review queue |
 | `score` | Writes `data/bench/scores-dev.md`. On `dev` it also freezes each setup's thresholds, and `--split locked` reuses them |
