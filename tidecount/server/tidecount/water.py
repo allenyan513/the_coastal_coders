@@ -62,6 +62,36 @@ def reading(row: dict) -> dict | None:
     }
 
 
+# At a salty visit, conductance this low can only be mS/cm labelled as uS/cm. See fix_salty_conductance().
+SALTY_PPTH = 1
+MS_LABELLED_AS_US_BELOW = 1000
+
+
+def fix_salty_conductance(readings: list[dict]) -> int:
+    """Corrects conductance that Coastal Action's file labels uS/cm but that is really mS/cm. Returns how many.
+
+    At the three estuary sites, salty water's conductance is in the tens of thousands of uS/cm, about
+    1,600 for each ppth of salinity. Most of those readings say "uS/cm" but are 1,000 times too small,
+    the size mS/cm would be. So at a visit with salinity, any conductance too low for it is multiplied by 1,000.
+    """
+    # 1. Salinity at each visit. A visit is one site, date and time.
+    salinity = {
+        (r["site_id"], r["date"], r["time"]): r["value"]
+        for r in readings if r["measurement"] == "Salinity"
+    }
+
+    # 2. Fix the conductance readings at salty visits.
+    fixed = 0
+    for r in readings:
+        if r["measurement"] != "Specific conductance":
+            continue
+        sal = salinity.get((r["site_id"], r["date"], r["time"]))
+        if sal is not None and sal >= SALTY_PPTH and r["value"] < MS_LABELLED_AS_US_BELOW:
+            r["value"] = r["value"] * 1000
+            fixed += 1
+    return fixed
+
+
 def import_file(path: str) -> int:
     """Read the whole file and save its readings, replacing any imported before. Returns how many."""
     with open(path, encoding="utf-8-sig", newline="") as f:
@@ -71,6 +101,9 @@ def import_file(path: str) -> int:
             r = reading(row)
             if r is not None:
                 readings.append(r)
+
+    fixed = fix_salty_conductance(readings)
+    print(f"Corrected {fixed} conductance readings labelled uS/cm that were really mS/cm.")
 
     with db.session() as con:
         con.execute("DELETE FROM water_readings")
@@ -95,7 +128,7 @@ def series(con, site_id: str, measurement: str) -> dict:
     """One measurement at one site, oldest first, for a chart."""
     rows = db.rows(con.execute(
         "SELECT date, value FROM water_readings WHERE site_id = ? AND measurement = ? "
-        "ORDER BY date", 
+        "ORDER BY date",
         (site_id, measurement),
     ))
     found = con.execute("SELECT unit FROM water_readings WHERE measurement = ? LIMIT 1", (measurement,)).fetchone()

@@ -162,6 +162,9 @@ export const api = {
   tracks: (id: string) => call<Track[]>(`/api/videos/${id}/tracks`),
   summary: (id: string) => call<Summary>(`/api/videos/${id}/summary`),
   maxn: (id: string) => call<MaxnStats>(`/api/videos/${id}/stats/maxn`),
+  waterSites: () => call<WaterSite[]>(`/api/water/sites`),
+  waterSeries: (siteId: string, measurement: string) =>
+    call<WaterSeries>(`/api/water/sites/${siteId}/series?measurement=${encodeURIComponent(measurement)}`),
   diversity: (id: string) => call<DiversityStats>(`/api/videos/${id}/stats/diversity`),
   upload: (file: File, site: string, detector: string) => {
     const form = new FormData();
@@ -239,4 +242,23 @@ export const snapshotApi = {
   clip: (frameId: number) => `/api/snapshot-frames/${frameId}/clip`,
   save: (frameId: number, status: SnapshotStatus, dots: Dot[], aiHidden: boolean, blind: boolean, record: FrameRecord) =>
     call<{ stats: SnapshotStats }>(`/api/snapshot-frames/${frameId}`, json("PUT", { status, dots, ai_hidden: aiHidden, blind, ...record })),
+};
+
+/** A water sampling site. From server/tidecount/water.py. */
+export type WaterSite = {
+  site_id: string;
+  site_name: string;
+  lat: number;
+  lon: number;
+  first_date: string;
+  last_date: string;
+  visits: number;
+};
+
+/** One measurement at one site over time. */
+export type WaterSeries = {
+  site_id: string;
+  measurement: string;
+  unit: string;
+  points: {date: string; value: number}[];
 };

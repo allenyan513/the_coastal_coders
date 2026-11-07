@@ -58,7 +58,7 @@ function Sidebar() {
     { to: "/analyse", label: "Analyse", icon: "board" as const, on: pathname.startsWith("/analyse") },
     ...(manager ? [{ to: "/reports", label: "Reports", icon: "reports" as const, on: pathname.startsWith("/reports") }] : []),
     { to: "/species", label: "Species wiki", icon: "species" as const, on: pathname.startsWith("/species") },
-    { to: "/river", label: "River Sensor", icon: "river" as const, on: pathname.startsWith("/river") },
+    { to: "/river", label: "Fish and water trends", icon: "river" as const, on: pathname.startsWith("/river") },
     ...(manager ? [{ to: "/team", label: "Team", icon: "team" as const, on: pathname.startsWith("/team") }] : []),
   ];
   return (

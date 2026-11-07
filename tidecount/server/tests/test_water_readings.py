@@ -1,8 +1,7 @@
 from pytest import approx
 
 from tidecount import db
-
-from tidecount.water import KEEP, LIMITS, reading, series, sites
+from tidecount.water import KEEP, LIMITS, fix_salty_conductance, reading, series, sites
 
 
 def row(measurement="pH", value="8.07", unit="None", **other):
@@ -148,3 +147,41 @@ def test_series_with_no_readings_is_empty():
     s = series(open_db(), "1", "pH")
 
     assert s["points"] == [] and s["unit"] == ""
+
+# Conductance at salty visits: labelled uS/cm in the file, but really mS/cm.
+
+def visit(measurement, value, site="1", date="2012-01-25", time="08:36:00"):
+    return {"site_id": site, "date": date, "time": time, "measurement": measurement, "value": value, "unit": ""}
+
+
+def test_low_conductance_at_a_salty_visit_is_multiplied():
+    # The real Upper LaHave visit on 2012-01-25: salinity 23.55, conductance 38.106 "uS/cm" (really mS/cm).
+    readings = [visit("Salinity", 23.55), visit("Specific conductance", 38.106)]
+
+    assert fix_salty_conductance(readings) == 1
+    assert readings[1]["value"] == approx(38106)
+
+
+def test_fresh_water_conductance_is_left_alone():
+    readings = [visit("Salinity", 0.02), visit("Specific conductance", 39.6)]
+
+    assert fix_salty_conductance(readings) == 0
+    assert readings[1]["value"] == 39.6
+
+
+def test_conductance_already_big_enough_is_left_alone():
+    # Already in uS/cm, for example a reading that was converted from mS/cm on import.
+    readings = [visit("Salinity", 3.41), visit("Specific conductance", 6328)]
+
+    assert fix_salty_conductance(readings) == 0
+    assert readings[1]["value"] == 6328
+
+
+def test_only_salinity_from_the_same_visit_counts():
+    readings = [
+        visit("Salinity", 23.55, time="08:36:00"),
+        visit("Specific conductance", 39.6, time="09:06:00"),  # another visit, with no salinity
+        visit("Specific conductance", 39.6, site="2"),  # another site
+    ]
+
+    assert fix_salty_conductance(readings) == 0
