@@ -4,7 +4,7 @@ import io
 import re
 from pathlib import Path
 
-from . import db, snapshots, stats
+from . import db, snapshots, stats, surveys
 
 
 def review_seconds(con, video_id: str) -> float:
@@ -56,7 +56,8 @@ def build(con, v: dict) -> dict:
     skipped = seconds("skipped")
     pending = seconds("needs_review")
     return {
-        "video": {"id": v["id"], "name": v["name"], "site": v["site"], "duration": duration, "notes": v["notes"]},
+        "video": {"id": v["id"], "name": v["name"], **surveys.where(con, v), "filmed_on": v.get("filmed_on") or "",
+                  "duration": duration, "notes": v["notes"]},
         "entries": sum(by_species.values()),
         "entries_added": sum(1 for d in decided if d["manual"]),  # fish AI missed and a person added
         "species_count": sum(1 for k in by_species if k != "Fish, unidentified"),
@@ -94,6 +95,9 @@ def to_csv(s: dict) -> str:
     w = csv.writer(out)
     w.writerow(["video", s["video"]["name"]])
     w.writerow(["site", s["video"]["site"]])
+    w.writerow(["transect", s["video"]["transect"]])
+    w.writerow(["station", s["video"]["station"]])
+    w.writerow(["filmed_on", s["video"]["filmed_on"]])
     w.writerow(["models", s["video"]["notes"]])
     w.writerow(["reviewed_s", round(s["reviewed"], 1)])
     w.writerow(["could_not_see_s", round(s["could_not_see"], 1)])
@@ -171,6 +175,10 @@ def protocol_csv(con, v: dict) -> str:
     observed = species_observed(con, v["id"], points)
     video_id = Path(v["name"]).stem
     transect, stat = transect_stat(v["name"])
+    place = surveys.where(con, v)
+    if place["station"]:
+        # The station a person filed it under wins over the file name. STAT2 is written as 2, like the sheet.
+        transect, stat = place["transect"], re.sub(r"^STAT\s*(?=\d+$)", "", place["station"], flags=re.I)
 
     out = io.StringIO()
     out.write("\ufeff")  # so Excel reads the file as UTF-8

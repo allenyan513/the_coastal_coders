@@ -2,23 +2,28 @@ import { FormEvent, ReactNode, useState } from "react";
 import { Menu } from "./Menu";
 import { Modal } from "./Modal";
 import {
-  activeTree, Flag, newId, placeLabel, removeItem, resetSurveys, saveItem, setArchived, setFilmedOn, setPlace,
-  Site, Station, suggestStation, SurveyData, Transect, useSurveys, videoCount,
+  activeTree, Flag, newId, placeLabel, removeItem, saveItem, setArchived, setPlace,
+  Site, Station, suggestStation, SurveyData, Transect, useSurveys, useSurveyStatus, videoCount,
 } from "./surveyStore";
 
 const FLAGS: { value: Flag; label: string }[] = [{ value: "", label: "Not set" }, { value: "treatment", label: "Treatment" }, { value: "reference", label: "Reference" }];
 
 type Field = { key: string; label: string; options?: { value: string; label: string }[]; hint?: string };
-type EditState = { title: string; fields: Field[]; values: Record<string, string>; check?: (v: Record<string, string>) => string; save: (v: Record<string, string>) => void };
+type EditState = { title: string; fields: Field[]; values: Record<string, string>; check?: (v: Record<string, string>) => string; save: (v: Record<string, string>) => Promise<string> };
 
 function EditDialog({ edit, onClose }: { edit: EditState; onClose: () => void }) {
   const [values, setValues] = useState(edit.values);
   const [error, setError] = useState("");
-  const submit = (e: FormEvent) => {
+  const [busy, setBusy] = useState(false);
+  /** Checked here first for a quick answer, then on the server, whose reason shows if it refuses. */
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const problem = edit.check?.(values) ?? "";
+    const checked = edit.check?.(values) ?? "";
+    if (checked) return setError(checked);
+    setBusy(true);
+    const problem = await edit.save(values);
+    setBusy(false);
     if (problem) return setError(problem);
-    edit.save(values);
     onClose();
   };
   return (
@@ -35,22 +40,32 @@ function EditDialog({ edit, onClose }: { edit: EditState; onClose: () => void })
         {error && <p className="meta" role="alert" style={{ color: "var(--down)" }}>{error}</p>}
         <div className="row" style={{ justifyContent: "flex-end" }}>
           <button className="btn" type="button" onClick={onClose}>Cancel</button>
-          <button className="btn go" type="submit">Save</button>
+          <button className="btn go" type="submit" disabled={busy}>{busy ? "Saving…" : "Save"}</button>
         </div>
       </form>
     </Modal>
   );
 }
 
-type Ask = { title: string; text: string; action: string; run: () => void };
+type Ask = { title: string; text: string; action: string; run: () => Promise<string> };
 
 function ConfirmDialog({ ask, onClose }: { ask: Ask; onClose: () => void }) {
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const go = async () => {
+    setBusy(true);
+    const problem = await ask.run();
+    setBusy(false);
+    if (problem) setError(problem);
+    else onClose();
+  };
   return (
     <Modal title={ask.title} onClose={onClose}>
       <p>{ask.text}</p>
+      {error && <p className="meta" role="alert" style={{ color: "var(--down)" }}>{error}</p>}
       <div className="row" style={{ justifyContent: "flex-end" }}>
         <button className="btn" onClick={onClose}>Cancel</button>
-        <button className="btn danger" onClick={() => { ask.run(); onClose(); }}>{ask.action}</button>
+        <button className="btn danger" disabled={busy} onClick={go}>{ask.action}</button>
       </div>
     </Modal>
   );
@@ -66,13 +81,15 @@ const unique = (taken: string[], word: string) => (v: Record<string, string>) =>
 function useDialogs() {
   const [edit, setEdit] = useState<EditState | null>(null);
   const [ask, setAsk] = useState<Ask | null>(null);
+  /** Why a change made without a dialog, like archiving, didn't go through. */
+  const [problem, setProblem] = useState("");
   const dialogs = (
     <>
       {edit && <EditDialog edit={edit} onClose={() => setEdit(null)} />}
       {ask && <ConfirmDialog ask={ask} onClose={() => setAsk(null)} />}
     </>
   );
-  return { setEdit, setAsk, dialogs };
+  return { setEdit, setAsk, dialogs, problem, setProblem };
 }
 
 /** Archive and restore always work. Delete only shows when no video refers to the item, so old records stay whole. */
@@ -126,7 +143,9 @@ function Rollup({ stats, empty }: { stats: StationStats; empty: string }) {
 const addUp = (all: StationStats[]) => all.reduce((a, b) => ({ videos: a.videos + b.videos, done: a.done + b.done, total: a.total + b.total }), { videos: 0, done: 0, total: 0 });
 
 function SiteTree({ site, data, showArchived, editing, dialogs, videosAt, statsAt, onImport, isOpen, toggle }: TreeProps) {
-  const { setEdit, setAsk } = dialogs;
+  const { setEdit, setAsk, setProblem } = dialogs;
+  const archive = (kind: "sites" | "transects" | "stations", item: { id: string; archived: boolean }) =>
+    setArchived(kind, item.id, !item.archived).then(setProblem);
   const shown = <T extends { archived: boolean }>(list: T[]) => list.filter((x) => showArchived || !x.archived);
   const transects = shown(data.transects.filter((t) => t.siteId === site.id));
   const siblings = (t: Transect) => data.stations.filter((s) => s.transectId === t.id);
@@ -188,7 +207,7 @@ function SiteTree({ site, data, showArchived, editing, dialogs, videosAt, statsA
           {editing && site.coordinates && <span className="meta">{site.coordinates}</span>}
         </div>
         {editing
-          ? <ItemMenu label={site.name} onEdit={editSite} archived={site.archived} onArchive={() => setArchived("sites", site.id, !site.archived)} used={videoCount(data, "sites", site.id)} onDelete={() => confirmDelete("sites", site.id, site.name, "Its transects and stations go with it.")} />
+          ? <ItemMenu label={site.name} onEdit={editSite} archived={site.archived} onArchive={() => archive("sites", site)} used={videoCount(data, "sites", site.id)} onDelete={() => confirmDelete("sites", site.id, site.name, "Its transects and stations go with it.")} />
           : <Rollup stats={siteStats} empty="No footage yet" />}
       </div>
       {siteOpen && transects.map((t) => {
@@ -205,7 +224,7 @@ function SiteTree({ site, data, showArchived, editing, dialogs, videosAt, statsA
                 {!editing && <span className="meta">{filmed} of {stations.length} {stations.length === 1 ? "station" : "stations"} filmed</span>}
               </div>
               {editing
-                ? <ItemMenu label={t.name} onEdit={() => editTransect(t)} archived={t.archived} onArchive={() => setArchived("transects", t.id, !t.archived)} used={videoCount(data, "transects", t.id)} onDelete={() => confirmDelete("transects", t.id, t.name, "Its stations go with it.")} />
+                ? <ItemMenu label={t.name} onEdit={() => editTransect(t)} archived={t.archived} onArchive={() => archive("transects", t)} used={videoCount(data, "transects", t.id)} onDelete={() => confirmDelete("transects", t.id, t.name, "Its stations go with it.")} />
                 : <Rollup stats={addUp(stations.map((x) => statsAt(x.id)))} empty="" />}
             </div>
             {open && stations.map((x) => {
@@ -223,7 +242,7 @@ function SiteTree({ site, data, showArchived, editing, dialogs, videosAt, statsA
                       {!editing && stats.videos === 0 && !x.archived && <button className="link tree-import" onClick={() => onImport(x.id)}>Import footage</button>}
                     </div>
                     {editing
-                      ? <ItemMenu label={`${t.name} ${x.name}`} onEdit={() => editStation(t, x)} archived={x.archived} onArchive={() => setArchived("stations", x.id, !x.archived)} used={videoCount(data, "stations", x.id)} onDelete={() => confirmDelete("stations", x.id, `${t.name} · ${x.name}`, "")} />
+                      ? <ItemMenu label={`${t.name} ${x.name}`} onEdit={() => editStation(t, x)} archived={x.archived} onArchive={() => archive("stations", x)} used={videoCount(data, "stations", x.id)} onDelete={() => confirmDelete("stations", x.id, `${t.name} · ${x.name}`, "")} />
                       : <Rollup stats={stats} empty="No footage yet" />}
                   </div>
                   {!editing && videosOpen && videosAt(x.id)}
@@ -259,6 +278,7 @@ type ListProps = Pick<TreeProps, "videosAt" | "statsAt" | "onImport"> & { editin
  */
 export function SiteList({ editing, videosAt, statsAt, onImport }: ListProps) {
   const data = useSurveys();
+  const { loaded, error } = useSurveyStatus();
   const dialogs = useDialogs();
   const [showArchived, setShowArchived] = useState(false);
   const [closed, setClosed] = useState<string[]>([]);
@@ -273,15 +293,13 @@ export function SiteList({ editing, videosAt, statsAt, onImport }: ListProps) {
     check: unique(data.sites.map((s) => s.name), "site"),
     save: (v) => saveItem("sites", { id: newId(), name: v.name.trim(), coordinates: v.coordinates.trim(), flag: v.flag as Flag, archived: false }),
   });
-  const reset = () => dialogs.setAsk({
-    title: "Reset to the sample structure?",
-    text: "Your sites, stations and which station each video belongs to are replaced in this browser. This can't be undone.",
-    action: "Reset",
-    run: resetSurveys,
-  });
+
+  if (!loaded) return <div className="panel panel-pad"><p className="meta" role={error ? "alert" : undefined}>{error || "Loading the surveys…"}</p></div>;
 
   return (
     <>
+      {error && <p className="meta" role="alert" style={{ color: "var(--down)" }}>{error}</p>}
+      {dialogs.problem && <p className="meta" role="alert" style={{ color: "var(--down)" }}>{dialogs.problem}</p>}
       {sites.map((s) => (
         <SiteTree
           key={s.id}
@@ -303,7 +321,7 @@ export function SiteList({ editing, videosAt, statsAt, onImport }: ListProps) {
           <button className="tree-add tree-add-site" onClick={addSite}>+ Add site</button>
           <div className="row" style={{ justifyContent: "space-between" }}>
             <button className="chip" aria-pressed={showArchived} onClick={() => setShowArchived(!showArchived)}>Show archived</button>
-            <p className="meta">Sample names, saved in this browser only. <button className="link" onClick={reset}>Reset to the sample</button></p>
+            <p className="meta">Saved on the server, so the whole team sees the same sites.</p>
           </div>
         </>
       )}
@@ -344,6 +362,15 @@ export function StationDialog({ root, name, onClose }: { root: string; name: str
   const suggested = current ? "" : suggestStation(data, name);
   const [stationId, pick] = useState(current ?? suggested);
   const [date, setDate] = useState(data.filmedOn[root] ?? "");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const save = async () => {
+    setBusy(true);
+    const problem = await setPlace(root, stationId, date);
+    setBusy(false);
+    if (problem) setError(problem);
+    else onClose();
+  };
   return (
     <Modal title={name} onClose={onClose}>
       <div className="stack">
@@ -351,9 +378,10 @@ export function StationDialog({ root, name, onClose }: { root: string; name: str
         {current && <p className="meta">Now: {placeLabel(data, current)}</p>}
         <StationPicker data={data} value={stationId} onChange={pick} />
         <FilmedOn value={date} onChange={setDate} />
+        {error && <p className="meta" role="alert" style={{ color: "var(--down)" }}>{error}</p>}
         <div className="row" style={{ justifyContent: "flex-end" }}>
           <button className="btn" onClick={onClose}>Cancel</button>
-          <button className="btn go" disabled={!stationId} onClick={() => { setPlace(root, stationId); setFilmedOn(root, date); onClose(); }}>Save</button>
+          <button className="btn go" disabled={!stationId || busy} onClick={save}>{busy ? "Saving…" : "Save"}</button>
         </div>
       </div>
     </Modal>

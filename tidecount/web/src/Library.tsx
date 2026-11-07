@@ -201,7 +201,7 @@ export function Library() {
             <p><b>{unfiled.length} {unfiled.length === 1 ? "video needs" : "videos need"} a station</b>{matchCount > 0 && <span className="meta"> · {matchCount} can be filed from {matchCount === 1 ? "its name" : "their names"}</span>}</p>
             <div className="row">
               <button className="btn" onClick={() => setInboxOpen(!inboxOpen)}>{inboxOpen ? "Hide" : "Review"}</button>
-              {matchCount > 0 && <button className="btn go" onClick={() => setPlaces(matches)}>File {matchCount} by name</button>}
+              {matchCount > 0 && <button className="btn go" onClick={() => setPlaces(matches).then(setError)}>File {matchCount} by name</button>}
             </div>
           </div>
           {inboxOpen && unfiled.map(row)}
