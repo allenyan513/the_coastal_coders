@@ -9,7 +9,7 @@ const STEPS = [
   ["Export the report", "Only counts a person confirmed reach it."],
 ];
 
-/** The page the QR code opens: what TideCount is, and one tap into the app. */
+/** The page the QR code opens: what Tideflow is, and one tap into the app. */
 export function Start() {
   // undefined while loading, null when no video is ready yet
   const [sample, setSample] = useState<Video | null>();
@@ -26,11 +26,11 @@ export function Start() {
         <p className="start-brand"><img src="/favicon.svg" alt="" />Tideflow</p>
         <div>
           <h1>Count fish in underwater video.</h1>
-          <p className="lede">AI finds the footage worth watching. A person reviews it and confirms every count.</p>
+          <p className="lede">Follow your video analysis procedure, frame by frame, while AI points out where the fish are. A person confirms every count.</p>
         </div>
         <div className="start-actions">
           {sample === undefined && <button className="btn primary block" disabled>Loading…</button>}
-          {sample && <Link className="btn primary block" to={`/videos/${sample.id}`}>Try a sample video</Link>}
+          {sample && <Link className="btn primary block" to={`/videos/${sample.id}/snapshots`}>Try a sample video</Link>}
           {sample && <Link className="btn tall block" to={`/videos/${sample.id}/summary`}>See a sample report</Link>}
           <Link className={`btn block ${sample === null ? "primary" : "tall"}`} to="/?import=1">Upload your own video</Link>
         </div>

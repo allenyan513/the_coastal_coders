@@ -7,12 +7,23 @@ import subprocess
 import pytest
 from fastapi.testclient import TestClient
 
-from tidecount import config, db, snapshots, video
+from tidecount import config, db, settings, snapshots, video
 from tidecount.app import app
 
 client = TestClient(app)
 FPS = 2
 PARTIAL = "Largest count in checked frames"
+
+
+@pytest.fixture(autouse=True)
+def short_clip_grid(monkeypatch):
+    """A point every 30 seconds from 15 seconds in, so these tests can use short videos. Protocol tests choose their own."""
+    use_protocol(monkeypatch, trim_start_s=15, trim_end_s=0, window_s=100_000, every_s=30)
+
+
+def use_protocol(monkeypatch, **values):
+    chosen = settings.Settings(protocol=settings.Protocol(**values))
+    monkeypatch.setattr(settings, "current", lambda: chosen)
 
 
 def add_video(duration=125.0, counts=None, status="Ready to review", video_id="v1"):
@@ -74,21 +85,20 @@ def export(video_id="v1"):
 
 
 def test_one_video_hour_is_120_frames_on_the_sampling_grid():
-    times = snapshots.snapshot_times(3600, FPS)
+    times = snapshots.snapshot_times(15, 3600, 30, FPS)
     assert len(times) == 120
     assert (times[0], times[1], times[-1]) == (15, 45, 3585)
     assert all(t * FPS == int(t * FPS) for t in times)
 
 
 @pytest.mark.parametrize("start, snapped", [(15.2, 15.0), (15.3, 15.5)])
-def test_times_snap_to_the_nearest_sample(monkeypatch, start, snapped):
-    monkeypatch.setattr(config, "SNAPSHOT_START_S", start)
-    assert snapshots.snapshot_times(40, FPS)[0] == snapped
+def test_times_snap_to_the_nearest_sample(start, snapped):
+    assert snapshots.snapshot_times(start, 40, 30, FPS)[0] == snapped
 
 
 @pytest.mark.parametrize("duration, expected", [(0, []), (14.9, []), (15, []), (15.1, [15]), (45, [15]), (45.5, [15, 45])])
 def test_no_frame_at_or_past_the_end(duration, expected):
-    assert snapshots.snapshot_times(duration, FPS) == expected
+    assert snapshots.snapshot_times(15, duration, 30, FPS) == expected
 
 
 # Peak selection
@@ -147,11 +157,10 @@ def test_duplicate_rows_are_refused_by_the_database():
         con.execute("INSERT INTO school_counts (video_id, t, kind) VALUES ('v1', 15, 'snapshot')")
 
 
-def test_a_clip_under_15_seconds_has_no_snapshots_but_can_have_peaks():
-    add_video(duration=12, counts={3: 2})
+def test_a_short_clip_starts_a_quarter_of_the_way_in_and_can_have_peaks():
+    add_video(duration=12, counts={7: 2})
     data = opened()
-    assert [(f["kind"], f["t"]) for f in data["frames"]] == [("peak", 3)]
-    assert data["stats"]["complete"] is False
+    assert [(f["kind"], f["t"]) for f in data["frames"]] == [("snapshot", 3), ("peak", 7)]
 
 
 def test_a_peak_past_the_end_of_the_video_is_dropped():
@@ -320,8 +329,8 @@ def test_label_is_partial_until_every_snapshot_frame_is_done():
 
 
 def test_a_peak_frame_does_not_complete_the_review():
-    add_video(duration=12, counts={3: 2})
-    frame, = opened()["frames"]
+    add_video(duration=12, counts={7: 2})
+    frame, = of_kind(opened(), "peak")
     assert save(frame, 2)["largest_label"] == PARTIAL
 
 
@@ -670,3 +679,188 @@ def test_a_run_from_before_boxes_were_saved_still_shows_tracked_fish():
     add_box(15.0)
 
     assert len(dots_at()) == 1
+
+
+# Coastal Action's procedure
+
+
+def minutes(n):
+    return n * 60
+
+
+def use_procedure(monkeypatch):
+    use_protocol(monkeypatch)  # the defaults are the draft procedure
+
+
+def add_clarity(values, video_id="v1"):
+    with db.session() as con:
+        con.executemany("INSERT OR REPLACE INTO seconds (video_id, second, detections, clarity) VALUES (?, ?, 0, ?)",
+                        [(video_id, s, c) for s, c in values.items()])
+
+
+def test_a_20_minute_video_has_15_points_a_minute_apart_inside_the_trims(monkeypatch):
+    use_procedure(monkeypatch)
+    add_video(duration=minutes(20))
+    times = [f["t"] for f in of_kind(opened(), "snapshot")]
+    assert times == [minutes(n) for n in range(1, 16)]
+
+
+def test_the_suggested_start_skips_murky_water_after_a_clear_moment(monkeypatch):
+    use_procedure(monkeypatch)
+    add_video(duration=minutes(36))
+    add_clarity({s: (10 if minutes(1) <= s < minutes(11) else 100) for s in range(minutes(36))})
+    data = opened()
+    # The two minutes from here are half clear, and the rest of the window is clear.
+    assert data["protocol"]["suggested"] == minutes(10)
+    assert len(of_kind(data, "snapshot")) == 15
+
+
+def test_the_window_leaves_room_for_every_point_when_the_water_never_clears(monkeypatch):
+    use_procedure(monkeypatch)
+    add_video(duration=minutes(36))
+    add_clarity({s: (100 if s < minutes(30) else 1) for s in range(minutes(36))})
+    assert opened()["protocol"]["suggested"] == 60
+
+
+def test_moving_the_window_sets_counted_frames_aside_and_keeps_them(monkeypatch):
+    use_procedure(monkeypatch)
+    add_video(duration=minutes(36))
+    first = of_kind(opened(), "snapshot")
+    assert save(first[0], 3)["frames_done"] == 1
+
+    assert client.put("/api/videos/v1/protocol", json={"window_start": minutes(11)}).status_code == 200
+    moved = opened()
+    assert [f["t"] for f in of_kind(moved, "snapshot")][:2] == [minutes(11), minutes(12)]
+    assert moved["protocol"]["chosen"] is True
+    assert moved["stats"]["frames_done"] == 0 and moved["stats"]["mean_count"] is None
+
+    client.put("/api/videos/v1/protocol", json={"window_start": None})
+    back = opened()
+    assert back["stats"]["frames_done"] == 1 and back["stats"]["mean_count"] == 3
+
+
+def test_a_set_aside_frame_stays_out_of_the_largest_count(monkeypatch):
+    use_procedure(monkeypatch)
+    add_video(duration=minutes(36))
+    save(of_kind(opened(), "snapshot")[0], 40)
+    client.put("/api/videos/v1/protocol", json={"window_start": minutes(11)})
+    assert opened()["stats"]["largest_count"] is None
+
+
+def test_the_window_has_to_start_inside_the_video():
+    add_video(duration=100)
+    assert client.put("/api/videos/v1/protocol", json={"window_start": 100}).status_code == 400
+
+
+@pytest.mark.parametrize("body", [{"visibility": "2 m"}, {"juveniles": 2}])
+def test_protocol_values_are_checked(body):
+    add_video()
+    assert client.put("/api/videos/v1/protocol", json=body).status_code in (400, 422)
+
+
+def record(frame, count, **extra):
+    dots = [{"x": 0.5, "y": 0.5, "source": "user"}] * count
+    return client.put(f"/api/snapshot-frames/{frame['id']}", json={"status": "checked", "dots": dots, **extra})
+
+
+def test_a_frame_keeps_its_record():
+    add_video()
+    frame = of_kind(opened(), "snapshot")[0]
+    species = [{"name": "Gaspereau", "n": 2}]
+    assert record(frame, 3, invertebrates=4, species=species, visibility="<0.5 m", comment="flash of scales").status_code == 200
+    saved = client.get(f"/api/snapshot-frames/{frame['id']}").json()
+    assert (saved["invertebrates"], saved["species"], saved["visibility"], saved["comment"]) == (4, species, "<0.5 m", "flash of scales")
+
+
+def test_species_can_not_add_up_to_more_than_the_fish():
+    add_video()
+    frame = of_kind(opened(), "snapshot")[0]
+    assert record(frame, 1, species=[{"name": "Gaspereau", "n": 2}]).status_code == 400
+
+
+def test_could_not_see_records_no_animals_but_keeps_the_note():
+    add_video()
+    frame = of_kind(opened(), "snapshot")[0]
+    res = client.put(f"/api/snapshot-frames/{frame['id']}", json={
+        "status": "could_not_see", "invertebrates": 3, "species": [{"name": "Gaspereau", "n": 1}], "comment": "cloud of sediment",
+    })
+    assert res.status_code == 200
+    saved = client.get(f"/api/snapshot-frames/{frame['id']}").json()
+    assert (saved["invertebrates"], saved["species"], saved["comment"]) == (None, [], "cloud of sediment")
+
+
+def sheet(video_id="v1"):
+    res = client.get(f"/api/videos/{video_id}/protocol.csv")
+    assert res.status_code == 200
+    rows = list(csv.reader(io.StringIO(res.text.removeprefix("\ufeff"))))
+    blank = rows.index([])
+    head, points = rows[0], [dict(zip(rows[0], r)) for r in rows[1:blank]]
+    return head, points, {r[0]: r[1] for r in rows[blank + 1:]}
+
+
+def test_the_sheet_has_one_row_per_point_and_blanks_for_what_nobody_could_see():
+    add_video()
+    with db.session() as con:
+        con.execute("UPDATE videos SET name = 'T1-STAT2 411.MP4', visibility = '0.5-1.0 m', juveniles = 1 WHERE id = 'v1'")
+    frames = of_kind(opened(), "snapshot")
+    record(frames[0], 3, invertebrates=2, species=[{"name": "Gaspereau", "n": 2}], comment="school")
+    client.put(f"/api/snapshot-frames/{frames[1]['id']}", json={"status": "could_not_see"})
+    record(frames[2], 0, visibility=">1.5 m")
+
+    head, points, results = sheet()
+    assert "Gaspereau" in head and "Unknown/Unable to ID due to visibility" in head
+    assert len(points) == len(frames)
+    one, two, three = points[:3]
+    assert (one["Video ID"], one["Transect"], one["STAT"], one["Sub-sample"]) == ("T1-STAT2 411", "T1", "2", "1")
+    assert (one["Total Fish Count"], one["Invertebrate Count"], one["Gaspereau"], one["Unknown/Unable to ID due to visibility"]) == ("3", "2", "2", "1")
+    assert (one["Visibility"], one["Notes"], one["Total Species Observed"]) == ("0.5-1.0 m", "school", "1")
+    assert (two["Total Fish Count"], two["Notes"]) == ("", "Could not see")
+    assert (three["Total Fish Count"], three["Visibility"]) == ("0", ">1.5 m")
+    assert results["MeanCount"] == "1.50"
+    assert results["Species richness"] == "1"
+    assert results["Juveniles present"] == "1"
+
+
+def test_the_sheet_leaves_out_peak_frames():
+    add_video(counts={50: 9})
+    data = opened()
+    save(of_kind(data, "peak")[0], 9)
+    _, points, results = sheet()
+    assert len(points) == len(of_kind(data, "snapshot"))
+    assert results["MeanCount"] == ""
+
+
+def test_species_a_person_confirmed_in_review_join_the_species_observed():
+    add_video()
+    add_box(30, decision="Confirmed")
+    with db.session() as con:
+        con.execute("UPDATE decisions SET species = 'Mummichog'")
+    assert sheet()[2]["Species observed"] == "Mummichog"
+
+
+@pytest.mark.parametrize("name, expected", [
+    ("T1-STAT2 411.MP4", ("T1", "2")),
+    ("GX010221_T3@1217pm STAT 1.mp4", ("T3", "1")),
+    ("clip.mp4", ("", "")),
+])
+def test_transect_and_stat_come_from_the_name(name, expected):
+    from tidecount.summary import transect_stat
+    assert transect_stat(name) == expected
+
+
+def test_the_report_lists_every_point_and_ai_busiest_moments(monkeypatch):
+    add_video(duration=125, counts={50: 4})
+    add_box(50)
+    frames = of_kind(opened(), "snapshot")
+    record(frames[0], 2, species=[{"name": "Gaspereau", "n": 1}])
+    s = summary()
+    assert [p["t"] for p in s["points"]] == [f["t"] for f in frames]
+    assert s["species_observed"] == ["Gaspereau"]
+    assert s["protocol"]["start"] == 15
+    peak, = s["peaks"]
+    assert (peak["t"], peak["in_window"], peak["ai_count"]) == (50, True, 1)
+
+
+def test_the_report_creates_the_frames_for_a_video_nobody_has_opened():
+    add_video()
+    assert len(summary()["points"]) == 4

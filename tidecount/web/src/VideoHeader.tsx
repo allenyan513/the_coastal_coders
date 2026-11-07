@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, snapshotApi } from "./api";
+import { homeLabel, useUser } from "./session";
 
 type Progress = { done: number; total: number };
 type Props = {
@@ -13,12 +14,14 @@ type Props = {
   review?: Progress;
   snapshots?: Progress;
   title?: string;
-  /** Where the first crumb leads. Videos, unless the page belongs to another part of the app. */
+  /** Where the first crumb leads. The person's home, unless the page belongs to another part of the app. */
   from?: { to: string; label: string };
 };
 
 /** One header for every page inside a video: where you are, and the three steps in order. */
-export function VideoHeader({ id, step, view, review, snapshots, title, from = { to: "/", label: "Videos" } }: Props) {
+export function VideoHeader({ id, step, view, review, snapshots, title, from }: Props) {
+  const user = useUser();
+  const crumb = from ?? { to: "/", label: homeLabel(user.role) };
   const [name, setName] = useState("");
   const [site, setSite] = useState("");
   const [loaded, setLoaded] = useState<{ review?: Progress; snapshots?: Progress }>({});
@@ -49,7 +52,7 @@ export function VideoHeader({ id, step, view, review, snapshots, title, from = {
   return (
     <header className="vhead">
       <div className="row">
-        <Link className="crumb" to={from.to}>{from.label}</Link>
+        <Link className="crumb" to={crumb.to}>{crumb.label}</Link>
         <span className="crumb-sep">/</span>
         <h2 className="vhead-name">{name || "…"}</h2>
         {site && <span className="meta">{site}</span>}
