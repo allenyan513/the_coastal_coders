@@ -1,0 +1,1997 @@
+{
+ "version": 1,
+ "species": {
+  "Gadus morhua": {
+   "taxon": {
+    "scientific_name": "Gadus morhua",
+    "inat_taxon_id": 63740,
+    "inat_common_name": "Atlantic Cod",
+    "gbif_key": 8084280,
+    "authority": "Linnaeus, 1758",
+    "family": "Gadidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "gadus_morhua-321138403",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/580735194/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/580735194/medium.jpg",
+     "view": "side",
+     "caption": "Adult on deck, reddish colour phase",
+     "creator": "Julien Savoie",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/321138403",
+     "place": "",
+     "verification": "iNaturalist research-grade observation of taxon 63740 with 4 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "gadus_morhua-214303584",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/378776284/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/378776284/medium.jpg",
+     "view": "side",
+     "caption": "Adult on deck with a ruler for scale",
+     "creator": "Julien Savoie",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/214303584",
+     "place": "",
+     "verification": "iNaturalist research-grade observation of taxon 63740 with 4 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "gadus_morhua-238119124",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/423865234/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/423865234/medium.jpg",
+     "view": "underwater",
+     "caption": "Juvenile over sand",
+     "creator": "Nicola Faulks",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/238119124",
+     "place": "England, GB",
+     "verification": "iNaturalist research-grade observation of taxon 63740 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "gadus_morhua-63248037",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/101475386/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/101475386/medium.jpeg",
+     "view": "underwater",
+     "caption": "Juvenile on a rocky reef",
+     "creator": "Klaus Kevin Kristensen",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/63248037",
+     "place": "Syddanmark, DK",
+     "verification": "iNaturalist research-grade observation of taxon 63740 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Melanogrammus aeglefinus": {
+   "taxon": {
+    "scientific_name": "Melanogrammus aeglefinus",
+    "inat_taxon_id": 82351,
+    "inat_common_name": "Haddock",
+    "gbif_key": 2415822,
+    "aphia_id": 126437,
+    "authority": "(Linnaeus, 1758)",
+    "family": "Gadidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "melanogrammus_aeglefinus-182871020",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/318932194/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/318932194/medium.jpg",
+     "view": "underwater",
+     "caption": "Adult near the bottom; dark lateral line and shoulder blotch",
+     "creator": "Vsevolod Rudyi",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/182871020",
+     "place": "Bodø, NO-NO, NO",
+     "verification": "iNaturalist research-grade observation of taxon 82351 with 4 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "melanogrammus_aeglefinus-File:Haddock,_Boston_Aquarium.JPG",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4d/Haddock%2C_Boston_Aquarium.JPG/960px-Haddock%2C_Boston_Aquarium.JPG",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4d/Haddock%2C_Boston_Aquarium.JPG/500px-Haddock%2C_Boston_Aquarium.JPG",
+     "view": "underwater",
+     "caption": "Adult in an aquarium, side view",
+     "creator": "Steven G. Johnson",
+     "license": "CC BY-SA 3.0",
+     "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Haddock,_Boston_Aquarium.JPG",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Pollachius virens": {
+   "taxon": {
+    "scientific_name": "Pollachius virens",
+    "inat_taxon_id": 228496,
+    "inat_common_name": "Pollock",
+    "gbif_key": 2415861,
+    "aphia_id": 126441,
+    "authority": "(Linnaeus, 1758)",
+    "family": "Gadidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "pollachius_virens-326087211",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/590509634/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/590509634/medium.jpg",
+     "view": "side",
+     "caption": "Adult on a measuring board, Gaspé",
+     "creator": "Julien Savoie",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/326087211",
+     "place": "Gaspésie–Îles-de-la-Madeleine, QC, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 228496 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "pollachius_virens-128462497",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/218207213/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/218207213/medium.jpg",
+     "view": "side",
+     "caption": "Adult on deck; pale straight lateral line and forked tail",
+     "creator": "Mikael Nyman",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/128462497",
+     "place": "Sørøysundet, Kvalfjord, Finnmarkin lääni, NO",
+     "verification": "iNaturalist research-grade observation of taxon 228496 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "pollachius_virens-7186891",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/9266126/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/9266126/medium.jpg",
+     "view": "underwater",
+     "caption": "School in murky water off Halifax",
+     "creator": "Lara Gibson",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/7186891",
+     "place": "Atlantic Ocean, Halifax, NS, CA",
+     "verification": "iNaturalist research-grade observation of taxon 228496 with 4 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "pollachius_virens-226723033",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/402128938/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/402128938/medium.jpeg",
+     "view": "in_hand",
+     "caption": "Juvenile in a viewing box with a ruler",
+     "creator": "nickjeff13",
+     "license": "CC0 1.0",
+     "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/226723033",
+     "place": "East Petpeswick, NS, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 228496 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "pollachius_virens-File:FMIB_41960_Pollack_(Pollachius_virens_(Linnaeus)).jpeg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/68/FMIB_41960_Pollack_%28Pollachius_virens_%28Linnaeus%29%29.jpeg/960px-FMIB_41960_Pollack_%28Pollachius_virens_%28Linnaeus%29%29.jpeg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/68/FMIB_41960_Pollack_%28Pollachius_virens_%28Linnaeus%29%29.jpeg/500px-FMIB_41960_Pollack_%28Pollachius_virens_%28Linnaeus%29%29.jpeg",
+     "view": "illustration",
+     "caption": "Colour plate, New York Forest, Fish and Game Commission",
+     "creator": "State of New York Forest, Fish, and Game Commission",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:FMIB_41960_Pollack_(Pollachius_virens_(Linnaeus)).jpeg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist. Historical illustration, so colours and proportions may differ from a live fish.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Clupea harengus": {
+   "taxon": {
+    "scientific_name": "Clupea harengus",
+    "inat_taxon_id": 97990,
+    "inat_common_name": "Atlantic Herring",
+    "gbif_key": 8351946,
+    "aphia_id": 126417,
+    "authority": "Linnaeus, 1758",
+    "family": "Clupeidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "clupea_harengus-31653182",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/49562304/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/49562304/medium.jpg",
+     "view": "side",
+     "caption": "Adult, Norris Point, Newfoundland",
+     "creator": "Robert Blackmore",
+     "license": "CC0 1.0",
+     "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/31653182",
+     "place": "Gulf of St Lawrence, Norris Point, NL, CA",
+     "verification": "iNaturalist research-grade observation of taxon 97990 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "clupea_harengus-File:Clupea_harengus_Atlantic.jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Clupea_harengus_Atlantic.jpg/960px-Clupea_harengus_Atlantic.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Clupea_harengus_Atlantic.jpg/500px-Clupea_harengus_Atlantic.jpg",
+     "view": "side",
+     "caption": "Specimen from off Labrador, with a ruler",
+     "creator": "savoieju",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Clupea_harengus_Atlantic.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "clupea_harengus-283026472",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/508531660/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/508531660/medium.jpg",
+     "view": "in_hand",
+     "caption": "Adult; blue-green back and silvery sides",
+     "creator": "Bex Goreham",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/283026472",
+     "place": "Saint Andrews, NB, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 97990 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "clupea_harengus-File:Clupea_harengus_Gervais.flipped.jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Clupea_harengus_Gervais.flipped.jpg/960px-Clupea_harengus_Gervais.flipped.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Clupea_harengus_Gervais.flipped.jpg/500px-Clupea_harengus_Gervais.flipped.jpg",
+     "view": "illustration",
+     "caption": "Colour plate, Gervais and Boulart, 19th century",
+     "creator": "Gervais et Boulart, 1877",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Clupea_harengus_Gervais.flipped.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist. Historical illustration, so colours and proportions may differ from a live fish.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Scomber scombrus": {
+   "taxon": {
+    "scientific_name": "Scomber scombrus",
+    "inat_taxon_id": 118678,
+    "inat_common_name": "Atlantic Mackerel",
+    "gbif_key": 2374149,
+    "aphia_id": 127023,
+    "authority": "Linnaeus, 1758",
+    "family": "Scombridae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "scomber_scombrus-221341182",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/391968193/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/391968193/medium.jpg",
+     "view": "underwater",
+     "caption": "Two adults over rocks, seen from above; wavy back bars",
+     "creator": "Crystal Butler",
+     "license": "CC BY-SA 4.0",
+     "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/221341182",
+     "place": "United States",
+     "verification": "iNaturalist research-grade observation of taxon 118678 with 1 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "scomber_scombrus-292218118",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/525854242/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/525854242/medium.jpg",
+     "view": "side",
+     "caption": "Adult, Port Joli, Nova Scotia",
+     "creator": "nebrooks",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/292218118",
+     "place": "Main St, Norris Point, NL, CA",
+     "verification": "iNaturalist research-grade observation of taxon 118678 with 1 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "scomber_scombrus-128247660",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/217823396/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/217823396/medium.jpeg",
+     "view": "side",
+     "caption": "Two adults; bars stop above the plain silver belly",
+     "creator": "Louis Imbeau",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/128247660",
+     "place": "Forillon, La Côte-de-Gaspé, Québec, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 118678 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "scomber_scombrus-File:Atlantic_mackerel_fish.jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bc/Atlantic_mackerel_fish.jpg/960px-Atlantic_mackerel_fish.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bc/Atlantic_mackerel_fish.jpg/500px-Atlantic_mackerel_fish.jpg",
+     "view": "side",
+     "caption": "Adult, side profile",
+     "creator": "Titus Tscharntke",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Atlantic_mackerel_fish.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Pseudopleuronectes americanus": {
+   "taxon": {
+    "scientific_name": "Pseudopleuronectes americanus",
+    "inat_taxon_id": 51371,
+    "inat_common_name": "Winter Flounder",
+    "gbif_key": 2409062,
+    "aphia_id": 158885,
+    "authority": "(Walbaum, 1792)",
+    "family": "Pleuronectidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "pseudopleuronectes_americanus-361258129",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/659278743/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/659278743/medium.jpg",
+     "view": "side",
+     "caption": "Eyed side on a measuring board, Nova Scotia",
+     "creator": "nickjeff13",
+     "license": "CC0 1.0",
+     "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/361258129",
+     "place": "Moosehead, NS, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 51371 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "pseudopleuronectes_americanus-139533646",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/238672916/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/238672916/medium.jpg",
+     "view": "side",
+     "caption": "Mottled eyed side on sand, Newfoundland",
+     "creator": "shahar chaikin",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/139533646",
+     "place": "Harbour Main-Chapel Cove-Lakeview, NL, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 51371 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "pseudopleuronectes_americanus-28323657",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/44142701/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/44142701/medium.jpg",
+     "view": "underwater",
+     "caption": "Camouflaged among weed in shallow water, Halifax",
+     "creator": "Lara Gibson",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/28323657",
+     "place": "1976 Lower Prospect Rd, Halifax, NS, CA",
+     "verification": "iNaturalist research-grade observation of taxon 51371 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "pseudopleuronectes_americanus-372055929",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/679829917/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/679829917/medium.jpg",
+     "view": "other",
+     "caption": "Head close-up: small mouth with thick lips",
+     "creator": "Blake Ross",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/372055929",
+     "place": "Saint Andrews, NB, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 51371 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "pseudopleuronectes_americanus-File:FMIB_41949_Flat_Fish_(Pseudopleuronectes_amer",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/FMIB_41949_Flat_Fish_%28Pseudopleuronectes_americanus_%28Walbaum%29%29.jpeg/960px-FMIB_41949_Flat_Fish_%28Pseudopleuronectes_americanus_%28Walbaum%29%29.jpeg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/FMIB_41949_Flat_Fish_%28Pseudopleuronectes_americanus_%28Walbaum%29%29.jpeg/500px-FMIB_41949_Flat_Fish_%28Pseudopleuronectes_americanus_%28Walbaum%29%29.jpeg",
+     "view": "illustration",
+     "caption": "Colour plate, New York Forest, Fish and Game Commission",
+     "creator": "State of New York Forest, Fish, and Game Commission",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:FMIB_41949_Flat_Fish_(Pseudopleuronectes_americanus_(Walbaum)).jpeg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist. Historical illustration, so colours and proportions may differ from a live fish.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Tautogolabrus adspersus": {
+   "taxon": {
+    "scientific_name": "Tautogolabrus adspersus",
+    "inat_taxon_id": 51390,
+    "inat_common_name": "Cunner",
+    "gbif_key": 2382945,
+    "aphia_id": 159785,
+    "authority": "(Walbaum, 1792)",
+    "family": "Labridae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "tautogolabrus_adspersus-120869087",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/204486581/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/204486581/medium.jpg",
+     "view": "side",
+     "caption": "Adult, Halifax; one long dorsal fin",
+     "creator": "Daniel Nunes",
+     "license": "CC0 1.0",
+     "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/120869087",
+     "place": "Spring Garden, Halifax, NS, CA",
+     "verification": "iNaturalist research-grade observation of taxon 51390 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "tautogolabrus_adspersus-90839633",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/150171578/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/150171578/medium.jpeg",
+     "view": "side",
+     "caption": "Adult on mussels, Norris Point, Newfoundland",
+     "creator": "Todd Boland",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/90839633",
+     "place": "Norris Point, NL, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 51390 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "tautogolabrus_adspersus-File:Cunner.jpg",
+     "url": "https://upload.wikimedia.org/wikipedia/commons/5/52/Cunner.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/52/Cunner.jpg/500px-Cunner.jpg",
+     "view": "underwater",
+     "caption": "Adult underwater, New England",
+     "creator": "derekkeats",
+     "license": "CC BY-SA 2.0",
+     "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Cunner.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "tautogolabrus_adspersus-File:Tautogolabrus_adspersus_-_Guysborough,_Nova_Scotia_",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3d/Tautogolabrus_adspersus_-_Guysborough%2C_Nova_Scotia_2022-07-31.jpg/960px-Tautogolabrus_adspersus_-_Guysborough%2C_Nova_Scotia_2022-07-31.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3d/Tautogolabrus_adspersus_-_Guysborough%2C_Nova_Scotia_2022-07-31.jpg/500px-Tautogolabrus_adspersus_-_Guysborough%2C_Nova_Scotia_2022-07-31.jpg",
+     "view": "underwater",
+     "caption": "Several near the surface, Guysborough, Nova Scotia",
+     "creator": "Ryan Hodnett",
+     "license": "CC BY-SA 4.0",
+     "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Tautogolabrus_adspersus_-_Guysborough,_Nova_Scotia_2022-07-31.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "tautogolabrus_adspersus-File:Tautogolabrus_adspersus,_Bay_of_Fundy,_Grand_Manan,",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/78/Tautogolabrus_adspersus%2C_Bay_of_Fundy%2C_Grand_Manan%2C_NB%2C_CA_imported_from_iNaturalist_photo_231295105.jpg/960px-Tautogolabrus_adspersus%2C_Bay_of_Fundy%2C_Grand_Manan%2C_NB%2C_CA_imported_from_iNaturalist_photo_231295105.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/78/Tautogolabrus_adspersus%2C_Bay_of_Fundy%2C_Grand_Manan%2C_NB%2C_CA_imported_from_iNaturalist_photo_231295105.jpg/500px-Tautogolabrus_adspersus%2C_Bay_of_Fundy%2C_Grand_Manan%2C_NB%2C_CA_imported_from_iNaturalist_photo_231295105.jpg",
+     "view": "in_hand",
+     "caption": "Barred colour form",
+     "creator": "(c) brendanboyd, some rights reserved (CC BY)",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Tautogolabrus_adspersus,_Bay_of_Fundy,_Grand_Manan,_NB,_CA_imported_from_iNaturalist_photo_231295105.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Hemitripterus americanus": {
+   "taxon": {
+    "scientific_name": "Hemitripterus americanus",
+    "inat_taxon_id": 47634,
+    "inat_common_name": "Sea Raven",
+    "gbif_key": 7938309,
+    "aphia_id": 159518,
+    "authority": "(Gmelin, 1789)",
+    "family": "Hemitripteridae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "hemitripterus_americanus-366877173",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/669936626/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/669936626/medium.jpg",
+     "view": "underwater",
+     "caption": "Red adult on the bottom, Halifax",
+     "creator": "Daniel Nunes",
+     "license": "CC0 1.0",
+     "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/366877173",
+     "place": "Sandy Cove Rd, Halifax, NS, CA",
+     "verification": "iNaturalist research-grade observation of taxon 47634 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "hemitripterus_americanus-6973348",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/8921683/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/8921683/medium.jpg",
+     "view": "underwater",
+     "caption": "Adult in green, turbid water, Halifax",
+     "creator": "Lara Gibson",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/6973348",
+     "place": "225 Paddys Head Rd, Halifax, NS, CA",
+     "verification": "iNaturalist research-grade observation of taxon 47634 with 1 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "hemitripterus_americanus-98565505",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/164131923/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/164131923/medium.jpeg",
+     "view": "underwater",
+     "caption": "Brown colour form among seaweed",
+     "creator": "Dan Bender",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/98565505",
+     "place": "Gloucester, MA, USA",
+     "verification": "iNaturalist research-grade observation of taxon 47634 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "hemitripterus_americanus-241993855",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/431365592/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/431365592/medium.jpeg",
+     "view": "side",
+     "caption": "Side view in shallow water, Minas Basin",
+     "creator": "Glenn Wooden",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/241993855",
+     "place": "Minas Basin, Kings, NS, CA",
+     "verification": "iNaturalist research-grade observation of taxon 47634 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "hemitripterus_americanus-217337601",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/384473853/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/384473853/medium.jpeg",
+     "view": "in_hand",
+     "caption": "Juvenile in a viewing box",
+     "creator": "nickjeff13",
+     "license": "CC0 1.0",
+     "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/217337601",
+     "place": "Halifax, CA-NS, CA",
+     "verification": "iNaturalist research-grade observation of taxon 47634 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "hemitripterus_americanus-File:FMIB_52137_Sea_raven,_Hemitripterus_americanus_(Gm",
+     "url": "https://upload.wikimedia.org/wikipedia/commons/a/a7/FMIB_52137_Sea_raven%2C_Hemitripterus_americanus_%28Gmelin%29_Halifax%2C_Nova_Scotia.jpeg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a7/FMIB_52137_Sea_raven%2C_Hemitripterus_americanus_%28Gmelin%29_Halifax%2C_Nova_Scotia.jpeg/500px-FMIB_52137_Sea_raven%2C_Hemitripterus_americanus_%28Gmelin%29_Halifax%2C_Nova_Scotia.jpeg",
+     "view": "illustration",
+     "caption": "Drawing of a Halifax specimen, David Starr Jordan",
+     "creator": "David Starr Jordan",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:FMIB_52137_Sea_raven,_Hemitripterus_americanus_(Gmelin)_Halifax,_Nova_Scotia.jpeg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist. Historical illustration, so colours and proportions may differ from a live fish.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Myoxocephalus scorpius": {
+   "taxon": {
+    "scientific_name": "Myoxocephalus scorpius",
+    "inat_taxon_id": 47639,
+    "inat_common_name": "Shorthorn Sculpin",
+    "gbif_key": 2333785,
+    "aphia_id": 127203,
+    "authority": "(Linnaeus, 1758)",
+    "family": "Cottidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "myoxocephalus_scorpius-235574210",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/418975564/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/418975564/medium.jpeg",
+     "view": "side",
+     "caption": "Adult on a ruler, Saint Andrews, New Brunswick",
+     "creator": "Bex Goreham",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/235574210",
+     "place": "Saint Andrews, NB, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 47639 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "myoxocephalus_scorpius-385667351",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/706068693/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/706068693/medium.jpg",
+     "view": "in_hand",
+     "caption": "In a viewing box with fins spread, Maine",
+     "creator": "James-LaFontaine",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/385667351",
+     "place": "Eastport, ME, US",
+     "verification": "iNaturalist research-grade observation of taxon 47639 with 4 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "myoxocephalus_scorpius-File:Chaboisseau_commun_(Myoxocephalus_scorpius)_(Ifremer",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3e/Chaboisseau_commun_%28Myoxocephalus_scorpius%29_%28Ifremer_00378-48884_-_352%29.jpg/960px-Chaboisseau_commun_%28Myoxocephalus_scorpius%29_%28Ifremer_00378-48884_-_352%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3e/Chaboisseau_commun_%28Myoxocephalus_scorpius%29_%28Ifremer_00378-48884_-_352%29.jpg/500px-Chaboisseau_commun_%28Myoxocephalus_scorpius%29_%28Ifremer_00378-48884_-_352%29.jpg",
+     "view": "underwater",
+     "caption": "Head close-up underwater, France",
+     "creator": "Olivier Dugornay",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Chaboisseau_commun_(Myoxocephalus_scorpius)_(Ifremer_00378-48884_-_352).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "myoxocephalus_scorpius-File:FMIB_50923_Northern_or_European_Sculpin.jpeg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/FMIB_50923_Northern_or_European_Sculpin.jpeg/960px-FMIB_50923_Northern_or_European_Sculpin.jpeg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/FMIB_50923_Northern_or_European_Sculpin.jpeg/500px-FMIB_50923_Northern_or_European_Sculpin.jpeg",
+     "view": "illustration",
+     "caption": "Drawing by H. L. Todd",
+     "creator": "H. L. Todd",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:FMIB_50923_Northern_or_European_Sculpin.jpeg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist. Historical illustration, so colours and proportions may differ from a live fish.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Cyclopterus lumpus": {
+   "taxon": {
+    "scientific_name": "Cyclopterus lumpus",
+    "inat_taxon_id": 60603,
+    "inat_common_name": "Lumpfish",
+    "gbif_key": 5962255,
+    "aphia_id": 127214,
+    "authority": "Linnaeus, 1758",
+    "family": "Cyclopteridae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "cyclopterus_lumpus-7349993",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/9527573/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/9527573/medium.jpg",
+     "view": "underwater",
+     "caption": "Adult underwater, Halifax",
+     "creator": "Lara Gibson",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/7349993",
+     "place": "Atlantic Ocean, Halifax, NS, CA",
+     "verification": "iNaturalist research-grade observation of taxon 60603 with 4 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "cyclopterus_lumpus-7349993",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/9527569/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/9527569/medium.jpg",
+     "view": "underwater",
+     "caption": "Adult near kelp, seen against the light, Halifax",
+     "creator": "Lara Gibson",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/7349993",
+     "place": "Atlantic Ocean, Halifax, NS, CA",
+     "verification": "iNaturalist research-grade observation of taxon 60603 with 4 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "cyclopterus_lumpus-385668373",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/706070775/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/706070775/medium.jpg",
+     "view": "side",
+     "caption": "Adult in a viewing tank; ridge of bony knobs along the back, Maine",
+     "creator": "James-LaFontaine",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/385668373",
+     "place": "Eastport, ME, US",
+     "verification": "iNaturalist research-grade observation of taxon 60603 with 5 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "cyclopterus_lumpus-179039114",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/311646604/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/311646604/medium.jpg",
+     "view": "other",
+     "caption": "Belly up, showing the round sucker disc, Halifax",
+     "creator": "Alison Copeland",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/179039114",
+     "place": "Newfoundland and Labrador, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 60603 with 1 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "cyclopterus_lumpus-403562643",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/740983442/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/740983442/medium.jpg",
+     "view": "in_hand",
+     "caption": "Juvenile, Grand Manan",
+     "creator": "nickjeff13",
+     "license": "CC0 1.0",
+     "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/403562643",
+     "place": "Grand Manan, NB, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 60603 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "cyclopterus_lumpus-File:Cyclopterus_lumpus_2.JPG",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/46/Cyclopterus_lumpus_2.JPG/960px-Cyclopterus_lumpus_2.JPG",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/46/Cyclopterus_lumpus_2.JPG/500px-Cyclopterus_lumpus_2.JPG",
+     "view": "underwater",
+     "caption": "Orange colour form in an aquarium",
+     "creator": "Haplochromis",
+     "license": "CC BY-SA 3.0",
+     "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Cyclopterus_lumpus_2.JPG",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Anarhichas lupus": {
+   "taxon": {
+    "scientific_name": "Anarhichas lupus",
+    "inat_taxon_id": 213519,
+    "inat_common_name": "Atlantic Wolffish",
+    "gbif_key": 8006460,
+    "aphia_id": 126758,
+    "authority": "Linnaeus, 1758",
+    "family": "Anarhichadidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "anarhichas_lupus-321138402",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/580735193/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/580735193/medium.jpg",
+     "view": "side",
+     "caption": "Adult in a holding tank; long dorsal fin and tapering body",
+     "creator": "Julien Savoie",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/321138402",
+     "place": "",
+     "verification": "iNaturalist research-grade observation of taxon 213519 with 4 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "anarhichas_lupus-128108660",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/217574079/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/217574079/medium.jpg",
+     "view": "side",
+     "caption": "Adult on deck; dark vertical bars",
+     "creator": "Mikael Nyman",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/128108660",
+     "place": "Sørøysundet, Kvalfjord, Finnmarkin lääni, NO",
+     "verification": "iNaturalist research-grade observation of taxon 213519 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "anarhichas_lupus-371606864",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/678967532/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/678967532/medium.jpg",
+     "view": "underwater",
+     "caption": "Adult in murky water among weed, Terence Bay, Nova Scotia",
+     "creator": "Lara Gibson",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/371606864",
+     "place": "Terence Bay, NS, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 213519 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "anarhichas_lupus-131918041",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/224565633/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/224565633/medium.jpg",
+     "view": "underwater",
+     "caption": "Head out of a rock crevice",
+     "creator": "Daniel Benák",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/131918041",
+     "place": "Vestvågøy, Norsko",
+     "verification": "iNaturalist research-grade observation of taxon 213519 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "anarhichas_lupus-File:Anarhichas_lupus_060417w.jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Anarhichas_lupus_060417w.jpg/960px-Anarhichas_lupus_060417w.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Anarhichas_lupus_060417w.jpg/500px-Anarhichas_lupus_060417w.jpg",
+     "view": "underwater",
+     "caption": "Two adults in an aquarium, Brest",
+     "creator": "User:Strobilomyces",
+     "license": "CC BY-SA 3.0",
+     "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Anarhichas_lupus_060417w.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "anarhichas_lupus-File:Anarhichas_lupus_frontal.JPG",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e7/Anarhichas_lupus_frontal.JPG/960px-Anarhichas_lupus_frontal.JPG",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e7/Anarhichas_lupus_frontal.JPG/500px-Anarhichas_lupus_frontal.JPG",
+     "view": "other",
+     "caption": "Head: strong, protruding canine teeth",
+     "creator": "J. K. H. Friedgé",
+     "license": "CC BY 3.0",
+     "license_url": "https://creativecommons.org/licenses/by/3.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Anarhichas_lupus_frontal.JPG",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Fundulus heteroclitus": {
+   "taxon": {
+    "scientific_name": "Fundulus heteroclitus",
+    "inat_taxon_id": 58642,
+    "inat_common_name": "Mummichog",
+    "gbif_key": 5712056,
+    "aphia_id": 159306,
+    "authority": "(Linnaeus, 1766)",
+    "family": "Fundulidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "fundulus_heteroclitus-174326441",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/302834122/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/302834122/medium.jpeg",
+     "view": "in_hand",
+     "caption": "Male; dark with small pale spots",
+     "creator": "Zakqary Roy",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/174326441",
+     "place": "Belmar, NJ, USA",
+     "verification": "iNaturalist research-grade observation of taxon 58642 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "fundulus_heteroclitus-164068892",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/283837295/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/283837295/medium.jpeg",
+     "view": "side",
+     "caption": "Female in a container; plainer, with faint bars",
+     "creator": "Adrienne van den Beemt",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/164068892",
+     "place": "Colmar Manor, MD 20722, USA",
+     "verification": "iNaturalist research-grade observation of taxon 58642 with 5 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "fundulus_heteroclitus-227171066",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/402969129/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/402969129/medium.jpg",
+     "view": "side",
+     "caption": "Adult on rocks at the shore",
+     "creator": "inbetweenbays",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/227171066",
+     "place": "Delaware Seashore State Park, Rehoboth Beach, DE, US",
+     "verification": "iNaturalist research-grade observation of taxon 58642 with 5 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "fundulus_heteroclitus-164103257",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/283952660/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/283952660/medium.jpg",
+     "view": "underwater",
+     "caption": "School seen from above in murky water",
+     "creator": "Caroline Quinn",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/164103257",
+     "place": "Washington, DC, US",
+     "verification": "iNaturalist research-grade observation of taxon 58642 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "fundulus_heteroclitus-File:FMIB_43235_Mummichoc_(Fundulus_heteroclitus).jpeg",
+     "url": "https://upload.wikimedia.org/wikipedia/commons/f/f9/FMIB_43235_Mummichoc_%28Fundulus_heteroclitus%29.jpeg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f9/FMIB_43235_Mummichoc_%28Fundulus_heteroclitus%29.jpeg/500px-FMIB_43235_Mummichoc_%28Fundulus_heteroclitus%29.jpeg",
+     "view": "illustration",
+     "caption": "Colour plate, New York Forest, Fish and Game Commission",
+     "creator": "State of New York Forest, Fish, and Game Commission",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:FMIB_43235_Mummichoc_(Fundulus_heteroclitus).jpeg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist. Historical illustration, so colours and proportions may differ from a live fish.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Gasterosteus aculeatus": {
+   "taxon": {
+    "scientific_name": "Gasterosteus aculeatus",
+    "inat_taxon_id": 48403,
+    "inat_common_name": "Threespine Stickleback",
+    "gbif_key": 4286327,
+    "aphia_id": 126505,
+    "authority": "Linnaeus, 1758",
+    "family": "Gasterosteidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "gasterosteus_aculeatus-7499314",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/9769859/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/9769859/medium.jpg",
+     "view": "side",
+     "caption": "Adult, Prince Edward Island; three dorsal spines and side plates",
+     "creator": "Ian Manning",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/7499314",
+     "place": "Kings, CA-PE, CA",
+     "verification": "iNaturalist research-grade observation of taxon 48403 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "gasterosteus_aculeatus-90838722",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/150170106/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/150170106/medium.jpeg",
+     "view": "underwater",
+     "caption": "Breeding male in shallow water, red belly and blue eye, Newfoundland",
+     "creator": "Todd Boland",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/90838722",
+     "place": "Norris Point, NL, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 48403 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "gasterosteus_aculeatus-File:Dreistachliger_Stichling_unterwasser_(cropped).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5b/Dreistachliger_Stichling_unterwasser_%28cropped%29.jpg/960px-Dreistachliger_Stichling_unterwasser_%28cropped%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5b/Dreistachliger_Stichling_unterwasser_%28cropped%29.jpg/500px-Dreistachliger_Stichling_unterwasser_%28cropped%29.jpg",
+     "view": "underwater",
+     "caption": "Underwater over sand, Germany",
+     "creator": "Lorenz Seebauer",
+     "license": "CC BY-SA 4.0",
+     "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Dreistachliger_Stichling_unterwasser_(cropped).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "gasterosteus_aculeatus-240070705",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/427658641/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/427658641/medium.jpeg",
+     "view": "in_hand",
+     "caption": "Adult in hand, Grand Manan",
+     "creator": "brendanboyd",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/240070705",
+     "place": "Long Island Bay, Grand Manan, NB, CA",
+     "verification": "iNaturalist research-grade observation of taxon 48403 with 1 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Salmo salar": {
+   "taxon": {
+    "scientific_name": "Salmo salar",
+    "inat_taxon_id": 48648,
+    "inat_common_name": "Atlantic Salmon",
+    "gbif_key": 7595433,
+    "aphia_id": 127186,
+    "authority": "Linnaeus, 1758",
+    "family": "Salmonidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "salmo_salar-369527943",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/674966617/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/674966617/medium.jpg",
+     "view": "in_hand",
+     "caption": "Adult in a river; silvery with sparse black spots, Restigouche",
+     "creator": "Josh Noseworthy",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/369527943",
+     "place": "Restigouche Rural District, NB, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 48648 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "salmo_salar-240382021",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/428284756/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/428284756/medium.jpeg",
+     "view": "underwater",
+     "caption": "Adult in a river, Grand Falls-Windsor, Newfoundland",
+     "creator": "Jeli",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/240382021",
+     "place": "Grand Falls-Windsor",
+     "verification": "iNaturalist research-grade observation of taxon 48648 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "salmo_salar-240382021",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/428284715/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/428284715/medium.jpeg",
+     "view": "underwater",
+     "caption": "Adult over a gravel river bed, Grand Falls-Windsor",
+     "creator": "Jeli",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/240382021",
+     "place": "Grand Falls-Windsor",
+     "verification": "iNaturalist research-grade observation of taxon 48648 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "salmo_salar-124144769",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/210391054/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/210391054/medium.jpg",
+     "view": "in_hand",
+     "caption": "Parr with dark oval bars, Cape Breton",
+     "creator": "Cassidy Best",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/124144769",
+     "place": "Cape Breton Highlands National Park, Inverness, NS, CA",
+     "verification": "iNaturalist research-grade observation of taxon 48648 with 4 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "salmo_salar-File:Atlantic_Salmon_(NIH_BioArt_554_-_643469).png",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e8/Atlantic_Salmon_%28NIH_BioArt_554_-_643469%29.png/960px-Atlantic_Salmon_%28NIH_BioArt_554_-_643469%29.png",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e8/Atlantic_Salmon_%28NIH_BioArt_554_-_643469%29.png/500px-Atlantic_Salmon_%28NIH_BioArt_554_-_643469%29.png",
+     "view": "illustration",
+     "caption": "Side view illustration, NIAID",
+     "creator": "Courtesy of NIAID Ryan Kissinger",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Atlantic_Salmon_(NIH_BioArt_554_-_643469).png",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist. Historical illustration, so colours and proportions may differ from a live fish.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Squalus acanthias": {
+   "taxon": {
+    "scientific_name": "Squalus acanthias",
+    "inat_taxon_id": 52306,
+    "inat_common_name": "Spiny Dogfish",
+    "gbif_key": 5216368,
+    "aphia_id": 105923,
+    "authority": "Linnaeus, 1758",
+    "family": "Squalidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "squalus_acanthias-63741419",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/102351331/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/102351331/medium.jpeg",
+     "view": "side",
+     "caption": "Adult on sand; white spots and a spine before each dorsal fin",
+     "creator": "Zihao Wang",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/63741419",
+     "place": "United States",
+     "verification": "iNaturalist research-grade observation of taxon 52306 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "squalus_acanthias-377824711",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/690957520/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/690957520/medium.jpg",
+     "view": "in_hand",
+     "caption": "Adult held on a boat",
+     "creator": "Joey M",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/377824711",
+     "place": "",
+     "verification": "iNaturalist research-grade observation of taxon 52306 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "squalus_acanthias-File:Ecomare_-_doornhaai_(doornhaai-814-sw).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/Ecomare_-_doornhaai_%28doornhaai-814-sw%29.jpg/960px-Ecomare_-_doornhaai_%28doornhaai-814-sw%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/Ecomare_-_doornhaai_%28doornhaai-814-sw%29.jpg/500px-Ecomare_-_doornhaai_%28doornhaai-814-sw%29.jpg",
+     "view": "underwater",
+     "caption": "Two swimming in an aquarium, Netherlands",
+     "creator": "Ecomare/Salko de Wolf",
+     "license": "CC BY-SA 4.0",
+     "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Ecomare_-_doornhaai_(doornhaai-814-sw).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Morone saxatilis": {
+   "taxon": {
+    "scientific_name": "Morone saxatilis",
+    "inat_taxon_id": 51392,
+    "inat_common_name": "Striped Bass",
+    "gbif_key": 2394612,
+    "aphia_id": 151179,
+    "authority": "(Walbaum, 1792)",
+    "family": "Moronidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "morone_saxatilis-102298548",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/170972334/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/170972334/medium.jpg",
+     "view": "side",
+     "caption": "Adult, New Brunswick; seven or eight unbroken stripes",
+     "creator": "Christian Back",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/102298548",
+     "place": "New Brunswick, CA",
+     "verification": "iNaturalist research-grade observation of taxon 51392 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "morone_saxatilis-202478086",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/357604204/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/357604204/medium.jpg",
+     "view": "side",
+     "caption": "Adult on sand, Nova Scotia",
+     "creator": "Cassidy Best",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/202478086",
+     "place": "Nova Scotia, CA",
+     "verification": "iNaturalist research-grade observation of taxon 51392 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "morone_saxatilis-127656324",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/216746591/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/216746591/medium.jpeg",
+     "view": "underwater",
+     "caption": "Adult in green, murky water, Pictou, Nova Scotia",
+     "creator": "Alexis Godin",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/127656324",
+     "place": "Gloucester, CA-NB, CA",
+     "verification": "iNaturalist research-grade observation of taxon 51392 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "morone_saxatilis-362690993",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/661994912/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/661994912/medium.jpg",
+     "view": "in_hand",
+     "caption": "Adult, New Brunswick",
+     "creator": "Ian Murdoch",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/362690993",
+     "place": "Northumberland, CA-NB, CA",
+     "verification": "iNaturalist research-grade observation of taxon 51392 with 3 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Euthynnus alletteratus": {
+   "taxon": {
+    "scientific_name": "Euthynnus alletteratus",
+    "inat_taxon_id": 120614,
+    "inat_common_name": "Little Tunny",
+    "gbif_key": 5208565,
+    "aphia_id": 127017,
+    "authority": "(Rafinesque, 1810)",
+    "family": "Scombridae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "euthynnus_alletteratus-File:Euthynnus_alletteratus_(FDA_086).jpg",
+     "url": "https://upload.wikimedia.org/wikipedia/commons/5/54/Euthynnus_alletteratus_%28FDA_086%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/Euthynnus_alletteratus_%28FDA_086%29.jpg/500px-Euthynnus_alletteratus_%28FDA_086%29.jpg",
+     "view": "side",
+     "caption": "Labelled specimen; wavy back markings and dark spots below the pectoral fin",
+     "creator": "The U.S. Food and Drug Administration",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Euthynnus_alletteratus_(FDA_086).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "euthynnus_alletteratus-118853087",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/200851470/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/200851470/medium.jpeg",
+     "view": "side",
+     "caption": "Side view",
+     "creator": "Ryan Watson",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/118853087",
+     "place": "",
+     "verification": "iNaturalist research-grade observation of taxon 120614 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Tautoga onitis": {
+   "taxon": {
+    "scientific_name": "Tautoga onitis",
+    "inat_taxon_id": 52547,
+    "inat_common_name": "Tautog",
+    "gbif_key": 2383615,
+    "aphia_id": 158830,
+    "authority": "(Linnaeus, 1758)",
+    "family": "Labridae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "tautoga_onitis-File:Tautoga_onitis_333198009.jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fa/Tautoga_onitis_333198009.jpg/960px-Tautoga_onitis_333198009.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fa/Tautoga_onitis_333198009.jpg/500px-Tautoga_onitis_333198009.jpg",
+     "view": "side",
+     "caption": "Adult on a measuring board",
+     "creator": "Bobby McCabe",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Tautoga_onitis_333198009.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "tautoga_onitis-File:Tautog_(Tautoga_onitis),_United_States_imported_from_iNatura",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/Tautog_%28Tautoga_onitis%29%2C_United_States_imported_from_iNaturalist_photo_442131359.jpg/960px-Tautog_%28Tautoga_onitis%29%2C_United_States_imported_from_iNaturalist_photo_442131359.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/Tautog_%28Tautoga_onitis%29%2C_United_States_imported_from_iNaturalist_photo_442131359.jpg/500px-Tautog_%28Tautoga_onitis%29%2C_United_States_imported_from_iNaturalist_photo_442131359.jpg",
+     "view": "in_hand",
+     "caption": "Adult in hand",
+     "creator": "no rights reserved",
+     "license": "CC0 1.0",
+     "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Tautog_(Tautoga_onitis),_United_States_imported_from_iNaturalist_photo_442131359.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Alosa pseudoharengus": {
+   "taxon": {
+    "scientific_name": "Alosa pseudoharengus",
+    "inat_taxon_id": 51362,
+    "inat_common_name": "Alewife",
+    "gbif_key": 2412740,
+    "aphia_id": 158669,
+    "authority": "(Wilson, 1811)",
+    "family": "Alosidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "alosa_pseudoharengus-File:Alosa_pseudoharengus_(S0106)_(12600307734).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Alosa_pseudoharengus_%28S0106%29_%2812600307734%29.jpg/960px-Alosa_pseudoharengus_%28S0106%29_%2812600307734%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Alosa_pseudoharengus_%28S0106%29_%2812600307734%29.jpg/500px-Alosa_pseudoharengus_%28S0106%29_%2812600307734%29.jpg",
+     "view": "side",
+     "caption": "Specimen, side view",
+     "creator": "Smithsonian Environmental Research Center",
+     "license": "CC BY 2.0",
+     "license_url": "https://creativecommons.org/licenses/by/2.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Alosa_pseudoharengus_(S0106)_(12600307734).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "alosa_pseudoharengus-142990457",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/245213715/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/245213715/medium.jpg",
+     "view": "side",
+     "caption": "Adult on a board, side view",
+     "creator": "Ian Manning",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/142990457",
+     "place": "LaHave River, Bridgewater, NS, CA",
+     "verification": "iNaturalist research-grade observation of taxon 51362 with 1 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Alosa sapidissima": {
+   "taxon": {
+    "scientific_name": "Alosa sapidissima",
+    "inat_taxon_id": 49243,
+    "inat_common_name": "American Shad",
+    "gbif_key": 2412661,
+    "aphia_id": 158670,
+    "authority": "(Wilson, 1811)",
+    "family": "Alosidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "alosa_sapidissima-File:Alosa_sapidissima_SERC_121520_0167.jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/68/Alosa_sapidissima_SERC_121520_0167.jpg/960px-Alosa_sapidissima_SERC_121520_0167.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/68/Alosa_sapidissima_SERC_121520_0167.jpg/500px-Alosa_sapidissima_SERC_121520_0167.jpg",
+     "view": "side",
+     "caption": "Specimen, side view",
+     "creator": "Smithsonian Environmental Research Center",
+     "license": "CC BY 2.0",
+     "license_url": "https://creativecommons.org/licenses/by/2.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Alosa_sapidissima_SERC_121520_0167.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "alosa_sapidissima-File:Alosa_sapidissima_(S0315)_(12599984823).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/Alosa_sapidissima_%28S0315%29_%2812599984823%29.jpg/960px-Alosa_sapidissima_%28S0315%29_%2812599984823%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/Alosa_sapidissima_%28S0315%29_%2812599984823%29.jpg/500px-Alosa_sapidissima_%28S0315%29_%2812599984823%29.jpg",
+     "view": "side",
+     "caption": "Specimen, side view",
+     "creator": "Smithsonian Environmental Research Center",
+     "license": "CC BY 2.0",
+     "license_url": "https://creativecommons.org/licenses/by/2.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Alosa_sapidissima_(S0315)_(12599984823).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Zoarces americanus": {
+   "taxon": {
+    "scientific_name": "Zoarces americanus",
+    "inat_taxon_id": 233996,
+    "inat_common_name": "Ocean Pout",
+    "gbif_key": 2380998,
+    "aphia_id": 159267,
+    "authority": "(Bloch & Schneider, 1801)",
+    "family": "Zoarcidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "zoarces_americanus-File:Ocean_pout,_Boston_Aquarium.jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f3/Ocean_pout%2C_Boston_Aquarium.jpg/960px-Ocean_pout%2C_Boston_Aquarium.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f3/Ocean_pout%2C_Boston_Aquarium.jpg/500px-Ocean_pout%2C_Boston_Aquarium.jpg",
+     "view": "side",
+     "caption": "Aquarium, side view",
+     "creator": "Steven G. Johnson",
+     "license": "CC BY-SA 3.0",
+     "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Ocean_pout,_Boston_Aquarium.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "zoarces_americanus-409234785",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/752402338/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/752402338/medium.jpg",
+     "view": "side",
+     "caption": "In a tank, side view",
+     "creator": "Simon Vinet",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/409234785",
+     "place": "La Haute-Côte-Nord, QC, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 233996 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Apeltes quadracus": {
+   "taxon": {
+    "scientific_name": "Apeltes quadracus",
+    "inat_taxon_id": 48400,
+    "inat_common_name": "Fourspine Stickleback",
+    "gbif_key": 5204681,
+    "aphia_id": 159436,
+    "authority": "(Mitchill, 1815)",
+    "family": "Gasterosteidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "apeltes_quadracus-File:Apeltes_quadracus_(S0994)_(15908267198).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/12/Apeltes_quadracus_%28S0994%29_%2815908267198%29.jpg/960px-Apeltes_quadracus_%28S0994%29_%2815908267198%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/12/Apeltes_quadracus_%28S0994%29_%2815908267198%29.jpg/500px-Apeltes_quadracus_%28S0994%29_%2815908267198%29.jpg",
+     "view": "side",
+     "caption": "Preserved specimen, side view",
+     "creator": "Smithsonian Environmental Research Center",
+     "license": "CC BY 2.0",
+     "license_url": "https://creativecommons.org/licenses/by/2.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Apeltes_quadracus_(S0994)_(15908267198).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "apeltes_quadracus-File:Apeltes_quadracus_(S0245)_(12600305524).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5a/Apeltes_quadracus_%28S0245%29_%2812600305524%29.jpg/960px-Apeltes_quadracus_%28S0245%29_%2812600305524%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5a/Apeltes_quadracus_%28S0245%29_%2812600305524%29.jpg/500px-Apeltes_quadracus_%28S0245%29_%2812600305524%29.jpg",
+     "view": "side",
+     "caption": "Preserved specimen, side view",
+     "creator": "Smithsonian Environmental Research Center",
+     "license": "CC BY 2.0",
+     "license_url": "https://creativecommons.org/licenses/by/2.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Apeltes_quadracus_(S0245)_(12600305524).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Pungitius pungitius": {
+   "taxon": {
+    "scientific_name": "Pungitius pungitius",
+    "inat_taxon_id": 48399,
+    "inat_common_name": "Ninespine Stickleback",
+    "gbif_key": 5739510,
+    "aphia_id": 126507,
+    "authority": "(Linnaeus, 1758)",
+    "family": "Gasterosteidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "pungitius_pungitius-File:Ninespine_stickleback_fish.jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Ninespine_stickleback_fish.jpg/960px-Ninespine_stickleback_fish.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Ninespine_stickleback_fish.jpg/500px-Ninespine_stickleback_fish.jpg",
+     "view": "side",
+     "caption": "Adult on a ruler, side view",
+     "creator": "U.S. Fish and Wildlife Service",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Ninespine_stickleback_fish.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Salmo trutta": {
+   "taxon": {
+    "scientific_name": "Salmo trutta",
+    "inat_taxon_id": 47518,
+    "inat_common_name": "Brown Trout",
+    "gbif_key": 8215487,
+    "aphia_id": 127187,
+    "authority": "Linnaeus, 1758",
+    "family": "Salmonidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "salmo_trutta-File:95cs2032_(49699975643)_(cropped).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/95cs2032_%2849699975643%29_%28cropped%29.jpg/960px-95cs2032_%2849699975643%29_%28cropped%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/95cs2032_%2849699975643%29_%28cropped%29.jpg/500px-95cs2032_%2849699975643%29_%28cropped%29.jpg",
+     "view": "side",
+     "caption": "Aquarium, side view",
+     "creator": "USDAgov",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:95cs2032_(49699975643)_(cropped).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "salmo_trutta-22496703",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/34847723/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/34847723/medium.jpg",
+     "view": "in_hand",
+     "caption": "Adult in hand",
+     "creator": "kirk gardner",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/22496703",
+     "place": "Jackson County, NC, USA",
+     "verification": "iNaturalist research-grade observation of taxon 47518 with 7 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Salvelinus fontinalis": {
+   "taxon": {
+    "scientific_name": "Salvelinus fontinalis",
+    "inat_taxon_id": 49596,
+    "inat_common_name": "Brook Trout",
+    "gbif_key": 2351271,
+    "aphia_id": 154241,
+    "authority": "(Mitchill, 1814)",
+    "family": "Salmonidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "salvelinus_fontinalis-243815305",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/434812228/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/434812228/medium.jpeg",
+     "view": "side",
+     "caption": "Adult in a tray, side view",
+     "creator": "Ian Murdoch",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/243815305",
+     "place": "Northumberland, CA-NB, CA",
+     "verification": "iNaturalist research-grade observation of taxon 49596 with 4 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "salvelinus_fontinalis-File:Berkshire_NFH_brook_trout_31_May_2023.png",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b4/Berkshire_NFH_brook_trout_31_May_2023.png/960px-Berkshire_NFH_brook_trout_31_May_2023.png",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b4/Berkshire_NFH_brook_trout_31_May_2023.png/500px-Berkshire_NFH_brook_trout_31_May_2023.png",
+     "view": "in_hand",
+     "caption": "Adult in hand",
+     "creator": "Ryan Hagerty/USFWS",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Berkshire_NFH_brook_trout_31_May_2023.png",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Morone americana": {
+   "taxon": {
+    "scientific_name": "Morone americana",
+    "inat_taxon_id": 84432,
+    "inat_common_name": "White Perch",
+    "gbif_key": 2394604,
+    "aphia_id": 151177,
+    "authority": "(Gmelin, 1789)",
+    "family": "Moronidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "morone_americana-File:Morone_americana_(S0215)_(12679425064).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/Morone_americana_%28S0215%29_%2812679425064%29.jpg/960px-Morone_americana_%28S0215%29_%2812679425064%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/Morone_americana_%28S0215%29_%2812679425064%29.jpg/500px-Morone_americana_%28S0215%29_%2812679425064%29.jpg",
+     "view": "side",
+     "caption": "Adult, side view",
+     "creator": "Smithsonian Environmental Research Center",
+     "license": "CC BY 2.0",
+     "license_url": "https://creativecommons.org/licenses/by/2.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Morone_americana_(S0215)_(12679425064).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "morone_americana-File:Morone_americana.jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Morone_americana.jpg/960px-Morone_americana.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Morone_americana.jpg/500px-Morone_americana.jpg",
+     "view": "side",
+     "caption": "Aquarium, side view",
+     "creator": "Cephas",
+     "license": "CC BY-SA 3.0",
+     "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Morone_americana.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Perca flavescens": {
+   "taxon": {
+    "scientific_name": "Perca flavescens",
+    "inat_taxon_id": 58627,
+    "inat_common_name": "Yellow Perch",
+    "gbif_key": 2382004,
+    "aphia_id": 275313,
+    "authority": "(Mitchill, 1814)",
+    "family": "Percidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "perca_flavescens-File:95cs2140_(49700496481).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/95cs2140_%2849700496481%29.jpg/960px-95cs2140_%2849700496481%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/95cs2140_%2849700496481%29.jpg/500px-95cs2140_%2849700496481%29.jpg",
+     "view": "side",
+     "caption": "Aquarium, side view",
+     "creator": "USDAgov",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:95cs2140_(49700496481).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "perca_flavescens-246981050",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/441017612/large.jpeg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/441017612/medium.jpeg",
+     "view": "side",
+     "caption": "Adult, side view",
+     "creator": "Quinn",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/246981050",
+     "place": "Macomb County, MI, USA",
+     "verification": "iNaturalist research-grade observation of taxon 58627 with 7 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Menidia menidia": {
+   "taxon": {
+    "scientific_name": "Menidia menidia",
+    "inat_taxon_id": 146827,
+    "inat_common_name": "Atlantic Silverside",
+    "gbif_key": 2412304,
+    "aphia_id": 159228,
+    "authority": "(Linnaeus, 1766)",
+    "family": "Atherinopsidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "menidia_menidia-File:Menidia_menidia_(S0238)_(12659115004).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/30/Menidia_menidia_%28S0238%29_%2812659115004%29.jpg/960px-Menidia_menidia_%28S0238%29_%2812659115004%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/30/Menidia_menidia_%28S0238%29_%2812659115004%29.jpg/500px-Menidia_menidia_%28S0238%29_%2812659115004%29.jpg",
+     "view": "side",
+     "caption": "Specimen, side view",
+     "creator": "Smithsonian Environmental Research Center",
+     "license": "CC BY 2.0",
+     "license_url": "https://creativecommons.org/licenses/by/2.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Menidia_menidia_(S0238)_(12659115004).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "menidia_menidia-172541498",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/299574093/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/299574093/medium.jpg",
+     "view": "side",
+     "caption": "Adult, side view",
+     "creator": "Elizabeth Axley",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/172541498",
+     "place": "Tisquantum Rd, Chatham, MA, US",
+     "verification": "iNaturalist research-grade observation of taxon 146827 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Anguilla rostrata": {
+   "taxon": {
+    "scientific_name": "Anguilla rostrata",
+    "inat_taxon_id": 49219,
+    "inat_common_name": "American Eel",
+    "gbif_key": 5212956,
+    "aphia_id": 158562,
+    "authority": "(Lesueur, 1817)",
+    "family": "Anguillidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "anguilla_rostrata-File:500_mm_American_eel_(21699214090).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9b/500_mm_American_eel_%2821699214090%29.jpg/960px-500_mm_American_eel_%2821699214090%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9b/500_mm_American_eel_%2821699214090%29.jpg/500px-500_mm_American_eel_%2821699214090%29.jpg",
+     "view": "side",
+     "caption": "Adult on a measuring board",
+     "creator": "U. S. Fish and Wildlife Service - Northeast Region",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:500_mm_American_eel_(21699214090).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "anguilla_rostrata-File:American_eel_(6149968225).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/American_eel_%286149968225%29.jpg/960px-American_eel_%286149968225%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/American_eel_%286149968225%29.jpg/500px-American_eel_%286149968225%29.jpg",
+     "view": "in_hand",
+     "caption": "Adult in hand",
+     "creator": "U.S. Fish and Wildlife Service Northeast Region",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:American_eel_(6149968225).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Scophthalmus aquosus": {
+   "taxon": {
+    "scientific_name": "Scophthalmus aquosus",
+    "inat_taxon_id": 61388,
+    "inat_common_name": "Windowpane Flounder",
+    "gbif_key": 2409401,
+    "aphia_id": 158907,
+    "authority": "(Mitchill, 1815)",
+    "family": "Scophthalmidae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "scophthalmus_aquosus-File:Scophthalmus_aquosus_(S0607)_(12591781803).jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/73/Scophthalmus_aquosus_%28S0607%29_%2812591781803%29.jpg/960px-Scophthalmus_aquosus_%28S0607%29_%2812591781803%29.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/73/Scophthalmus_aquosus_%28S0607%29_%2812591781803%29.jpg/500px-Scophthalmus_aquosus_%28S0607%29_%2812591781803%29.jpg",
+     "view": "other",
+     "caption": "Eyed side, seen from above",
+     "creator": "Smithsonian Environmental Research Center",
+     "license": "CC BY 2.0",
+     "license_url": "https://creativecommons.org/licenses/by/2.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Scophthalmus_aquosus_(S0607)_(12591781803).jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "scophthalmus_aquosus-325885231",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/590117534/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/590117534/medium.jpg",
+     "view": "other",
+     "caption": "Eyed side on a measuring board",
+     "creator": "Julien Savoie",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/325885231",
+     "place": "Les Îles-de-la-Madeleine, QC, Canada",
+     "verification": "iNaturalist research-grade observation of taxon 61388 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Osmerus mordax": {
+   "taxon": {
+    "scientific_name": "Osmerus mordax",
+    "inat_taxon_id": 179504,
+    "inat_common_name": "Rainbow Smelt",
+    "gbif_key": 4283983,
+    "aphia_id": 126737,
+    "authority": "(Mitchill, 1814)",
+    "family": "Osmeridae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "osmerus_mordax-385668214",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/706070444/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/706070444/medium.jpg",
+     "view": "side",
+     "caption": "Adult, side view",
+     "creator": "James-LaFontaine",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/385668214",
+     "place": "Eastport, ME, US",
+     "verification": "iNaturalist research-grade observation of taxon 179504 with 5 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "osmerus_mordax-File:Denton_Smelt_1896.png",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/25/Denton_Smelt_1896.png/960px-Denton_Smelt_1896.png",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/25/Denton_Smelt_1896.png/500px-Denton_Smelt_1896.png",
+     "view": "illustration",
+     "caption": "Watercolor by S. F. Denton",
+     "creator": "Sherman Foote Denton",
+     "license": "Public domain",
+     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:Denton_Smelt_1896.png",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist. Historical illustration, so colours and proportions may differ from a live fish.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  },
+  "Sarda sarda": {
+   "taxon": {
+    "scientific_name": "Sarda sarda",
+    "inat_taxon_id": 56940,
+    "inat_common_name": "Atlantic Bonito",
+    "gbif_key": 5208593,
+    "aphia_id": 127021,
+    "authority": "(Bloch, 1793)",
+    "family": "Scombridae",
+    "resolved_on": "2026-11-07"
+   },
+   "images": [
+    {
+     "id": "sarda_sarda-317135846",
+     "url": "https://inaturalist-open-data.s3.amazonaws.com/photos/573033573/large.jpg",
+     "thumb_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/573033573/medium.jpg",
+     "view": "in_hand",
+     "caption": "Adult in hand; oblique dark stripes on the upper back",
+     "creator": "ricofish",
+     "license": "CC0 1.0",
+     "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+     "source": "iNaturalist",
+     "source_url": "https://www.inaturalist.org/observations/317135846",
+     "place": "MA, US",
+     "verification": "iNaturalist research-grade observation of taxon 56940 with 2 agreeing identification(s). Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    },
+    {
+     "id": "sarda_sarda-File:BonitolMPF.jpg",
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/BonitolMPF.jpg/960px-BonitolMPF.jpg",
+     "thumb_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/BonitolMPF.jpg/500px-BonitolMPF.jpg",
+     "view": "side",
+     "caption": "Adult, side view",
+     "creator": "Mpfmarc",
+     "license": "CC BY 4.0",
+     "license_url": "https://creativecommons.org/licenses/by/4.0",
+     "source": "Wikimedia Commons",
+     "source_url": "https://commons.wikimedia.org/wiki/File:BonitolMPF.jpg",
+     "place": "",
+     "verification": "Wikimedia Commons file filed under the accepted species name. Subject and view checked by eye; not reviewed by a fish biologist.",
+     "added_on": "2026-11-07"
+    }
+   ]
+  }
+ }
+}

@@ -285,6 +285,64 @@ sudo systemctl enable --now tidecount-update.timer
 
 To see what it's doing, run `journalctl -u tidecount-update -f`.
 
+## Species wiki
+
+Select a fish on the **Species wiki** page to open its entry in a drawer on the right, or a full-screen sheet on a phone. The address keeps the open fish, for example `/species?species=Gadus%20morhua`, so a link reopens it. The drawer has four tabs:
+
+| Tab | What's in it |
+|---|---|
+| Photos | Reference photos, filtered by side profile, underwater, in hand or illustration, each with its creator, licence and a link to the original |
+| Identify | How to recognise the fish, the fish it is easily confused with side by side, and entries that compare themselves with it |
+| Map | Where OBIS has occurrence records of the fish, plus opt-in eDNA water-sample evidence and net-survey non-detections, each by sampling site-date |
+| Details | TideCount's own counts, the name check against WoRMS, photo credits and links to iNaturalist, OBIS, FishBase and GBIF |
+
+The drawer needs only a scientific name, so the review screen can later open the same one for a BioCLIP suggestion. None of this changes `species.csv`, which stays the list BioCLIP chooses from.
+
+**The map** shows real OBIS occurrence records, not modelled ranges. Records are counted in OBIS's own grid cells, which get finer as you zoom, so the map never draws thousands of markers. Select a cell to list its records, with date, dataset, how the record was made and its licence. Shaded cells have records; unshaded water has no shared records, which is not evidence of absence. The numbers above the map count occurrence records, not individual fish. Records are not fish: acoustic tracking logs a tagged fish every time it passes a receiver, and for cod in Atlantic Canada one such cell holds about 970,000 of 2.2 million records. The drawer warns when tag detections make up a large share. The server fetches OBIS for the browser, caches each answer in `data/cache/obis/` for a week (within a size limit, below), and serves an older saved copy, marked as such, when OBIS can't be reached.
+
+**The year range.** One slider with two handles (presets: All years, 2020s, 2010s, 2000s) picks single years, 1950 to now (say 2018–2022). The map opens on 2023–present, and the period chosen then stays for the session across fish and tabs; when it has no records, the map says older ones may still be there and offers All years. The legend's colour swatches change the grid's palette (kept in the browser; repainting asks OBIS for nothing). The left end is "Earlier" and the right end the current year, and a handle resting there means no limit, so All years includes records from before 1950 too. The map updates when you let go of a handle, not while dragging. The range goes to OBIS as `startdate`/`enddate`, so the grid and the record list are filtered by OBIS itself, through the same cache and budget as before. The record totals come from OBIS's records-per-year list, which is fetched once for all years, so a new range costs no request there. **eDNA follows the range** without new OBIS calls: it is computed once for all years and the sampling events are kept, and each range just counts the events inside it (a species with more than 30,000 events is not kept this way and says so). **Net and trawl non-detections, and the dataset list, do not follow the range**; they are labelled "(all years)" and the drawer says so when a range is active. The slider (`web/src/YearRangeSlider.tsx`, `yearRange.ts`) knows nothing about OBIS, so a GBIF map can reuse it.
+
+**Filtering by method or dataset.** Under the year range, "Hide acoustic-tag detections" drops the telemetry datasets in one click, and "Filter by method or dataset" picks research surveys, acoustic telemetry, eDNA or "other or not stated", or one dataset. The map, the record lists and the totals follow, together with the year range; the eDNA and net-survey sections don't. OBIS has no field for how a record was made and can only include datasets, not exclude them, so the server lists every dataset holding the fish in the region (one cached request, opened only when the filter is), gives each a method from its own OBIS metadata, and sends OBIS the ids of the datasets to keep. The method is only what the metadata says: eDNA from the DNA extension or title, telemetry from the title or the Ocean Tracking Network as institute, research surveys from net, trawl or seine sampling with a title naming a survey, a research vessel or the gear (tagging databases are left out). Museum collections, FishBase, iNaturalist and compilations don't say how each record was made, so they stay under "other". A visitor names a method or one listed dataset, never ids of their own, and a filter keeping more than 150 datasets, or a region with more than 200, is refused rather than cut short. For mackerel in Atlantic Canada, hiding the 3 telemetry datasets takes the total from 88,955 records to 38,303; for winter flounder, 19 survey datasets hold 76,667 of its 85,463.
+
+**Keeping the public site and OBIS safe.** The map and eDNA calls reach a free public service from a public website with no login, so they are limited. All of it lives in `server/tidecount/api_guard.py` and `api_cache.py`, which know nothing about fish, so a GBIF integration can reuse them (see the note at the bottom of `api_guard.py`). It assumes the Docker deployment's single process.
+
+| Risk | Safeguard |
+|---|---|
+| Many different requests, each a new cache entry and OBIS call | Map views are rounded to the map's own steps, the year range to whole years from 1900 to 2100 (checked on the server; the browser asks only when a handle is let go, and each range is one cache entry), and records are listed only for real OBIS grid cells (all 85,618 cells in my test cache passed) |
+| Disk filling | The OBIS cache keeps to 256 MB and 20,000 files (`TIDECOUNT_CACHE_MB`, `TIDECOUNT_CACHE_FILES`), evicts the least recently used first, keeps slow-to-rebuild eDNA answers longest, refuses an answer over 4 MB, and stops caching when less than 5 GB of disk is free (`TIDECOUNT_CACHE_MIN_FREE_GB`) |
+| Too many requests to OBIS | One budget for the whole server: 4 requests in flight (2 kept for visitors, so a background job can't starve the maps), about 2 a second, 180 a minute and 2,000 an hour (background jobs may use three quarters of the volume). `TIDECOUNT_OBIS_PER_MINUTE` and the others change them |
+| OBIS slow, down or rate-limiting | A visitor's request tries once. A background job retries timeouts, 429s and 5xx with backoff. A 429 pauses every OBIS request for its Retry-After, and five failures in a row pause them for 30 seconds or more. While paused, the older cached answer is served or the visitor is told to try again, so no request waits on a sick server |
+| Expensive calculations | One eDNA or net-survey calculation runs at a time and four more may wait. A fifth is told to try again; a visitor may start 12 in ten minutes; identical requests share one calculation; each one stops after five minutes or 400 OBIS requests. Finished jobs are forgotten, since their answer is in the cache |
+| One visitor, or a script | 300 map calls a minute each, then a 429 with Retry-After. Only 12 run at once, so the rest of the app, including video review, keeps its request threads. The address comes from Caddy's X-Forwarded-For only when Caddy is the direct peer, so it can't be spoofed |
+| Two requests writing one cache file | Each write goes to its own temporary file and is renamed into place |
+
+The cost is speed: a species that has never been opened takes about a minute for its eDNA non-detections, and several visitors opening new species at once queue up.
+
+**eDNA water samples** have their own collapsed section under the map, fetched only when it is opened, because DNA found in filtered water is not a sighting or a catch and shouldn't be read like one. It reports *sampling events* (a site-date: latitude and longitude rounded to 4 decimals, about 10 m, plus the UTC date), never the DNA sequence rows OBIS stores. A **detection** is a site-date where a sample held the fish's DNA. A **non-detection** is a site-date from a dataset that publishes its zeros, where none was found, and where no dataset found it. OBIS repeats a zero for every sequence variant in every sample, including samples where the fish *was* found (for mackerel, 109,435 absence rows), so raw absence rows are never totalled. A sample published under both 12S and 16S counts once. The section shows both counts with dates and sites, a by-year table, the contributing datasets with their genetic marker, and, on request, the sampling sites on the map: solid teal dots where DNA was found at least once, dashed teal rings where it never was. Blue cells stay for occurrence records and orange rings for nets. Non-detections from general-purpose markers (COI, 18S) and zooplankton surveys are counted and withheld with the reason, because those markers miss many fish; their detections still count. The marker is read from the dataset title first, then its abstract, so a dataset whose metadata is vague may be classified wrongly.
+
+**Net, trawl and seine surveys** that reported the fish as not detected are a separate collapsed section, also by site-date, with seabed-imagery and unclear-method datasets withheld with the reason. A trawl non-detection is not proof of absence either: gear catches some fish far better than others.
+
+**How eDNA is fetched.** OBIS returns at most 10,000 rows a request, and mackerel has 109,435 non-detection rows. They are read one dataset at a time, two datasets at once, each paged the way OBIS documents (every page starts after the last id of the one before). That is gentle on a free public service and takes about a minute for mackerel. I also tried splitting OBIS's random ids into shards and reading them all at once, which took 20 seconds, but it leaned on how OBIS happens to order ids and sent many requests together, so it was dropped. The detections come back in about 5 seconds and are shown straight away; the non-detections are counted by a background job, the section polls it and shows progress, and the finished result is cached in `data/cache/obis/` for a month. An expired copy is served, marked, while a new one is built. To prepare named species ahead of time, run `python -m tidecount.occurrences atlantic-canada "Scomber scombrus"` from the `server` folder. There is deliberately no "all species" option. The cache keeps each site-date, and `occurrences.nearby_site_dates` returns the eDNA site-dates near a point and between two dates, with the caveats attached. Nothing calls it yet: it is where a "has this species also been detected by eDNA nearby?" check on a video would start. An eDNA sample reflects DNA in a volume of water over hours to days, a video reflects minutes at one camera, and a non-detection cannot contradict a fish seen on video, so the two should only be compared when place, dates and question genuinely overlap.
+
+**Photos, notes and names** live in three files next to `species.csv`:
+
+| File | What's in it | How it's made |
+|---|---|---|
+| `species_media.json` | Photos and their credits | `ml/species_media.py`, then a person picks from a contact sheet |
+| `species_profiles.json` | Identification notes, look-alikes and sources | Written by hand from FishBase and field guides |
+| `species_taxonomy.json` | Every listed name checked against WoRMS | `ml/species_media.py taxonomy` |
+
+To add photos for a fish, from `server`:
+
+```bash
+uv run python ../ml/species_media.py candidates "Gadus morhua"
+uv run python ../ml/species_media.py show "Gadus morhua"
+uv run python ../ml/species_media.py add "Gadus morhua" 0:side 14:underwater:"Juvenile on a rocky reef"
+uv run python ../ml/species_media.py check --links
+```
+
+`candidates` matches the name exactly on iNaturalist, GBIF and WoRMS, then collects openly licensed photos: research-grade iNaturalist observations of exactly that taxon, Atlantic Canada first, and Wikimedia Commons files in the species' category. It writes a numbered contact sheet to `data/species_media/<species>/sheet.jpg`. Look at every photo before adding it. Research-grade observations still show the wrong animal: some "haddock", "winter flounder" and "lumpfish" observations were photos of the gull or eagle that ate the fish. `check` rejects licences other than CC0, CC BY, CC BY-SA and public domain, missing credits, and look-alikes that aren't on the list. `--links` also fetches every image and source link, and asks iNaturalist whether each observation still exists, is still research grade and still names the same species, since identifications can change after a photo is picked.
+
 ## Known limits
 
 - AI output is weak in murky water and on dense schools, so treat every box as a suggestion.
@@ -295,3 +353,5 @@ To see what it's doing, run `journalctl -u tidecount-update -f`.
 - A fish that isn't on the species list still gets confident-looking names from the list.
 - The species model takes about 0.4 seconds per track on a laptop CPU. Set `TIDECOUNT_SPECIES_MODEL=hf-hub:imageomics/bioclip-2` for a model that takes about half the time.
 - Video files and model weights must stay out of the public repo.
+- Species wiki photos and notes have been checked by eye but not by a fish biologist, and each entry says so. Photos and map tiles load from iNaturalist, Wikimedia and OpenStreetMap, so the wiki doesn't work offline and those sites see the visit.
+- OBIS is a marine database, so freshwater fish are thinly covered. *Gadus ogac* is on the AI list but WoRMS now treats it as *Gadus macrocephalus*, so its map shows every population of that species, Pacific included.
