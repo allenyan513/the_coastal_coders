@@ -62,11 +62,11 @@ export function SharpenFilter({ id, amount }: { id: string; amount: number }) {
   );
 }
 
-/** children: more switches for what is drawn over the video, listed under Grayscale. */
-type Props = { value: Picture; onChange: (p: Picture) => void; onCompare: (showing: boolean) => void; children?: ReactNode };
+/** children: more switches for what is drawn over the video, listed under Grayscale. top: tools above the presets. */
+type Props = { value: Picture; onChange: (p: Picture) => void; onCompare: (showing: boolean) => void; children?: ReactNode; top?: ReactNode };
 
 /** Sliders and presets for how the footage looks. Nothing here changes the video or any count. */
-export function PicturePanel({ value, onChange, onCompare, children }: Props) {
+export function PicturePanel({ value, onChange, onCompare, children, top }: Props) {
   const gray = value.saturation === 0;
   const changed = !same(value, AS_FILMED);
   const hold = { onPointerDown: () => onCompare(true), onPointerUp: () => onCompare(false), onPointerLeave: () => onCompare(false) };
@@ -77,6 +77,8 @@ export function PicturePanel({ value, onChange, onCompare, children }: Props) {
         <h2>Picture</h2>
         <button className="btn quiet" disabled={!changed} onClick={() => onChange(AS_FILMED)}>Reset</button>
       </div>
+
+      {top}
 
       <div className="picture-presets" role="group" aria-label="Presets">
         {PRESETS.map((x) => (

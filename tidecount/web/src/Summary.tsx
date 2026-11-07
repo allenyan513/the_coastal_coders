@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, clock, DiversityStats, MaxnStats, Summary } from "./api";
+import { api, clock, DiversityStats, MaxnStats, SpeciesRow, Summary } from "./api";
+import { colorOf, loadSpecies, UNIDENTIFIED_LABEL } from "./speciesTally";
 import { VideoHeader } from "./VideoHeader";
 
 export function SummaryPage() {
@@ -14,7 +15,29 @@ export function SummaryPage() {
   useEffect(() => { api.maxn(id).then(setM).catch(() => setM(null)); }, [id]);
   const [dv, setDv] = useState<DiversityStats | null>(null);
   useEffect(() => { api.diversity(id).then(setDv).catch(() => setDv(null)); }, [id]);
+  const [names, setNames] = useState<SpeciesRow[]>([]);
+  useEffect(() => { api.species().then(setNames).catch(() => setNames([])); }, []);
   if (!s) return <p className="meta">Loading…</p>;
+
+  // Species counted on the Count tab. A trial kept in this browser, so it sits beside the saved numbers.
+  const tagged = loadSpecies(id);
+  const nameOf = (sp: string) => (sp ? names.find((r) => r.species === sp)?.common || sp : UNIDENTIFIED_LABEL);
+  const counted = s.points.filter((p) => p.status === "checked");
+  const perPoint = new Map(counted.map((p) => {
+    const n = new Map<string, number>();
+    (tagged.frames[p.id] ?? []).forEach((t) => n.set(t.species, (n.get(t.species) ?? 0) + 1));
+    const named = [...n.values()].reduce((a, b) => a + b, 0);
+    if ((p.total ?? 0) > named) n.set("", (p.total ?? 0) - named);
+    return [p.id, n] as const;
+  }));
+  const speciesRows = ["", ...tagged.palette, ...new Set(counted.flatMap((p) => (tagged.frames[p.id] ?? []).map((t) => t.species)))]
+    .filter((sp, i, all) => all.indexOf(sp) === i)
+    .map((sp) => {
+      const each = counted.map((p) => perPoint.get(p.id)?.get(sp) ?? 0);
+      return { sp, total: each.reduce((a, b) => a + b, 0), seen: each.filter(Boolean).length, max: Math.max(0, ...each) };
+    })
+    .filter((r) => r.total > 0);
+  const anyTagged = counted.some((p) => (tagged.frames[p.id] ?? []).length);
 
   const total = s.video.duration || 1;
   const pct = (v: number) => `${Math.round((v / total) * 100)}%`;
@@ -74,6 +97,29 @@ export function SummaryPage() {
         </div>
       </div>
 
+      {anyTagged && (
+        <section className="panel" style={{ overflowX: "auto" }}>
+          <div className="panel-head">
+            <h2>Species at the sub-sample points</h2>
+            <span className="pill muted">Trial, kept in this browser</span>
+          </div>
+          <table>
+            <thead><tr><th>Species</th><th className="right">Fish counted</th><th className="right">Per point</th><th className="right">Most at one point</th><th className="right">Points seen at</th></tr></thead>
+            <tbody>
+              {speciesRows.map((r) => (
+                <tr key={r.sp || "unidentified"}>
+                  <td><span className="species-swatch" style={{ background: colorOf(tagged.palette, r.sp) }} />{nameOf(r.sp)}</td>
+                  <td className="num right">{r.total}</td>
+                  <td className="num right">{(r.total / (counted.length || 1)).toFixed(2)}</td>
+                  <td className="num right">{r.max}</td>
+                  <td className="num right">{r.seen} of {counted.length}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
       <section className="panel" style={{ overflowX: "auto" }}>
         <div className="panel-head"><h2>Sub-sample points</h2></div>
         <table>
@@ -86,7 +132,11 @@ export function SummaryPage() {
                 <td>{p.visibility || s.protocol.visibility || "—"}</td>
                 <td className="num right">{p.status === "checked" ? p.total : p.status ? "Could not see" : "—"}</td>
                 <td className="num right">{p.status === "checked" ? p.invertebrates ?? 0 : "—"}</td>
-                <td>{p.species.map((x) => `${x.name} ${x.n}`).join(", ")}</td>
+                <td>
+                  {p.species.length
+                    ? p.species.map((x) => `${x.name} ${x.n}`).join(", ")
+                    : [...(perPoint.get(p.id)?.entries() ?? [])].filter(([sp]) => sp).map(([sp, n]) => `${nameOf(sp)} ${n}`).join(", ")}
+                </td>
                 <td className="meta">{p.comment}</td>
               </tr>
             ))}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, snapshotApi } from "./api";
 import { homeLabel, useUser } from "./session";
@@ -16,10 +16,12 @@ type Props = {
   title?: string;
   /** Where the first crumb leads. The person's home, unless the page belongs to another part of the app. */
   from?: { to: string; label: string };
+  /** Page tools that sit on the tab row, at its right end. */
+  actions?: ReactNode;
 };
 
 /** One header for every page inside a video: where you are, and the tabs for this video. */
-export function VideoHeader({ id, step, view, review, snapshots, title, from }: Props) {
+export function VideoHeader({ id, step, view, review, snapshots, title, from, actions }: Props) {
   const user = useUser();
   const crumb = from ?? { to: "/workspace", label: homeLabel(user.role) };
   const [name, setName] = useState("");
@@ -45,8 +47,8 @@ export function VideoHeader({ id, step, view, review, snapshots, title, from }: 
   const s = snapshots ?? loaded.snapshots;
   // Add a tab here and it shows up on every video page.
   const tabs = [
-    { key: "review", to: `/videos/${id}`, label: "Video", p: r, unit: "segments reviewed" },
-    { key: "snapshots", to: `/videos/${id}/snapshots`, label: "Snapshot", p: s, unit: "snapshots counted" },
+    { key: "review", to: `/videos/${id}`, label: "Identify", p: r, unit: "segments reviewed" },
+    { key: "snapshots", to: `/videos/${id}/snapshots`, label: "Count", p: s, unit: "points counted" },
     { key: "report", to: `/videos/${id}/summary`, label: "Report", p: undefined, unit: "" },
   ];
 
@@ -76,6 +78,7 @@ export function VideoHeader({ id, step, view, review, snapshots, title, from }: 
           })}
         </nav>
         <span className="spacer" />
+        {actions}
         {step === "review" && view && (
           <div className="seg" role="group" aria-label="Review by">
             <Link to={`/videos/${id}`} aria-current={view === "segments" ? "page" : undefined}>By segment</Link>
