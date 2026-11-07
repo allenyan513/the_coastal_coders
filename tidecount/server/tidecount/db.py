@@ -53,6 +53,10 @@ site_id TEXT, site_name TEXT, lat REAL, lon REAL, date TEXT, time TEXT,
 measurement TEXT, value REAL, unit TEXT
 );
 CREATE INDEX IF NOT EXISTS water_site_date ON water_readings (site_id, date);
+CREATE TABLE IF NOT EXISTS fish_counts (
+  site_id TEXT, date TEXT, species TEXT, count INTEGER, source TEXT DEFAULT 'demo'
+);
+CREATE INDEX IF NOT EXISTS fish_site_date ON fish_counts (site_id, date);
 """
 
 

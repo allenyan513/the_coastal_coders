@@ -163,8 +163,13 @@ export const api = {
   summary: (id: string) => call<Summary>(`/api/videos/${id}/summary`),
   maxn: (id: string) => call<MaxnStats>(`/api/videos/${id}/stats/maxn`),
   waterSites: () => call<WaterSite[]>(`/api/water/sites`),
-  waterSeries: (siteId: string, measurement: string) =>
-    call<WaterSeries>(`/api/water/sites/${siteId}/series?measurement=${encodeURIComponent(measurement)}`),
+  waterSeries: (siteId: string, measurement: string, deseason = false) =>
+    call<WaterSeries>(`/api/water/sites/${siteId}/series?measurement=${encodeURIComponent(measurement)}&deseason=${deseason}`),
+  fishOptions: (siteId: string) => call<FishOptions>(`/api/fish/sites/${siteId}/options`),
+  fishWater: (siteId: string, metric: string, measurement: string, deseason = false) =>
+    call<FishWaterComparison>(`/api/compare/sites/${siteId}?metric=${encodeURIComponent(metric)}&measurement=${encodeURIComponent(measurement)}&deseason=${deseason}`),
+  fishSeries: (siteId: string, metric: string, deseason = false) =>
+    call<FishSeries>(`/api/fish/sites/${siteId}/series?metric=${encodeURIComponent(metric)}&deseason=${deseason}`),
   diversity: (id: string) => call<DiversityStats>(`/api/videos/${id}/stats/diversity`),
   upload: (file: File, site: string, detector: string) => {
     const form = new FormData();
@@ -260,5 +265,33 @@ export type WaterSeries = {
   site_id: string;
   measurement: string;
   unit: string;
-  points: {date: string; value: number}[];
+  points: { date: string; value: number }[];
+};
+
+/** What a fish chart at a site can show: overall measures, then each species. From server/tidecount/trends.py. */
+export type FishOptions = { metrics: { key: string; label: string }[]; species: string[] };
+
+/** A standardized line: `z` is how many standard deviations each point is from the line's own average. */
+export type ZLine = { label: string; unit: string; points: { date: string; value: number; z: number }[] };
+
+/** A fish measure and a water measurement on one shared scale, with their Spearman correlation. */
+export type FishWaterComparison = {
+  fish: ZLine;
+  water: ZLine;
+  pairs: number;
+  max_gap_days: number;
+  spearman: number | null;
+  p_value: number | null;
+  strength: string;
+  demo: boolean;
+};
+
+/** One fish measure over time at a site. `demo` is true when any of it is made-up demo data. */
+export type FishSeries = {
+  site_id: string;
+  metric: string;
+  label: string;
+  unit: string;
+  points: { date: string; value: number }[];
+  demo: boolean;
 };
