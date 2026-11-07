@@ -1,3 +1,5 @@
+import csv
+import io
 import math
 
 from fastapi.testclient import TestClient
@@ -221,3 +223,41 @@ def test_simpson_two_species_uneven_split():
 def test_simpson_three_species():
     simpson_d, inverse_d = simpson([6,3,1])
     assert simpson_d == approx(0.54, abs=0.01) and inverse_d == approx(2.17, abs=0.01)
+
+
+# The new statistics in the exported CSV.
+
+def export_rows(video_id="v1"):
+    res = client.get(f"/api/videos/{video_id}/export.csv")
+    assert res.status_code == 200
+    return list(csv.reader(io.StringIO(res.text)))
+
+
+def test_csv_has_maxn_and_diversity():
+    add_video()
+    add_fish(0, 10, "Stickleback")
+    add_fish(5, 15, "Stickleback")
+    add_fish(20, 30, "Eel")
+    add_fish(25, 35, "Eel")
+
+    rows = export_rows()
+    values = {r[0]: r[1] for r in rows if len(r) == 2}
+
+    assert values["maxn_from_confirmed_tracks"] == "2"
+    assert values["shannon_index"] == "0.693"
+    assert values["shannon_evenness"] == "1.000"
+    assert values["simpson_diversity"] == "0.500"
+    assert values["inverse_simpson"] == "2.000"
+    assert values["diversity_named_species"] == "2"
+    assert ["Stickleback", "2", "5.0", "2"] in rows and ["Eel", "2", "25.0", "2"] in rows
+
+
+def test_csv_leaves_missing_diversity_blank():
+    add_video()
+    add_fish(0, 5, "Stickleback")
+
+    values = {r[0]: r[1] for r in export_rows() if len(r) == 2}
+
+    assert values["maxn_from_confirmed_tracks"] == "1"
+    assert values["shannon_index"] == "0.000"
+    assert values["shannon_evenness"] == ""
