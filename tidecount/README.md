@@ -27,6 +27,14 @@ You need [uv](https://docs.astral.sh/uv/) and [Node.js](https://nodejs.org/) wit
 
 Then open http://localhost:8000. The first run installs dependencies and downloads the detector, about 120 MB, and the species model, about 3.7 GB, the first time a video is analyzed.
 
+## On a phone
+
+Open `/start`, for example https://coastalaction.ligangyan.com/start. It says what TideCount is and has one tap into a sample video, a sample report or an upload.
+
+On a computer, **Open on phone** in the sidebar shows a large QR code for that page, so a room can scan it from the screen. For slides and print, `pnpm qr` in `web/` writes `demo/qr/start.png` and `start.svg`. Pass another address to change where they lead: `pnpm qr https://example.com/start`.
+
+A phone has to reach the site, so scan from the public address, not `localhost`.
+
 ## Using it
 
 1. Import a video in **Fish Counter** and choose a model. Analysis runs in the background.
@@ -233,6 +241,47 @@ cd server && TIDECOUNT_WORKER=0 uv run uvicorn tidecount.app:app --port 8000
 Then run `pnpm dev` in `web/` and open http://localhost:5183. It sends `/api` requests to port 8000.
 
 Each test gets a fresh database from `server/tests/conftest.py`, so tests don't need to clean up. CI runs the server tests, the `ml` tests and the web build on every pull request that touches `tidecount/`.
+
+## Deploy a public demo
+
+You need a machine with [Docker](https://docs.docker.com/engine/install/) and about 30 GB free. The demo runs on the CPU and starts with an empty database. Run this:
+
+```bash
+git clone https://github.com/allenyan513/the_coastal_coders.git
+cd the_coastal_coders/deploy
+echo "SITE_ADDRESS=your.domain" > .env
+docker compose up -d
+```
+
+Point the domain's A record at the machine first, and open ports 80 and 443. If you use Cloudflare, set the record to **DNS only**. Caddy then gets a certificate and serves HTTPS by itself, and uploads have no size limit. Leave out `.env` and the site is plain HTTP on port 80.
+
+The first start builds the image and downloads the model weights, about 4.2 GB, so it takes a while. Later starts skip both. Then open the site and import a video in **Fish Counter**, as you would locally. Everything is saved in `deploy/data/`, separate from the `tidecount/data/` that `start.sh` uses.
+
+Run these from `deploy/` too:
+
+| Task | Command |
+|---|---|
+| Rebuild after `git pull` | `docker compose up -d --build` |
+| Stop, keeping the data | `docker compose down` |
+| See what the app is doing | `docker compose logs -f app` |
+
+The site has no login, so anyone with the link can upload and every visitor shares one set of data. The Summary only counts decisions a person made, so review a video before you share the link.
+
+### Deploy automatically
+
+The machine can deploy the `release` branch by itself. To publish, merge `main` into `release`. Within a minute the machine pulls it, rebuilds and checks the site. The site stays up during the build and goes down for a few seconds when the containers change. If the release fails, the machine goes back to the previous commit and doesn't try that commit again. Data in `deploy/data/` is kept.
+
+To turn this on, run these once on the machine. `tidecount-update.service` assumes the repo is at `/home/wsyanligang/the_coastal_coders`.
+
+```bash
+git fetch origin release && git switch release
+chmod +x deploy/auto-update.sh
+sudo cp deploy/tidecount-update.service deploy/tidecount-update.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now tidecount-update.timer
+```
+
+To see what it's doing, run `journalctl -u tidecount-update -f`.
 
 ## Known limits
 

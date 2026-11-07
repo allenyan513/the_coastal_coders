@@ -1,0 +1,14 @@
+# With a domain in SITE_ADDRESS, Caddy gets a certificate and serves HTTPS by itself.
+# Without one, it's plain HTTP on port 80.
+{$SITE_ADDRESS} {
+	encode gzip
+
+	# This endpoint reads a path on the server. The site's uploads don't use it.
+	@blocked {
+		method POST
+		path /api/videos/import-path
+	}
+	respond @blocked "This isn't available on the public site." 403
+
+	reverse_proxy app:8000
+}

@@ -1,3 +1,6 @@
+/** False on the public demo, where uploads go to the server and not to this computer. */
+export const isLocal = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
+
 export type Video = {
   id: string;
   name: string;

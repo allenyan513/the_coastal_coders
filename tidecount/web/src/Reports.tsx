@@ -39,9 +39,9 @@ export function Reports() {
         <p className="lede">Results a person confirmed, video by video. AI suggestions that nobody checked aren't counted.</p>
       </div>
       {sites.map(([site, list]) => (
-        <section className="panel" key={site} style={{ overflowX: "auto" }}>
+        <section className="panel" key={site}>
           <div className="panel-head"><h2>{site}</h2></div>
-          <table>
+          <table className="cards">
             <thead>
               <tr>
                 <th>Video</th><th className="right">Length</th><th className="right">Watched</th><th className="right">Skipped by AI</th>
@@ -54,13 +54,13 @@ export function Reports() {
                 return (
                   <tr key={v.id}>
                     <td><Link className="vname" to={`/videos/${v.id}/summary`}>{v.name}</Link></td>
-                    <td className="num right">{clock(v.duration)}</td>
-                    <td className="num right">{clock(p.done)} of {clock(p.total)}</td>
-                    <td className="num right">{clock(s.skipped)}</td>
-                    <td className="num right">{s.entries}</td>
-                    <td className="num right">{s.species_count}</td>
-                    <td className="num right">{s.snapshots.mean_count?.toFixed(2) ?? "—"}</td>
-                    <td className="num right">{s.snapshots.largest_count ?? "—"}</td>
+                    <td className="num right" data-label="Length">{clock(v.duration)}</td>
+                    <td className="num right" data-label="Watched">{clock(p.done)} of {clock(p.total)}</td>
+                    <td className="num right" data-label="Skipped by AI">{clock(s.skipped)}</td>
+                    <td className="num right" data-label="Fish entries">{s.entries}</td>
+                    <td className="num right" data-label="Species named">{s.species_count}</td>
+                    <td className="num right" data-label="Average per snapshot">{s.snapshots.mean_count?.toFixed(2) ?? "—"}</td>
+                    <td className="num right" data-label="Most in one frame">{s.snapshots.largest_count ?? "—"}</td>
                     <td className="right"><a className="btn" href={`/api/videos/${v.id}/export.csv`}>CSV</a></td>
                   </tr>
                 );

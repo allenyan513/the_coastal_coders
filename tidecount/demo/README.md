@@ -18,6 +18,7 @@ The other three folders build the product. This one presents it:
 | Slides | `slides/` | Yes. Export a PDF next to the deck so it opens anywhere |
 | Screenshots | `screenshots/` | Yes. Keep them under about 1 MB each |
 | Charts | `charts/` | Yes, both the image and the script that makes it, so a chart can be redrawn when the numbers change |
+| QR code | `qr/` | Yes. Made by `pnpm qr` in `web/`, and it opens `/start` on the public site |
 | Screen recordings | `recordings/` | No. Share them through a drive link instead |
 
 Create a subfolder when you first need it.
