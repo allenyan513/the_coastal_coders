@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from PIL import Image
 from pydantic import BaseModel
 
-from .. import config, db, follow, merge as merging, settings
+from .. import config, db, follow, merge as merging, settings, video
 from .common import detector, get_video, suggester
 
 router = APIRouter()
@@ -215,3 +215,53 @@ def remove_track(track_id: int):
     if row["crop_path"]:
         Path(row["crop_path"]).unlink(missing_ok=True)
     return {"ok": True}
+
+
+def overlap(a: tuple, b: tuple) -> float:
+    """Intersection over union of two (x, y, w, h) boxes."""
+    ix = max(0.0, min(a[0] + a[2], b[0] + b[2]) - max(a[0], b[0]))
+    iy = max(0.0, min(a[1] + a[3], b[1] + b[3]) - max(a[1], b[1]))
+    inter = ix * iy
+    union = a[2] * a[3] + b[2] * b[3] - inter
+    return inter / union if union > 0 else 0.0
+
+
+@router.get("/api/videos/{video_id}/frame-boxes")
+def frame_boxes(video_id: str, t: float):
+    """Freeze frame: every box on the analysed frame nearest t at the run's freeze threshold, which is
+    lower than the one that starts tracks, so a person can confirm fish AI wasn't sure enough to track.
+
+    Boxes that sit on a track already (any state, a rejected one too) are left out, since that fish
+    has been offered. Runs from before every box was saved run the detector on the frame instead.
+    """
+    with db.session() as con:
+        v = get_video(con, video_id)
+        threshold = settings.for_run(v).for_detector(v["detector"]).freeze_threshold
+        near = con.execute(
+            "SELECT t FROM frame_boxes WHERE video_id = ? ORDER BY ABS(t - ?) LIMIT 1", (video_id, t),
+        ).fetchone()
+        if near:
+            at = near["t"]
+            found = [(b["x"], b["y"], b["w"], b["h"], b["conf"]) for b in con.execute(
+                "SELECT x, y, w, h, conf FROM frame_boxes WHERE video_id = ? AND ABS(t - ?) < 0.001 AND conf >= ? ORDER BY conf DESC",
+                (video_id, at, threshold),
+            )]
+        else:
+            at, found = t, None
+        taken = [(d["x"], d["y"], d["w"], d["h"]) for d in con.execute(
+            "SELECT d.x, d.y, d.w, d.h FROM detections d JOIN tracks tr ON tr.id = d.track_id WHERE tr.video_id = ? AND ABS(d.t - ?) <= 0.26",
+            (video_id, at),
+        )]
+    if found is None:
+        frame = config.FRAMES / f"freeze-{video_id}.jpg"
+        video.extract_frame(v["path"], at, frame)
+        image = Image.open(frame).convert("RGB")
+        boxes, conf = detector(v["detector"]).detect(image, threshold)
+        w, h = image.size
+        found = [(x1 / w, y1 / h, (x2 - x1) / w, (y2 - y1) / h, float(c)) for (x1, y1, x2, y2), c in zip(boxes.tolist(), conf)]
+    fresh: list[tuple] = []
+    for b in sorted(found, key=lambda b: -b[4]):
+        # The detector can draw two boxes on one fish, so the less sure of a near-copy is dropped.
+        if all(overlap(b[:4], k) < 0.3 for k in taken) and all(overlap(b[:4], f[:4]) < 0.5 for f in fresh):
+            fresh.append(b)
+    return {"t": at, "threshold": threshold, "boxes": [{"x": x, "y": y, "w": w, "h": h, "conf": c} for x, y, w, h, c in fresh]}

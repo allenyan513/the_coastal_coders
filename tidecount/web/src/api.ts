@@ -79,6 +79,8 @@ export type AccuracyRow = {
 };
 
 export type Dot = { x: number; y: number; source: "ai" | "user" };
+/** A box AI drew on one analysed frame, below the confidence that starts a track. */
+export type FrameBox = { x: number; y: number; w: number; h: number; conf: number };
 export type SchoolCount = { id: number; t: number; dots: Dot[]; model: string };
 
 export type ReportPoint = {
@@ -179,6 +181,7 @@ export const api = {
   unmerge: (trackId: number) => call<{ ids: number[] }>(`/api/tracks/${trackId}/unmerge`, { method: "POST" }),
   addFish: (id: string, t: number, box: { x: number; y: number; w: number; h: number }) =>
     call<{ id: number; points: number; seconds: number }>(`/api/videos/${id}/tracks`, json("POST", { t, ...box })),
+  frameBoxes: (id: string, t: number) => call<{ t: number; threshold: number; boxes: FrameBox[] }>(`/api/videos/${id}/frame-boxes?t=${t}`),
   removeFish: (trackId: number) => call(`/api/tracks/${trackId}`, { method: "DELETE" }),
   segmentStatus: (segmentId: number, status: string) => call(`/api/segments/${segmentId}/status`, json("POST", { status })),
   event: (id: string, type: string, payload = {}) => call(`/api/videos/${id}/events`, json("POST", { type, payload })),

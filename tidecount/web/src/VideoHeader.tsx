@@ -6,7 +6,7 @@ import { homeLabel, useUser } from "./session";
 type Progress = { done: number; total: number };
 type Props = {
   id: string;
-  /** The step this page belongs to. Pages outside the three steps pass nothing. */
+  /** The tab this page belongs to. Pages outside the tabs pass nothing. */
   step?: "review" | "snapshots" | "report";
   /** Which half of the review step is open. */
   view?: "segments" | "tracks";
@@ -18,7 +18,7 @@ type Props = {
   from?: { to: string; label: string };
 };
 
-/** One header for every page inside a video: where you are, and the three steps in order. */
+/** One header for every page inside a video: where you are, and the tabs for this video. */
 export function VideoHeader({ id, step, view, review, snapshots, title, from }: Props) {
   const user = useUser();
   const crumb = from ?? { to: "/", label: homeLabel(user.role) };
@@ -43,9 +43,10 @@ export function VideoHeader({ id, step, view, review, snapshots, title, from }: 
 
   const r = review ?? loaded.review;
   const s = snapshots ?? loaded.snapshots;
-  const steps = [
-    { key: "review", to: `/videos/${id}`, label: "Review footage", p: r, unit: "segments" },
-    { key: "snapshots", to: `/videos/${id}/snapshots`, label: "Snapshot count", p: s, unit: "frames" },
+  // Add a tab here and it shows up on every video page.
+  const tabs = [
+    { key: "review", to: `/videos/${id}`, label: "Video", p: r, unit: "segments reviewed" },
+    { key: "snapshots", to: `/videos/${id}/snapshots`, label: "Snapshot", p: s, unit: "snapshots counted" },
     { key: "report", to: `/videos/${id}/summary`, label: "Report", p: undefined, unit: "" },
   ];
 
@@ -59,14 +60,17 @@ export function VideoHeader({ id, step, view, review, snapshots, title, from }: 
         {title && <span className="pill muted">{title}</span>}
       </div>
       <div className="row">
-        <nav className="steps" aria-label="Steps for this video">
-          {steps.map((x, i) => {
+        <nav className="tabs" aria-label="Video tabs">
+          {tabs.map((x) => {
             const finished = !!x.p && x.p.total > 0 && x.p.done >= x.p.total;
             return (
-              <Link key={x.key} to={x.to} className="step" aria-current={step === x.key ? "step" : undefined}>
-                <b className={finished ? "ok" : ""}>{finished ? "✓" : i + 1}</b>
-                <span>{x.label}</span>
-                {x.p && x.p.total > 0 && <span className="num meta">{x.p.done}/{x.p.total} {x.unit}</span>}
+              <Link key={x.key} to={x.to} className="tab" aria-current={step === x.key ? "page" : undefined}>
+                {x.label}
+                {x.p && x.p.total > 0 && (
+                  <span className={`tab-count num ${finished ? "ok" : ""}`} title={`${x.p.done} of ${x.p.total} ${x.unit}`}>
+                    {finished ? "✓" : `${x.p.done}/${x.p.total}`}
+                  </span>
+                )}
               </Link>
             );
           })}
