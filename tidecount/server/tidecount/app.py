@@ -13,7 +13,7 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from . import config, db, settings
-from .routes import review, schools, snapshots, species, summary, tracks, videos, web
+from .routes import review, schools, snapshots, species, stats, summary, tracks, videos, web
 
 
 def worker_loop() -> None:
@@ -41,6 +41,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="TideCount", lifespan=lifespan)
-for module in (videos, tracks, review, schools, snapshots, species, summary):
+for module in (videos, tracks, review, schools, snapshots, species, summary, stats):
     app.include_router(module.router)
 app.include_router(web.router)  # last, because its catch-all path would hide the API

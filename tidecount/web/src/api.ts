@@ -101,6 +101,31 @@ export type Summary = {
   review_seconds: number;
 };
 
+/** MaxN from tracks a person confirmed. Worked out in server/tidecount/stats.py. */
+export type MaxnStats = {
+  maxn: number;
+  maxn_t: number | null;
+  species: { species: string; maxn: number; t: number | null; tracks: number }[];
+  confirmed_tracks: number;
+  undecided_tracks: number;
+  partial: boolean;
+  snapshot_maxn: number | null;
+  snapshot_complete: boolean;
+};
+
+/** Shannon and Simpson diversity from each species' MaxN. Worked out in server/tidecount/stats.py. */
+export type DiversityStats = {
+  shannon: number | null;
+  evenness: number | null;
+  simpson_diversity: number | null;
+  inverse_simpson: number | null;
+  richness: number;
+  species: { species: string; maxn: number; share: number }[];
+  unidentified_maxn: number;
+  undecided_tracks: number;
+  partial: boolean;
+};
+
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, init);
   if (!res.ok) {
@@ -126,6 +151,8 @@ export const api = {
   video: (id: string) => call<VideoDetail>(`/api/videos/${id}`),
   tracks: (id: string) => call<Track[]>(`/api/videos/${id}/tracks`),
   summary: (id: string) => call<Summary>(`/api/videos/${id}/summary`),
+  maxn: (id: string) => call<MaxnStats>(`/api/videos/${id}/stats/maxn`),
+  diversity: (id: string) => call<DiversityStats>(`/api/videos/${id}/stats/diversity`),
   upload: (file: File, site: string, detector: string) => {
     const form = new FormData();
     form.append("file", file);
