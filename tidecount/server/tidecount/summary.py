@@ -4,7 +4,7 @@ import io
 import re
 from pathlib import Path
 
-from . import db, snapshots
+from . import db, snapshots, stats
 
 
 def review_seconds(con, video_id: str) -> float:
@@ -82,6 +82,9 @@ def build(con, v: dict) -> dict:
         "audit_fish": audit_fish,
         "partial": skipped + pending > 0,
         "review_seconds": review_seconds(con, video_id),
+        "maxn": stats.maxn(con, video_id),
+        "diversity": stats.diversity(con, video_id),
+
     }
 
 
@@ -109,12 +112,29 @@ def to_csv(s: dict) -> str:
     w.writerow(["peak_frames_total", snap["peak_total"]])
     w.writerow(["peak_frames_could_not_see", snap["peak_could_not_see"]])
     w.writerow(["maxn" if snap["complete"] else "largest_count_in_checked_frames", "" if snap["largest_count"] is None else snap["largest_count"]])
+    m = s["maxn"]
+    w.writerow(["maxn_from_confirmed_tracks", m["maxn"]])
+    w.writerow(["maxn_from_confirmed_tracks_time_s", "" if m["maxn_t"] is None else round(m["maxn_t"], 2)])
+    dv = s["diversity"]
+    w.writerow(["shannon_index", "" if dv["shannon"] is None else f"{dv['shannon']:.3f}"])
+    w.writerow(["shannon_evenness", "" if dv["evenness"] is None else f"{dv['evenness']:.3f}"])
+    w.writerow(["simpson_diversity", "" if dv["simpson_diversity"] is None else f"{dv['simpson_diversity']:.3f}"])
+    w.writerow(["inverse_simpson", "" if dv["inverse_simpson"] is None else f"{dv['inverse_simpson']:.3f}"])
+    w.writerow(["diversity_named_species", dv["richness"]])
     w.writerow(["entries_secondary_estimate_can_count_one_fish_twice", s["entries"]])
     w.writerow(["entries_ai_missed_and_a_person_added", s["entries_added"]])
     w.writerow([])
     w.writerow(["species", "entries_secondary_estimate"])
     for r in s["species"]:
         w.writerow([r["name"], r["entries"]])
+    w.writerow([])
+    w.writerow(["species", "maxn_from_confirmed_tracks", "maxn_from_confirmed_tracks_time_s", "confirmed_tracks"])
+    for r in m["species"]:
+        w.writerow([r["species"], r["maxn"], "" if r["t"] is None else round(r["t"], 2), r["tracks"]])
+    w.writerow([])
+    w.writerow(["species", "maxn_from_confirmed_tracks", "maxn_time_s", "confirmed_tracks"])
+    for r in m["species"]:
+        w.writerow([r["species"], r["maxn"], "" if r["t"] is None else round(r["t"], 2), r["tracks"]])
     w.writerow([])
     w.writerow(["school_time_s", "total", "ai_proposed", "removed", "added"])
     for r in s["schools"]:
