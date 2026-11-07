@@ -3,7 +3,7 @@ import type { Role } from "./session";
 
 /**
  * The people in this Tideflow besides the signed-in person, and the invites still open.
- * Like the survey structure it lives in this browser, because the server has no accounts yet.
+ * It lives in this browser, because the server has no accounts yet.
  */
 export type Member = { id: string; name: string; email: string; role: Role; status: "active" | "invited"; since: string };
 

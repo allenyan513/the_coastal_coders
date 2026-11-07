@@ -2,7 +2,7 @@ import { DragEvent, useRef, useState } from "react";
 import { api, isLocal, ModelOption } from "./api";
 import { Modal } from "./Modal";
 import { FilmedOn, StationPicker } from "./Surveys";
-import { placeLabel, season, setFilmedOn, setPlace, suggestStation, useSurveys } from "./surveyStore";
+import { placeLabel, refreshSurveys, season, suggestStation, useSurveys } from "./surveyStore";
 
 const STEPS = ["Footage", "Station and date", "Check and import"] as const;
 
@@ -64,21 +64,15 @@ export function ImportDialog({ models, station = "", onClose, onImported }: Prop
     if (file) take({ kind: "file", file });
   };
 
-  const siteName = () => {
-    const transect = data.transects.find((t) => t.id === data.stations.find((s) => s.id === stationId)?.transectId);
-    return data.sites.find((s) => s.id === transect?.siteId)?.name ?? "";
-  };
-
   async function submit() {
     if (!source || !stationId) return;
     setSent(0);
     setError("");
     try {
-      const { id } = source.kind === "file"
-        ? await api.upload(source.file, siteName(), detector, setSent)
-        : await api.importPath(source.path, siteName(), detector);
-      setPlace(id, stationId);
-      if (filmed) setFilmedOn(id, filmed);
+      const place = { station_id: stationId, filmed_on: filmed };
+      if (source.kind === "file") await api.upload(source.file, place, detector, setSent);
+      else await api.importPath(source.path, place, detector);
+      await refreshSurveys();
       onImported(sourceName(source));
     } catch (e) {
       setError((e as Error).message);
