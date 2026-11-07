@@ -3,7 +3,7 @@ import "@fontsource-variable/geist";
 import "@fontsource-variable/jetbrains-mono";
 import "./styles.css";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { Accuracy } from "./Accuracy";
@@ -34,6 +34,7 @@ const ICONS = {
   river: "M3 8c3-2 6-2 9 0s6 2 9 0M3 13c3-2 6-2 9 0s6 2 9 0M3 18c3-2 6-2 9 0s6 2 9 0",
   team: "M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 20v-2a4 4 0 0 0-3-3.9M16 2.1a4 4 0 0 1 0 7.8",
   settings: "M4 7h10M18 7h2M4 17h2M10 17h10M16 5v4M8 15v4",
+  more: "M3.5 12a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0M10.5 12a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0M17.5 12a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0",
 };
 
 function Icon({ name }: { name: keyof typeof ICONS }) {
@@ -44,7 +45,42 @@ function Icon({ name }: { name: keyof typeof ICONS }) {
   );
 }
 
-/** What the bar offers depends on the signed-in role. Inside a video it shrinks to icons, so the footage keeps its width. On a phone it is a tab bar. */
+type NavItem = { to: string; label: string; short: string; icon: keyof typeof ICONS; on: boolean; more?: boolean; className?: string };
+
+/** The phone's More tab. It lists the pages that don't fit in the tab bar and closes on Escape, a tap outside or a new page. */
+function MoreTab({ items }: { items: NavItem[] }) {
+  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+  if (!items.length) return null;
+  return (
+    <>
+      <button type="button" className="side-link side-more" aria-haspopup="menu" aria-expanded={open} aria-current={items.some((i) => i.on) ? "page" : undefined} onClick={() => setOpen(!open)}>
+        <Icon name="more" /><span>More</span>
+      </button>
+      {open && (
+        <div className="more-back" onClick={() => setOpen(false)}>
+          <div className="more-sheet" role="menu" aria-label="More pages" onClick={(e) => e.stopPropagation()}>
+            {items.map((i) => (
+              <Link key={i.to} to={i.to} role="menuitem" className="more-link" aria-current={i.on ? "page" : undefined}>
+                <Icon name={i.icon} />{i.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** What the bar offers depends on the signed-in role. Inside a video it shrinks to icons, so the footage keeps its width.
+ *  On a phone it is a tab bar with short labels and at most five tabs. Pages marked `more` move into the More tab there. */
 function Sidebar() {
   const user = useUser();
   const manager = user.role === "manager";
@@ -53,13 +89,14 @@ function Sidebar() {
   // The model lab and AI accuracy have no entry here. People following the procedure don't need them,
   // and both still open from their own addresses for anyone tuning Tideflow.
   const inAccuracy = pathname.startsWith("/accuracy") || pathname.startsWith("/models") || pathname.endsWith("/compare") || search.includes("from=accuracy");
-  const items = [
-    { to: "/workspace", label: homeLabel(user.role), icon: manager ? "videos" as const : "tasks" as const, on: (pathname === "/workspace" || inVideo) && !inAccuracy },
-    { to: "/workflow", label: "Workflow", icon: "board" as const, on: pathname.startsWith("/workflow") },
-    ...(manager ? [{ to: "/reports", label: "Reports", icon: "reports" as const, on: pathname.startsWith("/reports") }] : []),
-    { to: "/species", label: "Species wiki", icon: "species" as const, on: pathname.startsWith("/species") },
-    { to: "/river", label: "Fish and water trends", icon: "river" as const, on: pathname.startsWith("/river") },
-    ...(manager ? [{ to: "/team", label: "Team", icon: "team" as const, on: pathname.startsWith("/team") }] : []),
+  const items: NavItem[] = [
+    { to: "/workspace", label: homeLabel(user.role), short: homeLabel(user.role), icon: manager ? "videos" : "tasks", on: (pathname === "/workspace" || inVideo) && !inAccuracy },
+    { to: "/workflow", label: "Workflow", short: "Workflow", icon: "board", on: pathname.startsWith("/workflow") },
+    ...(manager ? [{ to: "/reports", label: "Reports", short: "Reports", icon: "reports" as const, on: pathname.startsWith("/reports") }] : []),
+    { to: "/species", label: "Species wiki", short: "Species", icon: "species", on: pathname.startsWith("/species"), more: manager },
+    { to: "/river", label: "Fish and water trends", short: "Trends", icon: "river", on: pathname.startsWith("/river") },
+    ...(manager ? [{ to: "/team", label: "Team", short: "Team", icon: "team" as const, on: pathname.startsWith("/team"), more: true }] : []),
+    { to: "/settings", label: "Settings", short: "Settings", icon: "settings", on: pathname.startsWith("/settings"), more: manager, className: "side-settings" },
   ];
   return (
     <aside className={`side ${inVideo ? "rail" : ""}`}>
@@ -67,13 +104,11 @@ function Sidebar() {
       <nav className="side-nav" aria-label="Workspace">
         <p className="side-label">Workspace</p>
         {items.map((i) => (
-          <Link key={i.to} to={i.to} className="side-link" aria-current={i.on ? "page" : undefined} title={i.label}>
-            <Icon name={i.icon} /><span>{i.label}</span>
+          <Link key={i.to} to={i.to} className={`side-link ${i.more ? "in-more" : ""} ${i.className ?? ""}`} aria-current={i.on ? "page" : undefined} title={i.label}>
+            <Icon name={i.icon} /><span className="side-full">{i.label}</span><span className="side-short">{i.short}</span>
           </Link>
         ))}
-        <Link to="/settings" className="side-link side-settings" aria-current={pathname.startsWith("/settings") ? "page" : undefined} title="Settings">
-          <Icon name="settings" /><span>Settings</span>
-        </Link>
+        <MoreTab items={items.filter((i) => i.more)} />
       </nav>
     </aside>
   );
