@@ -175,8 +175,8 @@ export function Landing() {
         <div className="ln-wrap ln-hero-in">
           <div className="stack" style={{ gap: 20 }}>
             <p className="ln-eyebrow">Shoreline fish surveys · Nova Scotia</p>
-            <h1>Fish counts from survey video, checked by a person.</h1>
-            <p className="ln-lede">Tideflow is where shoreline survey video becomes fish counts. AI marks the fish and sets aside the stretches with none. Volunteers count each snapshot point the way the video analysis procedure asks, and only their counts reach a report.</p>
+            <h1>AI-enhanced fish survey workspace for Coastal Action</h1>
+            <p className="ln-lede">Turn underwater survey video into fish counts. AI marks the fish and sets aside the stretches with none; volunteers confirm every count, and the results become charts by site and season.</p>
             <div className="row">
               <Link className="btn primary ln-cta" to="/workspace">Go to workspace</Link>
               <Link className="btn ln-cta ln-ghost" to={JOIN}>Join as a volunteer</Link>
