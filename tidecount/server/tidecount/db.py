@@ -58,6 +58,15 @@ CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY, video_id TEXT, type TEXT, payload TEXT DEFAULT '',
   created_at REAL DEFAULT ((julianday('now') - 2440587.5) * 86400.0)
 );
+CREATE TABLE IF NOT EXISTS water_readings(
+site_id TEXT, site_name TEXT, lat REAL, lon REAL, date TEXT, time TEXT, 
+measurement TEXT, value REAL, unit TEXT
+);
+CREATE INDEX IF NOT EXISTS water_site_date ON water_readings (site_id, date);
+CREATE TABLE IF NOT EXISTS fish_counts (
+  site_id TEXT, date TEXT, species TEXT, count INTEGER, source TEXT DEFAULT 'demo'
+);
+CREATE INDEX IF NOT EXISTS fish_site_date ON fish_counts (site_id, date);
 """
 
 
