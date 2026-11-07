@@ -11,6 +11,8 @@ by hand and has no species. The two are returned side by side so they can be com
 A fish counts as on screen from its first to its last sighting, including any short gap where the
 detector lost it. Plain functions on a database connection, so they can be tested without HTTP.
 """
+import math
+
 from . import db, snapshots
 
 UNIDENTIFIED = "Fish, unidentified"
@@ -71,4 +73,61 @@ def maxn(con, video_id: str) -> dict:
         # The hand-counted MaxN from snapshot frames, for comparison.
         "snapshot_maxn": snap["largest_count"],
         "snapshot_complete": snap["complete"],
+    }
+
+
+def shannon(counts: list[int]) -> tuple[float | None, float | None]:
+    """The Shannon index H and evenness J, from how many fish there are of each species.
+
+    H = -sum(p * ln p), where p is each species' share of all the fish. H is 0 with one species
+    and grows with more species and with a more even split between them.
+    J = H / ln(S), where S is the number of species. J runs from 0 (one species has nearly all
+    the fish) to 1 (every species has the same number). It needs at least two species.
+    """
+    counts = [n for n in counts if n > 0]  # a species with no fish takes no share
+    total = sum(counts)
+    if total == 0:
+        return None, None  # no fish: there is nothing to measure
+    h = -sum((n / total) * math.log(n / total) for n in counts)
+    h = abs(h)  # one species gives -0.0, which should read as 0.0
+    j = h / math.log(len(counts)) if len(counts) > 1 else None
+    return h, j
+
+
+def simpson(counts: list[int]) -> tuple[float | None, float | None]:
+    """Simpson's diversity (1 - D) and inverse Simpson (1 / D), where D = sum(p squared).
+
+    1 - D is the chance two fish picked at random are different species, from 0 to 1.
+    1 / D is the effective number of species: how many equally common species give the same D.
+    """
+    counts = [n for n in counts if n > 0]
+    total = sum(counts)
+    if total == 0:
+        return None, None
+    d = (sum((n/total)**2 for n in counts))
+    return 1-d, 1/d
+
+
+def diversity(con, video_id: str) -> dict:
+    """Shannon and Simpson diversity of the confirmed fish, using each species' MaxN as its number of fish.
+
+    MaxN is used rather than entries because one fish split into several tracks would count
+    as several entries and make that species look more common than it is. MaxN can't be
+    raised that way. "Fish, unidentified" is left out, since it isn't one species.
+    """
+    m = maxn(con, video_id)
+    named = [r for r in m["species"] if r["species"] != UNIDENTIFIED]
+    h, j = shannon([r["maxn"] for r in named])
+    simpson_d, inverse_d = simpson([r["maxn"] for r in named])
+    total = sum([r["maxn"] for r in named])
+    return {
+        "shannon": h,
+        "evenness": j,
+        "simpson_diversity": simpson_d,
+        "inverse_simpson": inverse_d,
+        "richness": len(named),
+        "species": [{"species": r["species"], "maxn": r["maxn"], "share": r["maxn"] / total} for r in named],
+        "unidentified_maxn": next((r["maxn"] for r in m["species"] if r["species"] == UNIDENTIFIED), 0),
+        "undecided_tracks": m["undecided_tracks"],
+        "partial": m["partial"],
     }

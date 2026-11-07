@@ -1,8 +1,11 @@
+import math
+
 from fastapi.testclient import TestClient
+from pytest import approx
 
 from tidecount import db
 from tidecount.app import app
-from tidecount.stats import max_overlap
+from tidecount.stats import max_overlap, shannon, simpson
 
 client = TestClient(app)
 
@@ -130,3 +133,91 @@ def test_a_video_with_no_decisions_has_maxn_zero():
 def test_unknown_video_is_404():
     assert client.get("/api/videos/nope/stats/maxn").status_code == 404
 
+
+# Shannon index on its own. approx() allows for tiny rounding in decimal numbers.
+
+def test_shannon_with_no_fish_has_no_answer():
+    assert shannon([]) == (None, None)
+
+
+def test_shannon_with_one_species_is_zero():
+    assert shannon([5]) == (0.0, None)
+
+
+def test_shannon_with_an_even_split_is_ln_of_the_species_count():
+    h, j = shannon([1, 1])
+    assert h == approx(math.log(2)) and j == approx(1.0)
+
+    h, j = shannon([3, 3, 3, 3])
+    assert h == approx(math.log(4)) and j == approx(1.0)
+
+
+def test_shannon_with_an_uneven_split_is_lower():
+    # 9 of one species and 1 of another: -(0.9 ln 0.9 + 0.1 ln 0.1) = 0.325
+    h, j = shannon([9, 1])
+    assert h == approx(0.325, abs=0.001) and j == approx(0.469, abs=0.001)
+
+
+def test_shannon_ignores_a_species_with_no_fish():
+    assert shannon([3, 0, 3]) == shannon([3, 3])
+
+
+# Diversity through the endpoint.
+
+def get_diversity(video_id="v1"):
+    res = client.get(f"/api/videos/{video_id}/stats/diversity")
+    assert res.status_code == 200
+    return res.json()
+
+
+def test_diversity_uses_each_species_maxn_and_leaves_out_unidentified():
+    add_video()
+    add_fish(0, 10, "Stickleback")
+    add_fish(5, 15, "Stickleback")  # MaxN 2
+    add_fish(20, 30, "Eel")
+    add_fish(25, 35, "Eel")  # MaxN 2
+    add_fish(0, 5, "Fish, unidentified")
+
+    d = get_diversity()
+
+    assert d["shannon"] == approx(math.log(2)) and d["evenness"] == approx(1.0)
+    assert d["richness"] == 2 and d["unidentified_maxn"] == 1
+    assert [r["share"] for r in d["species"]] == [0.5, 0.5]
+
+
+def test_diversity_with_no_named_fish_has_no_answer():
+    add_video()
+    add_fish(0, 5, "Fish, unidentified")
+
+    d = get_diversity()
+
+    assert d["shannon"] is None and d["evenness"] is None and d["richness"] == 0 and d["species"] == []
+
+
+def test_diversity_of_unknown_video_is_404():
+    assert client.get("/api/videos/nope/stats/diversity").status_code == 404
+
+
+def test_shannon_worked_example():
+    h, j = shannon([6, 3, 1])
+    assert h == approx(0.897, abs=0.001) and j == approx(0.82, abs=0.01)
+
+
+def test_simpson_no_fish():
+    simpson_d, inverse_d = simpson([])
+    assert simpson_d is None and inverse_d is None
+
+
+def test_simpson_two_species_even_split():
+    simpson_d, inverse_d = simpson([5,5])
+    assert simpson_d == 0.5 and inverse_d == 2
+
+
+def test_simpson_two_species_uneven_split():
+    simpson_d, inverse_d = simpson([9,1])
+    assert simpson_d == approx(0.18, abs=0.01) and inverse_d == approx(1.22, abs=0.01)
+
+
+def test_simpson_three_species():
+    simpson_d, inverse_d = simpson([6,3,1])
+    assert simpson_d == approx(0.54, abs=0.01) and inverse_d == approx(2.17, abs=0.01)
