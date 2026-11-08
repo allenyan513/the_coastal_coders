@@ -1,4 +1,5 @@
 import { Component, lazy, ReactNode, Suspense, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { CompareImage, SpeciesImage, SpeciesMediaSummary, SpeciesProfile, SpeciesRow } from "./api";
 import { speciesPagePath, speciesProfile } from "./speciesData";
@@ -205,6 +206,30 @@ class TabBoundary extends Component<{ children: ReactNode }, { failed: boolean }
       </div>
     );
   }
+}
+
+/** "WoRMS" with a hover explanation of what it is. */
+function WormsTerm() {
+  const [pos, setPos] = useState<{ left: number; top: number; arrow: number; below: boolean } | null>(null);
+  const place = (e: { currentTarget: HTMLElement }) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const width = 230;
+    const left = Math.max(8, Math.min(r.left, window.innerWidth - width - 8));
+    // Open above the term; below it when there isn't room.
+    const above = r.top > 110;
+    setPos({ left, top: above ? r.top - 8 : r.bottom + 8, below: !above, arrow: Math.max(10, Math.min(r.left - left + r.width / 2 - 6, width - 22)) });
+  };
+  return (
+    <span className="tip-wrap" tabIndex={0} onMouseEnter={place} onFocus={place} onMouseLeave={() => setPos(null)} onBlur={() => setPos(null)}>
+      WoRMS
+      {pos && createPortal(
+      <span className={`tip show${pos.below ? " below" : ""}`} role="tooltip"
+        style={{ left: pos.left, top: pos.top, ["--arrow" as string]: `${pos.arrow}px` }}>
+        <b>World Register of Marine Species</b>
+        An expert-reviewed list of accepted marine species names. Tideflow checks each fish against it.
+      </span>, document.body)}
+    </span>
+  );
 }
 
 /** A one-line note when the list's name isn't the one WoRMS accepts, so nobody files records under a synonym unknowingly. */
@@ -630,12 +655,10 @@ function Details({ data, row }: { data: SpeciesProfile; row?: SpeciesRow }) {
           <dl className="facts">
             <div><dt>Group</dt><dd>{GROUPS[row.group] ?? row.group}</dd></div>
             <div><dt>Family</dt><dd>{n?.family || data.taxon?.family || "—"}</dd></div>
-            <div><dt>iNaturalist sightings</dt><dd className="num">{row.inat_obs || "—"}</dd></div>
-            <div><dt>OBIS nearshore</dt><dd className="num">{row.obis_nearshore_records || "—"}</dd></div>
-            <div><dt>Seine surveys</dt><dd className="num">{row.seine_records || "—"}</dd></div>
+            <div><dt>iNaturalist (NS snapshot)</dt><dd className="num">{row.inat_obs || "—"}</dd></div>
             <div><dt>Named here</dt><dd className="num">{row.confirmed || "—"}</dd></div>
           </dl>
-          <p className="meta" style={{ marginTop: 6 }}>These counts are why the fish is on the AI list. They come from species.csv and don't change with the map.</p>
+          <p className="meta" style={{ marginTop: 6 }}>The iNaturalist count is a historical snapshot of research-grade Nova Scotia observations from species.csv, and it is why the fish is on the AI list. It is not fish abundance. "Named here" counts the names people gave it in Tideflow review.</p>
         </section>
       )}
 
@@ -643,12 +666,12 @@ function Details({ data, row }: { data: SpeciesProfile; row?: SpeciesRow }) {
         <h3>Name check</h3>
         {n ? (
           <dl className="facts">
-            <div><dt>Checked against</dt><dd>{n.source ?? "Not found"}</dd></div>
+            <div><dt>Checked against</dt><dd>{n.source === "WoRMS" ? <WormsTerm /> : (n.source ?? "Not found")}</dd></div>
             <div><dt>Status</dt><dd>{n.status}</dd></div>
-            {n.aphia_id && <div><dt>WoRMS AphiaID</dt><dd className="num">{n.url ? <a href={n.url} target="_blank" rel="noreferrer noopener">{n.aphia_id}</a> : n.aphia_id}</dd></div>}
+            {n.aphia_id && <div><dt><WormsTerm /> AphiaID</dt><dd className="num">{n.url ? <a href={n.url} target="_blank" rel="noreferrer noopener">{n.aphia_id}</a> : n.aphia_id}</dd></div>}
             {n.accepted_name && n.accepted_name !== data.species && <div><dt>Accepted name</dt><dd><i>{n.accepted_name}</i></dd></div>}
             <div>
-              <dt>Environments in WoRMS</dt>
+              <dt>Environments in <WormsTerm /></dt>
               <dd>
                 {n.source === "WoRMS" ? environmentLabels(n).join(", ") || "None set" : "—"}
                 {n.source === "WoRMS" && <span className="meta block">WoRMS's species-level flags: where the species can occur, not the current habitat of a particular population.</span>}
@@ -656,6 +679,7 @@ function Details({ data, row }: { data: SpeciesProfile; row?: SpeciesRow }) {
             </div>
           </dl>
         ) : <p className="meta">This name hasn't been checked yet.</p>}
+        {n?.source === "WoRMS" && <p className="meta" style={{ marginTop: 6 }}>WoRMS is the World Register of Marine Species, an expert-reviewed list of accepted scientific names. Tideflow checks each fish against it so records aren't filed under an outdated name. The AphiaID is its permanent number for this species.</p>}
         {n && n.synonyms.length > 0 && (
           <details className="synonyms">
             <summary>{n.synonyms.length} other name{n.synonyms.length === 1 ? "" : "s"} in older records</summary>
