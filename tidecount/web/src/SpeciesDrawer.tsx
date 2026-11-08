@@ -46,6 +46,8 @@ type Props = Shared & {
   onClose: () => void;
   /** Opens the full page for this species on this tab. Without it, Expand goes there itself. */
   onExpand?: (tab: Tab) => void;
+  /** The tab to open on, e.g. when the full page is collapsed back into the drawer. */
+  initialTab?: Tab;
 };
 
 /**
@@ -54,8 +56,8 @@ type Props = Shared & {
  * a full page (see SpeciesPage). It only needs a scientific name, so the video review screen can
  * open it for a BioCLIP suggestion the same way the Species page does.
  */
-export function SpeciesDrawer({ species, row, rows, media, onSelect, onClose, onExpand }: Props) {
-  const [tab, setTab] = useState<Tab>("overview");
+export function SpeciesDrawer({ species, row, rows, media, onSelect, onClose, onExpand, initialTab }: Props) {
+  const [tab, setTab] = useState<Tab>(initialTab ?? "overview");
   const closeRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
 

@@ -916,7 +916,7 @@ tr.clickable.last-viewed td:first-child { box-shadow: inset 3px 0 0 var(--accent
 .drawer .gallery-frame { max-height: min(52vh, 540px); }
 /* Scoped to the drawer's tablist so the video page's .tabs/.tab nav keeps its own look. */
 .tabs[role="tablist"] { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border-2); background: var(--panel); overflow-x: auto; }
-.tabs[role="tablist"] .tab { position: relative; height: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--text-2); font-weight: 500; white-space: nowrap; }
+.tabs[role="tablist"] .tab { position: relative; height: 40px; margin-bottom: 0; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--text-2); font-weight: 500; white-space: nowrap; }
 .tabs[role="tablist"] .tab:hover { color: var(--text); }
 .tab[aria-selected="true"] { color: var(--accent-ink); border-bottom-color: var(--accent); }
 .tabs[role="tablist"] .tab-count { padding: 0 6px; border-radius: 999px; background: var(--panel-3); color: var(--text-2); font: 500 11px/18px var(--mono); }

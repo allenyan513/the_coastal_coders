@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { SpeciesMediaSummary, SpeciesRow } from "./api";
 import { SpeciesDrawer, SpeciesTab } from "./SpeciesDrawer";
 import { lastViewed, speciesMedia, speciesPagePath, speciesRows } from "./speciesData";
-import { badgeText } from "./speciesProfile";
+import { badgeText, tabFromParam } from "./speciesProfile";
 
 const GROUPS: Record<string, string> = { Actinopterygii: "Ray-finned fish", Elasmobranchii: "Sharks and rays", "": "Class not recorded" };
 const SORTS = {
@@ -16,6 +16,7 @@ type SortKey = keyof typeof SORTS;
 
 // The list as it was left, so coming back from a species page finds the same search, order and
 // place. Kept for this session only.
+const PHONE = "(max-width: 720px)"; // the same width the stylesheet treats as a phone
 const memory = { query: "", sort: "inat_obs" as SortKey, scrollY: 0 };
 
 /** The fish AI may suggest. Read-only: the list lives in the server's species.csv. */
@@ -34,10 +35,15 @@ export function Species() {
   // The last fish opened stays marked after its drawer (or the full page) is closed, so you can find your place.
   const [lastSeen, setLastSeen] = useState(lastViewed.species);
   useEffect(() => { if (open) { lastViewed.species = open; setLastSeen(open); } }, [open]);
-  const openSpecies = useCallback((name: string) => setParams({ species: name }, { state: { fromList: true } }), [setParams]);
-  const closeDrawer = useCallback(() => setParams({}, { replace: true }), [setParams]);
   const navigate = useNavigate();
   const location = useLocation();
+  // On a phone a species opens as its own page (the drawer is for wider screens). listDepth 1 makes
+  // the page's Back return to this list as it was left: search, order and scroll.
+  const openSpecies = useCallback((name: string) => {
+    if (window.matchMedia(PHONE).matches) navigate(speciesPagePath(name), { state: { listDepth: 1 } });
+    else setParams({ species: name }, { state: { fromList: true } });
+  }, [setParams, navigate]);
+  const closeDrawer = useCallback(() => setParams({}, { replace: true }), [setParams]);
   // Expand swaps the drawer for the species' own page. The drawer's history entry is replaced, so
   // Back (the page's button or the browser's) returns to this list rather than to the drawer.
   const expand = useCallback((tab: SpeciesTab) => {
@@ -45,6 +51,14 @@ export function Species() {
     const fromList = Boolean((location.state as { fromList?: boolean } | null)?.fromList);
     navigate(speciesPagePath(open, tab), { replace: true, state: fromList ? { listDepth: 1 } : null });
   }, [open, location.state, navigate]);
+  // A ?species= link opened on a phone, or a window narrowed to phone width with the drawer open, goes to the page.
+  useEffect(() => {
+    const phone = window.matchMedia(PHONE);
+    const toPage = () => { if (phone.matches && open) expand("overview"); };
+    toPage();
+    phone.addEventListener("change", toPage);
+    return () => phone.removeEventListener("change", toPage);
+  }, [open, expand]);
 
   useEffect(() => { speciesRows.reload().then(setRows).catch((e) => setError(e.message)); }, []);
   useEffect(() => { speciesMedia.get().then(setMedia); }, []);
@@ -152,7 +166,7 @@ export function Species() {
       </div>
       <p className="meta">The numbers show why a fish is on the list, not how common it is on your sites. To change the list, edit species.csv on the server. Select a fish to see reference photos, how to recognise it and where OBIS has records of it.</p>
       {open && rows.some((r) => r.species === open) && (
-        <SpeciesDrawer species={open} row={rows.find((r) => r.species === open)} rows={rows} media={media} onSelect={openSpecies} onClose={closeDrawer} onExpand={expand} />
+        <SpeciesDrawer species={open} row={rows.find((r) => r.species === open)} rows={rows} media={media} onSelect={openSpecies} onClose={closeDrawer} onExpand={expand} initialTab={tabFromParam(params.get("tab"))} />
       )}
     </div>
   );
