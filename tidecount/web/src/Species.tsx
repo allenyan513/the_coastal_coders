@@ -7,9 +7,7 @@ import { badgeText } from "./speciesProfile";
 
 const GROUPS: Record<string, string> = { Actinopterygii: "Ray-finned fish", Elasmobranchii: "Sharks and rays", "": "Class not recorded" };
 const SORTS = {
-  inat_obs: "iNaturalist sightings",
-  obis_nearshore_records: "OBIS nearshore records",
-  seine_records: "Seine records",
+  inat_obs: "iNaturalist (NS snapshot)",
   confirmed: "Named here",
 } as const;
 type SortKey = keyof typeof SORTS;
@@ -105,9 +103,7 @@ export function Species() {
             <thead>
               <tr>
                 <th>Common name</th><th>Scientific name</th><th>Group</th>
-                <th className="right" title="Sightings logged by the public on iNaturalist">iNaturalist sightings</th>
-                <th className="right" title="Records near shore in OBIS, the Ocean Biodiversity Information System">OBIS nearshore</th>
-                <th className="right" title="Records from beach seine net surveys">Seine surveys</th>
+                <th className="right" title="Research-grade iNaturalist observations in Nova Scotia, a historical snapshot from when the list was built. Not fish abundance.">iNaturalist (NS snapshot)</th>
                 <th className="right" title="Tracks a person gave this name on this PC">Named here</th>
               </tr>
             </thead>
@@ -140,17 +136,15 @@ export function Species() {
                   <td><i>{r.species}</i></td>
                   <td className="meta">{GROUPS[r.group] ?? r.group}</td>
                   <td className="num right">{r.inat_obs || "—"}</td>
-                  <td className="num right">{r.obis_nearshore_records || "—"}</td>
-                  <td className="num right">{r.seine_records || "—"}</td>
                   <td className="num right">{r.confirmed ? <span className="pill up">{r.confirmed}</span> : "—"}</td>
                 </tr>
               ))}
-              {!shown.length && <tr><td colSpan={7} className="meta">No fish match that search.</td></tr>}
+              {!shown.length && <tr><td colSpan={5} className="meta">No fish match that search.</td></tr>}
             </tbody>
           </table>
         </div>
       </div>
-      <p className="meta">The numbers show why a fish is on the list, not how common it is on your sites. To change the list, edit species.csv on the server. Select a fish to see reference photos, how to recognise it and where OBIS has records of it.</p>
+      <p className="meta">The iNaturalist number is a historical snapshot of research-grade Nova Scotia observations. It shows why a fish is on the list, not how common it is on your sites. "Named here" counts the names people gave it in Tideflow. To change the list, edit species.csv on the server. Select a fish to see reference photos, how to recognise it and where OBIS has records of it.</p>
       {open && rows.some((r) => r.species === open) && (
         <SpeciesDrawer species={open} row={rows.find((r) => r.species === open)} rows={rows} media={media} onSelect={openSpecies} onClose={closeDrawer} onExpand={expand} />
       )}
