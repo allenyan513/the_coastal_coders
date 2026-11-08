@@ -7,7 +7,7 @@ import { invite, inviteLink, Member, removeMember, resend, resetTeam, setRole, u
 /** What each role opens in the app. Kept beside the invite so the choice is an informed one. */
 const CAN: Record<Role, string[]> = {
   volunteer: ["Count fish in the videos waiting", "Follow every video on the Workflow board", "Look up species in the wiki"],
-  manager: ["Everything a volunteer can do", "Import footage and set up sites and stations", "Compare sites in Reports", "Invite people and change roles"],
+  manager: ["Everything a volunteer can do", "Import footage and set up sites and stations", "Compare stations in the Station report", "Invite people and change roles"],
 };
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
