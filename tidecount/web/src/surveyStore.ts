@@ -153,11 +153,27 @@ export function placeLabel(d: SurveyData, stationId?: string) {
 
 const digits = (name: string) => name.match(/\d+/)?.[0] ?? "";
 
-/** A station from Coastal Action's file names, for a person to confirm: T1-STAT2 411.MP4 is transect 1, station 2. */
-export function suggestStation(d: SurveyData, fileName: string) {
+/** The transect and station numbers in one of Coastal Action's file names, if it has both. */
+function namedIn(fileName: string) {
   const transect = fileName.match(/(?<![A-Za-z0-9])T(\d+)/i)?.[1];
   const stat = fileName.match(/STAT\s*(\d+)/i)?.[1];
-  if (!transect || !stat) return "";
+  return transect && stat ? { transect, stat } : null;
+}
+
+/** "T1 · STAT2" when a video's file name points to another station than the one it's filed under, else "". */
+export function nameMismatch(d: SurveyData, fileName: string, stationId: string) {
+  const named = namedIn(fileName);
+  const station = d.stations.find((s) => s.id === stationId);
+  const transect = d.transects.find((t) => t.id === station?.transectId);
+  if (!named || !station || !transect) return "";
+  return digits(transect.name) === named.transect && digits(station.name) === named.stat ? "" : `T${named.transect} · STAT${named.stat}`;
+}
+
+/** A station from Coastal Action's file names, for a person to confirm: T1-STAT2 411.MP4 is transect 1, station 2. */
+export function suggestStation(d: SurveyData, fileName: string) {
+  const named = namedIn(fileName);
+  if (!named) return "";
+  const { transect, stat } = named;
   const match = activeTree(d).flatMap((x) => x.stations).find((s) => digits(s.transect.name) === transect && digits(s.station.name) === stat);
   return match?.station.id ?? "";
 }

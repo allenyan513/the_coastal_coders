@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, clock, ModelOption, Summary, Video } from "./api";
 import { ImportDialog } from "./ImportDialog";
 import { Menu } from "./Menu";
 import { useUser } from "./session";
 import { SiteList, StationDialog, StationStats } from "./Surveys";
+import { Group, SurveySites } from "./SurveySites";
 import { season, setPlaces, suggestStation, useSurveys } from "./surveyStore";
 
 const READY = "Ready to review";
-type Group = { root: string; runs: Video[] };
 
 /** Sub-sample points to count, and how many are done. */
 export function countProgress(s: Summary) {
@@ -76,9 +76,14 @@ export function Library() {
 
   const labelOf = (key: string) => models.find((m) => m.key === key)?.label ?? key;
   /** The run a row shows: the one picked, else the one with the most points counted, else the first imported. */
-  const shownRun = (g: Group) =>
+  const shownRun = useCallback((g: Group) =>
     g.runs.find((v) => v.id === chosen[g.root])
-    ?? [...g.runs].sort((a, b) => (summaries[b.id] ? countProgress(summaries[b.id]).done : 0) - (summaries[a.id] ? countProgress(summaries[a.id]).done : 0))[0];
+    ?? [...g.runs].sort((a, b) => (summaries[b.id] ? countProgress(summaries[b.id]).done : 0) - (summaries[a.id] ? countProgress(summaries[a.id]).done : 0))[0],
+  [chosen, summaries]);
+  const pointsOf = useCallback((g: Group) => {
+    const s = summaries[shownRun(g).id];
+    return s ? countProgress(s) : { done: 0, total: 0 };
+  }, [summaries, shownRun]);
 
   useEffect(() => {
     if (!toast) return;
@@ -115,13 +120,11 @@ export function Library() {
             {labelOf(v.detector)}
           </span>
           {g.runs.length > 1 && (
-            <div className="row" style={{ gap: 4 }}>
-              {g.runs.map((r) => (
-                <button key={r.id} className="chip" style={{ height: 26 }} aria-pressed={r.id === v.id} onClick={() => setChosen({ ...chosen, [g.root]: r.id })}>
-                  {labelOf(r.detector)}
-                </button>
-              ))}
-            </div>
+            <label className="meta runs-pick">{g.runs.length} model runs, showing
+              <select value={v.id} onChange={(e) => setChosen({ ...chosen, [g.root]: e.target.value })}>
+                {g.runs.map((r) => <option key={r.id} value={r.id}>{labelOf(r.detector)}</option>)}
+              </select>
+            </label>
           )}
         </div>
         <span className="num right hide-narrow">{v.duration ? clock(v.duration) : "—"}</span>
@@ -178,7 +181,7 @@ export function Library() {
       <div className="pagehead">
         <div>
           <h1>Surveys</h1>
-          <p className="lede">{editing ? "Add or change sites, transects and stations. Footage stays where it is." : "What's been filmed and counted at every station."}</p>
+          <p className="lede">{editing ? "Add or change sites, transects and stations. Footage stays where it is." : "Pick a site to see its stations, its footage and what needs fixing."}</p>
         </div>
         <div className="row pagehead-actions">
           {manager && <button className="btn tall" onClick={() => setEditing(!editing)}>{editing ? "Done" : "Edit structure"}</button>}
@@ -208,7 +211,19 @@ export function Library() {
         </section>
       )}
 
-      <SiteList editing={editing} videosAt={videosAt} statsAt={statsAt} onImport={importInto} />
+      {editing
+        ? <SiteList editing videosAt={videosAt} statsAt={statsAt} onImport={importInto} />
+        : (
+          <SurveySites
+            groups={groups}
+            shown={shownRun}
+            points={pointsOf}
+            row={row}
+            onImport={(station) => setImporting({ station })}
+            onPlace={(g) => setPlacing({ root: g.root, name: g.runs[0].name })}
+            onRetry={(id) => run(() => api.retry(id))}
+          />
+        )}
       {placing && <StationDialog root={placing.root} name={placing.name} onClose={() => setPlacing(null)} />}
       {importing && (
         <ImportDialog
