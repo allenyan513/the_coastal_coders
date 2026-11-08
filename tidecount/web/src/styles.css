@@ -887,11 +887,11 @@ tr.clickable.open td { background: var(--accent-soft); }
 
 /* Species wiki drawer: tabs, name check, photo navigation, look-alike comparisons and the OBIS map. */
 .drawer { width: min(560px, 100vw); }
-.tabs { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border-2); background: var(--panel); overflow-x: auto; }
-.tab { position: relative; height: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--text-2); font-weight: 500; white-space: nowrap; }
-.tab:hover { color: var(--text); }
+.tabs[role="tablist"] { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border-2); background: var(--panel); overflow-x: auto; }
+.tabs[role="tablist"] .tab { position: relative; height: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--text-2); font-weight: 500; white-space: nowrap; }
+.tabs[role="tablist"] .tab:hover { color: var(--text); }
 .tab[aria-selected="true"] { color: var(--accent-ink); border-bottom-color: var(--accent); }
-.tab-count { padding: 0 6px; border-radius: 999px; background: var(--panel-3); color: var(--text-2); font: 500 11px/18px var(--mono); }
+.tabs[role="tablist"] .tab-count { padding: 0 6px; border-radius: 999px; background: var(--panel-3); color: var(--text-2); font: 500 11px/18px var(--mono); }
 .name-check { margin-top: 6px; font-size: 12px; }
 .name-check.warn { color: var(--warn); }
 
@@ -960,7 +960,7 @@ details[open] summary { margin-bottom: 6px; }
   .obis-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .obis-totals > div:nth-child(2) { border-right: 0; }
   .obis-totals > div:nth-child(-n+2) { border-bottom: 1px solid var(--border-2); }
-  .tab { flex: 1 0 auto; justify-content: center; }
+  .tabs[role="tablist"] .tab { flex: 1 0 auto; justify-content: center; }
 }
 .obis-totals .totals-note { grid-column: 1 / -1; margin: 0; border-radius: 0; border-top: 1px solid var(--border-2); }
 
@@ -1054,3 +1054,112 @@ details[open] summary { margin-bottom: 6px; }
 .swatch { width: 26px; height: 18px; padding: 0; border: 1px solid rgba(16,24,40,.25); border-radius: 4px; cursor: pointer; }
 .swatch[aria-pressed="true"] { outline: 2px solid var(--text); outline-offset: 1px; }
 .swatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Report: three cards across the top. Fish by species, the mean count (widest, in the middle), and non-fish. */
+.report-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, .85fr); gap: 16px; align-items: stretch; }
+.report-card { display: flex; flex-direction: column; gap: 14px; padding: 18px 20px 20px; min-width: 0; }
+.report-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.report-card-head h2 { margin: 0; font-size: 15px; }
+
+.donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; flex: 1; }
+.donut { position: relative; width: 220px; height: 220px; flex: none; }
+.donut svg { width: 100%; height: 100%; display: block; }
+.donut svg circle:first-child { stroke: var(--panel-3); }
+.donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.donut-center b { font: 700 46px/1 var(--mono); letter-spacing: -1px; }
+.donut-center small { color: var(--text-2); font-size: 13px; margin-top: 4px; }
+.donut-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 300px; font-size: 13px; }
+.donut-legend li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto 36px; align-items: center; gap: 8px; }
+.donut-legend i { width: 10px; height: 10px; border-radius: 3px; }
+.donut-legend span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.donut-legend small { color: var(--muted); text-align: right; }
+
+.mean-card { border-top: 4px solid var(--sp, var(--accent)); }
+.mean-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.mean-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel); color: var(--text-2); font-size: 12px; cursor: pointer; }
+.mean-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--sp); }
+.mean-chip:hover { border-color: var(--sp); color: var(--text); }
+.mean-chip[aria-checked="true"], .mean-chip[aria-pressed="true"] { background: var(--sp); border-color: var(--sp); color: #fff; font-weight: 600; }
+.mean-chip[aria-checked="true"] i, .mean-chip[aria-pressed="true"] i { background: #fff; }
+.mean-big { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 0; text-align: center; }
+.mean-big b { font: 700 64px/1 var(--mono); letter-spacing: -2.5px; color: var(--text); }
+.mean-big span { color: var(--text-2); font-size: 14px; }
+.mean-bars { position: relative; display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 18px 0 20px; margin-top: auto; border-bottom: 1px solid var(--border); }
+.mean-col { position: relative; flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-width: 0; }
+.mean-col i { position: relative; display: block; width: 100%; max-width: 44px; min-height: 2px; border-radius: 4px 4px 0 0; background: var(--sp, var(--accent)); opacity: .85; }
+.mean-col:hover i { opacity: 1; }
+.mean-n { position: absolute; left: 0; right: 0; bottom: 100%; text-align: center; font-size: 11px; font-style: normal; color: var(--text-2); padding-bottom: 2px; }
+.mean-col small { position: absolute; bottom: -18px; font-size: 10px; color: var(--muted); }
+.mean-line { position: absolute; left: 0; right: 0; height: 0; border-top: 2px dashed var(--text); opacity: .55; z-index: 1; pointer-events: none; }
+.mean-line small { position: absolute; right: 0; top: -17px; font-size: 10px; background: var(--panel); padding: 0 4px; color: var(--text); }
+
+.nonfish-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.nonfish-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; padding: 10px 12px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--border-2); }
+.nonfish-list b { font: 700 20px/1 var(--mono); }
+.nonfish-list small { grid-column: 1 / -1; }
+.nonfish-empty { line-height: 1.6; margin: 0; padding: 12px; border: 1px dashed var(--border); border-radius: 8px; }
+
+@media (max-width: 1180px) {
+  .report-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .report-hero .mean-card { grid-column: 1 / -1; order: -1; }
+}
+@media (max-width: 720px) {
+  .report-hero { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Report: population trend under the three cards. */
+.trend-card { gap: 12px; }
+.trend-card .report-card-head { align-items: flex-start; flex-wrap: wrap; }
+.trend-sub { margin: 4px 0 0; font-size: 13px; }
+.trend-badge { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--panel-3); color: var(--text-2); }
+.trend-badge.up { background: var(--up-soft); color: var(--up); }
+.trend-badge.down { background: var(--down-soft); color: var(--down-ink); }
+.trend-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.trend-compare { display: inline-flex; align-items: center; gap: 8px; }
+.trend-compare select { height: 30px; border: 1px solid var(--border); border-radius: 8px; padding: 0 8px; background: var(--panel); color: var(--text); font: inherit; font-size: 13px; }
+.trend-plot { position: relative; width: 100%; overflow: hidden; }
+.trend-plot svg { display: block; }
+.trend-grid { stroke: var(--border-2); }
+.trend-axis { fill: var(--muted); font: 500 10px var(--mono); }
+.trend-now { fill: var(--accent-soft); }
+.trend-now-label { fill: var(--accent-ink); font-weight: 600; }
+.trend-guide { stroke: var(--muted-2); stroke-dasharray: 3 3; }
+.trend-tip { position: absolute; top: 8px; display: flex; flex-direction: column; gap: 4px; min-width: 190px; padding: 8px 10px; border-radius: 8px; background: var(--panel); border: 1px solid var(--border); box-shadow: 0 6px 20px rgba(16, 24, 40, .12); font-size: 12px; pointer-events: none; }
+.trend-tip span { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: 6px; }
+.trend-tip i { width: 8px; height: 8px; border-radius: 50%; }
+.trend-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; }
+.trend-key span { display: inline-flex; align-items: center; gap: 6px; }
+.trend-key-dot { width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--muted); background: var(--panel); }
+.trend-key-dot.real { width: 10px; height: 10px; background: var(--accent); border-color: var(--accent); }
+.trend-key-dash { width: 18px; border-top: 2px dashed var(--muted); }
+
+/* Report: AI's part in the review, three cards above Busiest moments. */
+.ai-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.ai-card { gap: 14px; }
+.ai-big { display: flex; flex-direction: column; gap: 4px; }
+.ai-big b { font: 700 40px/1 var(--mono); letter-spacing: -1.5px; color: var(--text); }
+.ai-big span { color: var(--text-2); font-size: 13px; line-height: 1.4; }
+.ai-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ai-bar { display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden; background: var(--panel-3); }
+.ai-bar i { display: block; min-width: 3px; }
+.ai-key { list-style: none; margin: -4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--text-2); }
+.ai-key li { display: inline-flex; align-items: center; gap: 6px; }
+.ai-key i { width: 8px; height: 8px; border-radius: 2px; }
+.ai-key b { color: var(--text); font-weight: 600; }
+.ai-rows { display: flex; flex-direction: column; margin-top: auto; border-top: 1px solid var(--border-2); }
+.ai-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border-2); font-size: 13px; }
+.ai-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.ai-row b { font-weight: 600; }
+.ai-guesses { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: auto; font-size: 12px; }
+@media (max-width: 1180px) { .ai-cards { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .ai-cards > :last-child { grid-column: 1 / -1; } }
+@media (max-width: 720px) { .ai-cards { grid-template-columns: minmax(0, 1fr); } }
+.ai-none { margin: 0; padding: 16px 20px; }
+
+/* Mean count card: a slide switch between the mean per point and the total counted. */
+.mean-switch { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); cursor: pointer; user-select: none; }
+.mean-switch .on { color: var(--text); font-weight: 600; }
+.mean-switch input { appearance: none; -webkit-appearance: none; position: relative; width: 36px; height: 20px; margin: 0; border-radius: 999px; background: var(--sp, var(--accent)); cursor: pointer; transition: background .15s; }
+.mean-switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(16, 24, 40, .3); transition: transform .15s; }
+.mean-switch input:checked::after { transform: translateX(16px); }
+.mean-switch input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mean-note { max-width: 420px; color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 4px; }

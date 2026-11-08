@@ -15,6 +15,10 @@ export const SPECIES_COLORS = ["#f97316", "#d946ef", "#eab308", "#ef4444", "#8b5
 export const UNIDENTIFIED_COLOR = "#1f5eff";
 export const UNIDENTIFIED_LABEL = "Unidentified";
 
+/** Things a counter may tag that aren't fish. They stay out of the fish total and MeanCount. */
+export const NON_FISH = ["Crab", "Lobster", "Shrimp", "Jellyfish", "Comb jelly", "Sea star", "Sea urchin", "Snail", "Squid", "Seal"];
+export const isNonFish = (species?: string) => !!species && NON_FISH.some((n) => n.toLowerCase() === species.trim().toLowerCase());
+
 const key = (videoId: string) => `tidecount.count-species.${videoId}`;
 
 export function loadSpecies(videoId: string): SpeciesStore {
