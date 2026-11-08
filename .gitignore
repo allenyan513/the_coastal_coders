@@ -1,10 +1,16 @@
+# App data, model weights and anything a run produces
 **/data/raw/
-.DS_Store
-__pycache__/
 **/data/processed/
-.venv/
-.ipynb_checkpoints/
-/videos/
-.claude/worktrees/
-.vscode
 /deploy/data/
+/videos/
+
+# Python
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# Editors and assistants
+.vscode
+.claude/
+CLAUDE.md
+.DS_Store
