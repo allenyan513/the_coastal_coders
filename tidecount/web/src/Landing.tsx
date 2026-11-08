@@ -4,6 +4,7 @@ import { api, ModelOption, SpeciesMediaSummary, SpeciesRow, Summary, Video } fro
 import { SpeciesShowcase, StationPreview, WqiPreview } from "./LandingData";
 import { Pipeline, Research, VisionStack } from "./LandingVision";
 import { Access, Flow, JOIN_STEPS, Roles, Status } from "./LandingTeam";
+import { RevealFooter, Surface } from "./LandingFooter";
 import { countProgress } from "./Library";
 import { speciesMedia } from "./speciesData";
 import { useSession } from "./session";
@@ -71,8 +72,8 @@ const STEPS = [
   { title: "Data visualization", text: "Confirmed counts become charts by station and site, so treatment and reference sites sit side by side, season by season." },
 ];
 
-function Brand({ dark }: { dark?: boolean }) {
-  return <Link to="/" className={`ln-brand ${dark ? "dark" : ""}`}><img src="/favicon.svg" alt="" />Tideflow</Link>;
+function Brand() {
+  return <Link to="/" className="ln-brand"><img src="/favicon.svg" alt="" />Tideflow</Link>;
 }
 
 function Waves() {
@@ -141,7 +142,8 @@ function Head({ eyebrow, title, text, light }: { eyebrow: string; title: string;
   );
 }
 
-/** The public front page: what Tideflow is, how the work flows, the AI, the data it opens up, and how to help. */
+/** The public front page: what Tideflow is, how the work flows, the AI, the data it opens up, and how to help.
+ *  The content is raised into a <main>, and scrolling to the end uncovers the underwater footer beneath it (issue #50). */
 export function Landing() {
   const f = useFacts();
   // Every figure here is computed from the data, or true by how Tideflow works. None is an estimate.
@@ -153,107 +155,95 @@ export function Landing() {
   ];
 
   return (
-    <div className="ln">
-      <section className="ln-hero">
-        <Waves />
-        <Nav />
-        <div className="ln-wrap ln-hero-in">
-          <div className="stack" style={{ gap: 20 }}>
-            <p className="ln-eyebrow">Shoreline fish surveys · Nova Scotia</p>
-            <h1>AI-enhanced fish survey workspace for Coastal Action</h1>
-            <p className="ln-lede">Turn underwater survey video into fish counts. AI marks the fish and sets aside the stretches with none; volunteers confirm every count, and the results become charts by site and season.</p>
-            <div className="row">
-              <Link className="btn primary ln-cta" to="/workspace">Go to workspace</Link>
-              <Link className="btn ln-cta ln-ghost" to={JOIN}>Join as a volunteer</Link>
+    <div className="ln" id="top">
+      <main className="ln-main">
+        <section className="ln-hero">
+          <Waves />
+          <Nav />
+          <div className="ln-wrap ln-hero-in">
+            <div className="stack" style={{ gap: 20 }}>
+              <p className="ln-eyebrow">Shoreline fish surveys · Nova Scotia</p>
+              <h1>AI-enhanced fish survey workspace for Coastal Action</h1>
+              <p className="ln-lede">Turn underwater survey video into fish counts. AI marks the fish and sets aside the stretches with none; volunteers confirm every count, and the results become charts by site and season.</p>
+              <div className="row">
+                <Link className="btn primary ln-cta" to="/workspace">Go to workspace</Link>
+                <Link className="btn ln-cta ln-ghost" to={JOIN}>Join as a volunteer</Link>
+              </div>
             </div>
+            <ProductShot f={f} />
           </div>
-          <ProductShot f={f} />
-        </div>
-      </section>
+        </section>
 
-      <section className="ln-wrap ln-stats" aria-label="Tideflow so far">
-        {stats.map(([n, label]) => <div key={label}><b className="num">{f.loaded ? n : "…"}</b><span>{label}</span></div>)}
-      </section>
+        <section className="ln-wrap ln-stats" aria-label="Tideflow so far">
+          {stats.map(([n, label]) => <div key={label}><b className="num">{f.loaded ? n : "…"}</b><span>{label}</span></div>)}
+        </section>
 
-      <section className="ln-wrap ln-section" id="how">
-        <Head eyebrow="The workflow" title="From the camera to the report, in one place" text="Managers, volunteers and AI each take the part they're best at. The Workflow board shows where every video stands." />
-        <ol className="ln-steps">
-          {STEPS.map((s, i) => (
-            <li key={s.title}><span className="ln-step-n num">0{i + 1}</span><b>{s.title}</b><p>{s.text}</p></li>
-          ))}
-        </ol>
-        <Link className="ln-more" to={sampleTo(f.sample, "summary")}>See a sample report <span aria-hidden>→</span></Link>
-      </section>
-
-      <section className="ln-dark" id="ai">
-        <div className="ln-wrap ln-section">
-          <div className="ln-ai">
-            <Head light eyebrow="Computer vision · runs on your own PC" title="Three vision models find, follow and name every fish" text="An object detector, a tracker and a species model run inside Tideflow, on an ordinary computer, with no footage sent to a cloud service. Each one is benchmarked on real underwater video before volunteers rely on it, and a person still makes every call." />
-            <VisionStack models={f.models} species={f.species.length} />
-          </div>
-          <Pipeline />
-          <div className="ln-research-head">
-            <p className="ln-card-kicker">What we measured</p>
-            <span className="pill ln-pill-dark">Provisional</span>
-          </div>
-          <Research />
-          <p className="ln-research-note">From the team's benchmark in the ml folder of the repository. Detector numbers rest on 30 hand-labelled frames from 2 of 6 development videos, and thresholds were chosen on those same frames, so they flatter the models. Nothing here is measured on Coastal Action's own footage yet.</p>
-        </div>
-      </section>
-
-      <section className="ln-wrap ln-section" id="species">
-        <Head eyebrow="Species wiki" title="Know every fish in the footage" text="Each fish the AI may suggest has its own entry: reference photos, how to tell it from look-alikes, and where it has been recorded in Nova Scotia." />
-        <SpeciesShowcase rows={f.species} media={f.media} />
-      </section>
-
-      <section className="ln-wrap ln-section" id="data">
-        <Head eyebrow="Data analysis" title="Fish and water, side by side" text="Confirmed counts become station reports, next to Coastal Action's water readings from the same river, so a change in one can be checked against the other." />
-        <div className="ln-data">
-          <WqiPreview />
-          <StationPreview />
-        </div>
-      </section>
-
-      <section className="ln-wrap ln-section" id="team">
-        <Head eyebrow="Team and roles" title="Every count has an owner" text="Volunteers count, validators check and coordinators run the survey. Each role sees its own screens, and every video shows who has it next." />
-        <p className="ln-legend-row"><Status live /> works in the app today <Status live={false} /> designed, not built yet</p>
-        <Roles />
-        <Flow />
-        <Access />
-        <div className="ln-volunteer">
-          <div className="stack" style={{ gap: 16 }}>
-            <Head light eyebrow="Volunteer" title="Help count the fish of your shoreline" text="No experience needed. The procedure walks you through each frame, on a laptop or a phone, and every point you save goes into the site reports." />
-            <div className="row">
-              <Link className="btn primary ln-cta ln-white" to={JOIN}>Join as a volunteer</Link>
-              <Link className="btn ln-cta ln-ghost" to={sampleTo(f.sample, "snapshots")}>Try a sample first</Link>
-            </div>
-          </div>
-          <ol className="ln-join">
-            {JOIN_STEPS.map((s, i) => (
-              <li key={s.title} className={s.live ? "" : "planned"}>
-                <span className="num">{s.live ? i + 1 : "+"}</span>
-                <div><b>{s.title} <Status live={s.live} /></b><p>{s.text}</p></div>
-              </li>
+        <section className="ln-wrap ln-section" id="how">
+          <Head eyebrow="The workflow" title="From the camera to the report, in one place" text="Managers, volunteers and AI each take the part they're best at. The Workflow board shows where every video stands." />
+          <ol className="ln-steps">
+            {STEPS.map((s, i) => (
+              <li key={s.title}><span className="ln-step-n num">0{i + 1}</span><b>{s.title}</b><p>{s.text}</p></li>
             ))}
           </ol>
-        </div>
-      </section>
+          <Link className="ln-more" to={sampleTo(f.sample, "summary")}>See a sample report <span aria-hidden>→</span></Link>
+        </section>
 
-      <footer className="ln-foot">
-        <div className="ln-wrap ln-foot-grid">
-          <div className="stack" style={{ gap: 10 }}>
-            <Brand dark />
-            <p className="meta" style={{ maxWidth: 340, lineHeight: 1.6 }}>Underwater video in, confirmed fish counts out, for the people who survey Nova Scotia's living shorelines. Built at RBC HubHacks 2026 with Coastal Action.</p>
+        <section className="ln-dark" id="ai">
+          <div className="ln-wrap ln-section">
+            <div className="ln-ai">
+              <Head light eyebrow="Computer vision · runs on your own PC" title="Three vision models find, follow and name every fish" text="An object detector, a tracker and a species model run inside Tideflow, on an ordinary computer, with no footage sent to a cloud service. Each one is benchmarked on real underwater video before volunteers rely on it, and a person still makes every call." />
+              <VisionStack models={f.models} species={f.species.length} />
+            </div>
+            <Pipeline />
+            <div className="ln-research-head">
+              <p className="ln-card-kicker">What we measured</p>
+              <span className="pill ln-pill-dark">Provisional</span>
+            </div>
+            <Research />
+            <p className="ln-research-note">From the team's benchmark in the ml folder of the repository. Detector numbers rest on 30 hand-labelled frames from 2 of 6 development videos, and thresholds were chosen on those same frames, so they flatter the models. Nothing here is measured on Coastal Action's own footage yet.</p>
           </div>
-          <div className="ln-foot-col"><b>Platform</b><Link to="/workspace">Workspace</Link><Link to="/workflow">Workflow board</Link><Link to="/analysis">Data analysis</Link><Link to="/login">Sign in</Link></div>
-          <div className="ln-foot-col"><b>Explore</b><Link to="/species">Species wiki</Link><Link to="/analysis/trends">Fish and water trends</Link><a href="#ai">How the computer vision works</a></div>
-          <div className="ln-foot-col"><b>Project</b><a href="https://github.com/allenyan513/the_coastal_coders" target="_blank" rel="noreferrer">Source on GitHub</a><span className="meta">RBC HubHacks 2026</span><span className="meta">Coastal Action</span></div>
-        </div>
-        <div className="ln-wrap ln-foot-fine meta">
-          <span>Fish detection by the Community Fish Detector and other open models; species suggestions by BioCLIP. Species list from iNaturalist and OBIS records.</span>
-          <span>© 2026 Tideflow</span>
-        </div>
-      </footer>
+        </section>
+
+        <section className="ln-wrap ln-section" id="species">
+          <Head eyebrow="Species wiki" title="Know every fish in the footage" text="Each fish the AI may suggest has its own entry: reference photos, how to tell it from look-alikes, and where it has been recorded in Nova Scotia." />
+          <SpeciesShowcase rows={f.species} media={f.media} />
+        </section>
+
+        <section className="ln-wrap ln-section" id="data">
+          <Head eyebrow="Data analysis" title="Fish and water, side by side" text="Confirmed counts become station reports, next to Coastal Action's water readings from the same river, so a change in one can be checked against the other." />
+          <div className="ln-data">
+            <WqiPreview />
+            <StationPreview />
+          </div>
+        </section>
+
+        <section className="ln-wrap ln-section" id="team">
+          <Head eyebrow="Team and roles" title="Every count has an owner" text="Volunteers count, validators check and coordinators run the survey. Each role sees its own screens, and every video shows who has it next." />
+          <p className="ln-legend-row"><Status live /> works in the app today <Status live={false} /> designed, not built yet</p>
+          <Roles />
+          <Flow />
+          <Access />
+          <div className="ln-volunteer">
+            <div className="stack" style={{ gap: 16 }}>
+              <Head light eyebrow="Volunteer" title="Help count the fish of your shoreline" text="No experience needed. The procedure walks you through each frame, on a laptop or a phone, and every point you save goes into the site reports." />
+              <div className="row">
+                <Link className="btn primary ln-cta ln-white" to={JOIN}>Join as a volunteer</Link>
+                <Link className="btn ln-cta ln-ghost" to={sampleTo(f.sample, "snapshots")}>Try a sample first</Link>
+              </div>
+            </div>
+            <ol className="ln-join">
+              {JOIN_STEPS.map((s, i) => (
+                <li key={s.title} className={s.live ? "" : "planned"}>
+                  <span className="num">{s.live ? i + 1 : "+"}</span>
+                  <div><b>{s.title} <Status live={s.live} /></b><p>{s.text}</p></div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+        <Surface />
+      </main>
+      <RevealFooter />
     </div>
   );
 }
