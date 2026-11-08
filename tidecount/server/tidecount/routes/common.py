@@ -30,6 +30,14 @@ def suggester():
         return _suggesters[0]
 
 
+def suggester_state() -> str:
+    """Whether the species model is in memory, without loading it: "ready", "unavailable" (it
+    failed to load, so it suggests nothing) or "not_loaded"."""
+    if not _suggesters:
+        return "not_loaded"
+    return "unavailable" if isinstance(_suggesters[0], models.NullSuggester) else "ready"
+
+
 def get_video(con, video_id: str) -> dict:
     row = con.execute("SELECT * FROM videos WHERE id = ?", (video_id,)).fetchone()
     if not row:

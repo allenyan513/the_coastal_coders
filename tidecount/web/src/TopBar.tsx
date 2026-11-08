@@ -11,7 +11,7 @@ function sectionOf(pathname: string) {
 }
 
 /** The bottom tab bar's pages. They have no Back: the tabs are how you move between them. */
-const TAB_SECTIONS = ["workspace", "workflow", "analysis", "species", "team", "settings"];
+const TAB_SECTIONS = ["workspace", "workflow", "analysis", "species", "scan", "team", "settings"];
 
 /** Where Back leads when this page was opened straight from a link, with nothing of ours behind it. */
 function fallbackOf(section: string) {
@@ -25,7 +25,7 @@ function labelOf(section: string, role: Role) {
   if (section.startsWith("species/")) return decodeURIComponent(section.slice("species/".length));
   const labels: Record<string, string> = {
     workspace: homeLabel(role), workflow: "Workflow", analysis: "Analysis",
-    species: "Species", team: "Team", settings: "Settings", models: "Model lab", accuracy: "AI accuracy",
+    species: "Species", scan: "Fish Scan", team: "Team", settings: "Settings", models: "Model lab", accuracy: "AI accuracy",
   };
   return labels[section] ?? "Back";
 }

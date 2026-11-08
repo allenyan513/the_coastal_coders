@@ -202,6 +202,23 @@ export type SpeciesMediaSummary = Record<string, {
   conservation?: Pick<SpeciesConservation, "kind" | "badge"> & { scope?: SpeciesConservation["scope"] } | null;
 }>;
 
+/** Fish Scan. A crop is fractions of the picture, from its top left. */
+export type ScanCrop = { x: number; y: number; w: number; h: number };
+export type ScanSuggestion = { rank: number; species: string; common: string; score: number };
+export type ScanResult = {
+  suggestions: ScanSuggestion[];
+  model: string;
+  species_count: number;
+  scanned: { width: number; height: number; cropped: boolean };
+  /** The scanned area's shorter side is under `min_side` pixels, where guesses were no better than chance. */
+  small: boolean;
+  min_side: number;
+};
+export type ScanStatus = {
+  state: "ready" | "loading" | "not_loaded" | "unavailable";
+  species_count: number; top_k: number; max_bytes: number; min_side: number;
+};
+
 /** Shared by every OBIS answer: where it came from and how fresh it is. */
 type ObisMeta = { source: "OBIS"; fetched_at: number | null; cached: boolean; stale: boolean; citation: string };
 /** [west, south, east, north, record count] */
@@ -400,6 +417,24 @@ export const api = {
     if (res.ok) return;
     const body = await res.json().catch(() => null);
     throw Object.assign(new Error(body?.detail ?? `Request failed (${res.status})`), { status: res.status });
+  },
+  /** Fish Scan: whether the species model is loaded, without loading it. */
+  scanStatus: () => call<ScanStatus>("/api/scan/status"),
+  /** Fish Scan: start loading the species model in the background, so the first scan waits less. */
+  scanPrepare: () => call<ScanStatus>("/api/scan/prepare", { method: "POST" }),
+  /** Fish Scan: BioCLIP's top five for one picture, cropped to `crop` (fractions) if given. Nothing is saved. */
+  scan: (picture: Blob, crop: ScanCrop | null) => {
+    const form = new FormData();
+    form.append("file", picture, picture instanceof File ? picture.name : "picture");
+    if (crop) for (const [k, v] of Object.entries(crop)) form.append(k, String(v));
+    return call<ScanResult>("/api/scan", { method: "POST", body: form });
+  },
+  /** Fish Scan of a Media Library photo, by id. The server reads the photo itself. Nothing is saved. */
+  scanPhoto: (photoId: string, crop: ScanCrop | null) => {
+    const form = new FormData();
+    form.append("photo_id", photoId);
+    if (crop) for (const [k, v] of Object.entries(crop)) form.append(k, String(v));
+    return call<ScanResult>("/api/scan/photo", { method: "POST", body: form });
   },
   /** The photos a species shows, in one save. Leaving one out only unlinks it; it stays in the library. */
   saveSpeciesPhotos: (name: string, ids: string[]) =>
