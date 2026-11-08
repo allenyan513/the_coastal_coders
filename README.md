@@ -55,40 +55,7 @@ Open http://localhost:8000. The script installs the Python and web dependencies,
 
 To try it, open **Fish Counter**, import a video and pick a model. The demo site has sample footage if you have none. Analysis runs in the background, and the video shows as **Ready to review** when it's done.
 
-### Developing
-
-Run the API and the UI separately so the UI reloads as you edit. From `tidecount/server`:
-
-```bash
-TIDECOUNT_WORKER=0 uv run uvicorn tidecount.app:app --port 8000
-```
-
-And from `tidecount/web`:
-
-```bash
-pnpm dev
-```
-
-Open http://localhost:5183. `TIDECOUNT_WORKER=0` skips video analysis, so the UI starts without any model.
-
-Tests, from `tidecount/server`:
-
-```bash
-uv run pytest -q
-```
-
-```bash
-uv run pytest -q ../ml
-```
-
-CI runs both plus the web build on every pull request.
-
-| Setting | What it does |
-|---|---|
-| `TIDECOUNT_DEVICE=cpu` | Force the CPU even when a GPU is available |
-| `TIDECOUNT_ALLOW_YOLO=0` | Turn off the two Ultralytics models, whose checkpoints are pickle files |
-| `TIDECOUNT_SETTINGS=path.toml` | Use another settings file. `tidecount/settings.toml` holds every threshold an experiment may change |
-| `TIDECOUNT_DATA=path` | Store videos, results and weights somewhere else |
+If a GPU gives trouble, run `TIDECOUNT_DEVICE=cpu ./start.sh`. For editing the code, tests and the other settings, see [Server layout](tidecount/README.md#server-layout) and [Settings](tidecount/README.md#settings) in the product README.
 
 ## Run it with Docker
 
