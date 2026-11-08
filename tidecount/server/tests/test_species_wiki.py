@@ -1,4 +1,5 @@
 """The species wiki: profiles, checked names and the OBIS map proxy. No test touches the network."""
+import json
 import urllib.error
 import urllib.parse
 from datetime import datetime, timezone
@@ -758,3 +759,92 @@ def test_too_many_datasets_to_filter_is_refused_not_guessed(obis, monkeypatch):
     monkeypatch.setattr(occurrences, "FILTER_MAX_IDS", 3)
     assert ask_grid(method="no_telemetry").status_code == 400
     assert ask_grid(method="other").status_code == 200
+
+
+# --- conservation status ----------------------------------------------------------------------
+
+def test_atlantic_whitefish_has_its_verified_status_with_sources():
+    c = client.get("/api/species/Coregonus huntsmani/profile").json()["conservation"]
+    assert c["kind"] == "at_risk" and c["badge"] == "Endangered" and c["verified_on"]
+    assert {s["authority"] for s in c["statuses"]} >= {"COSEWIC", "Species at Risk Act (Canada)", "Nova Scotia Endangered Species Act"}
+    assert "Petite Rivière" in c["population"] and c["threats"]
+    assert c["sources"] and all(s["url"].startswith("https://") for s in c["sources"])
+    # The list's badge comes from the same entry, even though the whitefish has no photos yet.
+    assert client.get("/api/species/media").json()["Coregonus huntsmani"]["conservation"] == {"kind": "at_risk", "badge": "Endangered", "scope": "species"}
+    # Each status says what sort of statement it is, so an assessment and a listing never merge.
+    types = {s["authority"]: s["type"] for s in c["statuses"]}
+    assert types == {"COSEWIC": "assessment", "Species at Risk Act (Canada)": "legal", "Nova Scotia Endangered Species Act": "legal"}
+
+
+def test_a_fish_without_a_verified_entry_has_no_status_rather_than_a_safe_one():
+    assert client.get("/api/species/Pollachius virens/profile").json()["conservation"] is None
+    assert client.get("/api/species/media").json()["Pollachius virens"]["conservation"] is None
+
+
+def test_population_specific_statuses_are_never_shown_as_the_whole_species():
+    for name in ("Salmo salar", "Gadus morhua"):
+        c = client.get(f"/api/species/{name}/profile").json()["conservation"]
+        assert c["scope"] == "populations"
+        cosewic = [s for s in c["statuses"] if s["authority"] == "COSEWIC"]
+        assert cosewic and all(s["population"] and s["type"] == "assessment" for s in cosewic)
+        assert client.get("/api/species/media").json()[name]["conservation"]["scope"] == "populations"
+    salmon = client.get("/api/species/Salmo salar/profile").json()["conservation"]
+    listed = [s for s in salmon["statuses"] if s["type"] == "legal" and s["status"].startswith("Endangered")]
+    assert [s["population"] for s in listed] == ["Inner Bay of Fundy population"]  # the only SARA listing
+
+
+def test_status_types_population_and_source_are_checked(monkeypatch, tmp_path):
+    f = tmp_path / "conservation.json"
+    f.write_text(json.dumps({"species": {
+        "Scomber scombrus": {"kind": "at_risk", "badge": "Endangered", "verified_on": "2026-01-01", "sources": [{"url": "https://example.org"}], "statuses": [
+            {"authority": "COSEWIC", "status": "Endangered", "population": "Some population", "source": "http://insecure.example"},
+            {"authority": "Species at Risk Act (Canada)", "status": "Not listed"},
+            {"authority": "Someone else", "status": "Rare", "type": "nonsense"},
+        ]},
+        "Esox niger": {"kind": "invasive_ns", "badge": "Introduced", "verified_on": "2026-01-01", "sources": [{"url": "https://example.org"}],
+                       "statuses": [{"authority": "Nova Scotia Fisheries and Aquaculture", "status": "Mandatory retention"}]},
+    }}), encoding="utf-8")
+    monkeypatch.setattr(species_media.config, "SPECIES_CONSERVATION", f)
+    c = species_media.conservation()
+    assert c["Scomber scombrus"]["scope"] == "populations"
+    assert [s["type"] for s in c["Scomber scombrus"]["statuses"]] == ["assessment", "legal", "other"]
+    assert c["Scomber scombrus"]["statuses"][0]["source"] == ""  # only https sources are kept
+    assert c["Esox niger"]["scope"] == "species" and c["Esox niger"]["statuses"][0]["type"] == "introduced"
+
+
+def test_an_unverified_or_unsourced_entry_is_never_shown(monkeypatch, tmp_path):
+    f = tmp_path / "conservation.json"
+    f.write_text(json.dumps({"species": {
+        "Gadus morhua": {"kind": "at_risk", "badge": "Endangered", "sources": [{"url": "https://example.org"}]},  # no verified_on
+        "Pollachius virens": {"kind": "at_risk", "badge": "Threatened", "verified_on": "2026-01-01", "sources": []},
+        "Mola mola": {"kind": "safe", "badge": "Secure", "verified_on": "2026-01-01", "sources": [{"url": "https://example.org"}]},
+        "Scomber scombrus": {"kind": "invasive_ns", "badge": "Locally invasive", "verified_on": "2026-01-01", "sources": [{"url": "https://example.org/x"}]},
+    }}), encoding="utf-8")
+    monkeypatch.setattr(species_media.config, "SPECIES_CONSERVATION", f)
+    assert set(species_media.conservation()) == {"Scomber scombrus"}
+    assert client.get("/api/species/Pollachius virens/profile").json()["conservation"] is None
+
+
+def test_atlantic_whitefish_compares_with_lake_whitefish_without_adding_it_to_the_ai_list():
+    p = client.get("/api/species/Coregonus huntsmani/profile").json()
+    similar = {s["species"]: s for s in p["profile"]["similar"]}
+    assert {"Coregonus clupeaformis", "Salvelinus fontinalis", "Salmo salar"} <= similar.keys()
+    assert similar["Coregonus clupeaformis"]["common"] == "Lake Whitefish"
+    listed = {row["species"] for row in models.species_table()}
+    assert "Coregonus clupeaformis" not in listed  # a reference look-alike only; BioCLIP never sees it
+    assert any("coastalaction.org" in s["url"] for s in p["profile"]["sources"])
+    c = p["conservation"]
+    # Where it lived before and where wild fish are known now are kept apart.
+    assert "Tusket" in c["historical_range"] and "Petite Rivière" in c["current_range"]
+    assert "extirpated" in c["current_range"] and c["range_note"]
+    # The population's environment now (fresh water only) is said apart from WoRMS's species-level flags.
+    assert c["environment_now"] == "Freshwater" and "nadromous" in c["environment_historical"]
+    assert p["names"]["is_marine"] is True  # WoRMS still says marine for the species; kept, not overwritten
+
+
+def test_a_look_alike_that_is_not_on_the_list_carries_its_own_common_name():
+    listed = {row["species"] for row in models.species_table()}
+    for name, entry in species_media.load().items():
+        for s in ((entry.get("profile") or {}).get("similar") or []):
+            if isinstance(s, dict) and s.get("species") and s["species"] not in listed:
+                assert s.get("common"), f"{name}: look-alike {s['species']} is unlisted and needs a common name"

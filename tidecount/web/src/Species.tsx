@@ -2,9 +2,10 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { SpeciesMediaSummary, SpeciesRow } from "./api";
 import { SpeciesDrawer, SpeciesTab } from "./SpeciesDrawer";
-import { speciesMedia, speciesPagePath, speciesRows } from "./speciesData";
+import { lastViewed, speciesMedia, speciesPagePath, speciesRows } from "./speciesData";
+import { badgeText } from "./speciesProfile";
 
-const GROUPS: Record<string, string> = { Actinopterygii: "Ray-finned fish", Elasmobranchii: "Sharks and rays", "": "From fish surveys" };
+const GROUPS: Record<string, string> = { Actinopterygii: "Ray-finned fish", Elasmobranchii: "Sharks and rays", "": "Class not recorded" };
 const SORTS = {
   inat_obs: "iNaturalist sightings",
   obis_nearshore_records: "OBIS nearshore records",
@@ -30,6 +31,9 @@ export function Species() {
   // The open species lives in the address (?species=Gadus morhua), so a link or the back button reopens it.
   const [params, setParams] = useSearchParams();
   const open = params.get("species");
+  // The last fish opened stays marked after its drawer (or the full page) is closed, so you can find your place.
+  const [lastSeen, setLastSeen] = useState(lastViewed.species);
+  useEffect(() => { if (open) { lastViewed.species = open; setLastSeen(open); } }, [open]);
   const openSpecies = useCallback((name: string) => setParams({ species: name }, { state: { fromList: true } }), [setParams]);
   const closeDrawer = useCallback(() => setParams({}, { replace: true }), [setParams]);
   const navigate = useNavigate();
@@ -80,7 +84,7 @@ export function Species() {
       <div className="panel kpis">
         <div className="kpi"><span className="meta">Fish on the list</span><b>{rows.length}</b></div>
         <div className="kpi"><span className="meta">Sharks and rays</span><b>{rows.filter((r) => r.group === "Elasmobranchii").length}</b></div>
-        <div className="kpi"><span className="meta">From fish surveys only</span><b>{rows.filter((r) => r.group === "").length}</b></div>
+        <div className="kpi"><span className="meta">Class not recorded</span><b>{rows.filter((r) => r.group === "").length}</b></div>
         <div className="kpi"><span className="meta">Named by a person here</span><b>{named}</b></div>
       </div>
 
@@ -97,7 +101,7 @@ export function Species() {
           <span className="num meta" style={{ alignSelf: "flex-end", paddingBottom: 10 }}>{shown.length} of {rows.length}</span>
         </div>
         <div style={{ overflowX: "auto" }}>
-          <table className="sticky-first">
+          <table className="sticky-first species-list">
             <thead>
               <tr>
                 <th>Common name</th><th>Scientific name</th><th>Group</th>
@@ -109,13 +113,29 @@ export function Species() {
             </thead>
             <tbody>
               {shown.map((r) => (
-                <tr key={r.species} className={`clickable ${open === r.species ? "open" : ""}`} onClick={() => openSpecies(r.species)}>
+                <tr key={r.species} className={`clickable ${open === r.species ? "open" : !open && lastSeen === r.species ? "last-viewed" : ""}`}
+                  aria-current={!open && lastSeen === r.species ? "true" : undefined} onClick={() => openSpecies(r.species)}>
                   <td style={{ fontWeight: 500 }}>
                     <button className="rowlink" onClick={(e) => { e.stopPropagation(); openSpecies(r.species); }} aria-label={`Show details for ${r.common === r.species ? r.species : r.common}`}>
                       {r.common === r.species ? "—" : r.common}
                     </button>
+                    {/* Phones show the list as rows, not a table: the scientific name goes under the common name. */}
+                    <i className="sp-sci">{r.species}</i>
+                    <span className="sp-badges">
                     {media[r.species]?.image_count > 0 && <span className="pill muted photos" title="Reference photos available">{media[r.species].image_count} photo{media[r.species].image_count === 1 ? "" : "s"}</span>}
                     {media[r.species]?.has_profile && <span className="pill muted photos" title="Identification notes available">ID notes</span>}
+                    {/* Only verified statuses have a badge; no badge means unknown, not safe. */}
+                    {media[r.species]?.conservation && (
+                      <span
+                        className={`pill photos status-badge ${media[r.species].conservation!.kind}`}
+                        title={media[r.species].conservation!.scope === "populations"
+                          ? "Verified status for some populations only, not the whole species"
+                          : media[r.species].conservation!.kind === "at_risk" ? "Verified species-at-risk status" : "Verified as invasive in Nova Scotia"}
+                      >
+                        {badgeText(media[r.species].conservation!)}
+                      </span>
+                    )}
+                    </span>
                   </td>
                   <td><i>{r.species}</i></td>
                   <td className="meta">{GROUPS[r.group] ?? r.group}</td>

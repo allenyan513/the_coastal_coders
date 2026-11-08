@@ -834,9 +834,30 @@ textarea.record-input { height: auto; resize: vertical; }
 tr.clickable { cursor: pointer; }
 tr.clickable:hover td, tr.clickable.open td { background: var(--panel-2); }
 tr.clickable.open td { background: var(--accent-soft); }
+/* The fish you looked at last, after the drawer or its page is closed: a quieter version of the same mark. */
+tr.clickable.last-viewed td { background: var(--accent-soft); }
+tr.clickable.last-viewed td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .rowlink { padding: 0; background: none; border: 0; font: inherit; font-weight: 500; color: var(--text); text-align: left; }
 .rowlink:hover { color: var(--accent-ink); text-decoration: underline; }
 .pill.photos { margin-left: 8px; font-size: 11px; line-height: 18px; }
+/* Species list: on desktop the scientific name has its own column and the badges sit inline. */
+.species-list .sp-sci { display: none; }
+.species-list .sp-badges { display: contents; }
+/* On phones the table becomes full-width rows: common name, scientific name, then badges, with a
+   chevron showing the row opens the drawer. The other columns are left out (the Group is in the profile). */
+@media (max-width: 720px) {
+  .species-list thead { display: none; }
+  .species-list tr.clickable { position: relative; display: block; border-top: 1px solid var(--border-2); }
+  .species-list tr.clickable td { display: none; }
+  .species-list tr.clickable td:first-child { position: static; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding: 10px 36px 10px 12px; border-top: 0; box-shadow: none; }
+  .species-list tr.clickable.last-viewed td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+  .species-list tr.clickable::after { content: ""; position: absolute; right: 14px; top: 50%; width: 8px; height: 8px; border-right: 2px solid var(--muted-2); border-bottom: 2px solid var(--muted-2); transform: translateY(-50%) rotate(-45deg); }
+  .species-list .rowlink { font-size: 15px; }
+  .species-list .sp-sci { display: block; color: var(--text-2); font-size: 13px; overflow-wrap: anywhere; }
+  .species-list .sp-badges { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 4px; }
+  .species-list .sp-badges:empty { display: none; }
+  .species-list .sp-badges .pill.photos { margin-left: 0; }
+}
 
 .drawer-root { position: fixed; inset: 0; z-index: 40; }
 .drawer-scrim { position: absolute; inset: 0; background: rgba(16,24,40,.4); animation: drawer-fade .2s ease-out; }
@@ -886,7 +907,12 @@ tr.clickable.open td { background: var(--accent-soft); }
 }
 
 /* Species wiki drawer: tabs, name check, photo navigation, look-alike comparisons and the OBIS map. */
-.drawer { width: min(560px, 100vw); }
+/* Never narrower than 560 px; on wide desktops it grows with the screen (58% of the width), up to
+   1500 px. A phone still gets the full screen (100vw wins below 560 px). */
+.drawer { width: min(clamp(560px, 58vw, 1500px), 100vw); }
+/* A wider drawer shouldn't mean a giant photo: the frame stops growing at about half the screen height. */
+.drawer .gallery-frame { max-height: min(52vh, 540px); }
+/* Scoped to the drawer's tablist so the video page's .tabs/.tab nav keeps its own look. */
 .tabs[role="tablist"] { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border-2); background: var(--panel); overflow-x: auto; }
 .tabs[role="tablist"] .tab { position: relative; height: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--text-2); font-weight: 500; white-space: nowrap; }
 .tabs[role="tablist"] .tab:hover { color: var(--text); }
@@ -1011,21 +1037,65 @@ details[open] summary { margin-bottom: 6px; }
 .species-page-card .tabs { padding: 0 16px; }
 .species-page-card .drawer-body { overflow: visible; padding: 20px 24px 28px; }
 
-/* Photos: a photo of a sensible size, with the other photos beside it rather than a strip below. */
-.species-page .gallery-frame { max-height: 560px; }
+/* Overview: the gallery on the left at a sensible size (the photo never grows past 720 x 540), the
+   description, facts, features and conservation on the right, look-alikes across the full width
+   below. In the drawer it is one column, in this order. */
+.overview { display: flex; flex-direction: column; gap: 20px; }
+.overview-lede { font-size: 15px; line-height: 1.55; }
+/* Always a clean 2 x 2, so "Conservation status" never wraps onto a lone third row. */
+.facts.glance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.facts.range-facts { grid-template-columns: minmax(0, 1fr); }
+.facts.range-facts dd { font-weight: 400; }
+.gallery-empty.compact { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; min-height: 0; padding: 10px 14px; text-align: left; font-size: 13px; }
+.species-page .gallery { max-width: 720px; }
+.species-page .gallery-frame { max-height: 540px; }
+.species-page .overview-text { max-width: 76ch; }
 @container (min-width: 900px) {
-  .species-page .gallery { display: grid; grid-template-columns: minmax(0, 720px) minmax(200px, 1fr); gap: 12px 20px; align-items: start; }
-  .species-page .gallery > .row { grid-column: 1 / -1; }
-  .species-page .gallery .thumbs { margin-top: 0; flex-wrap: wrap; align-content: flex-start; overflow: visible; }
-  .species-page .gallery .thumb { width: 104px; height: 78px; }
+  .species-page .overview { display: grid; grid-template-columns: minmax(380px, 720px) minmax(340px, 1fr); gap: 20px 36px; align-items: start; }
+  .species-page .overview-media { position: sticky; top: 16px; }
+  .species-page .overview-wide { grid-column: 1 / -1; padding-top: 8px; border-top: 1px solid var(--border-2); }
+  /* No photos: the slim placeholder across the top, and the text sections in two columns using the full width. */
+  .species-page .overview.no-media { grid-template-columns: minmax(0, 1fr); }
+  .species-page .overview.no-media .overview-text { max-width: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 36px; align-items: start; }
+  .species-page .overview.no-media .facts.glance { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .species-page .thumb { width: 88px; height: 66px; }
+}
+/* Drawer Overview stays one column. On a wide drawer only the gallery changes: the photo keeps its 4:3
+   shape and stops at 720 px wide, and the thumbnails sit beside it instead of under it. */
+.drawer { container: drawer / inline-size; }
+/* Map tab: a wide drawer gets a taller map (45% of the drawer width, 340 to 560 px, and never
+   more than 62% of the screen height). At the original drawer widths it stays 340 px. The map's
+   ResizeObserver calls invalidateSize(). */
+@container drawer (min-width: 760px) {
+  .drawer .map { height: clamp(340px, min(45cqi, 62vh), 560px); }
+}
+@container drawer (min-width: 900px) {
+  .drawer .gallery { display: grid; grid-template-columns: minmax(0, 720px) minmax(200px, 1fr); gap: 12px 20px; align-items: start; }
+  .drawer .gallery > .row { grid-column: 1 / -1; }
+  .drawer .gallery .thumbs { margin-top: 0; flex-wrap: wrap; align-content: flex-start; overflow: visible; }
+  .drawer .gallery .thumb { width: 104px; height: 78px; }
 }
 
-/* Identify and Details: readable lines, look-alikes side by side, details in columns. */
-.species-page .identify-tab > section > p, .species-page .identify-tab .features { max-width: 80ch; }
+/* Status badges and the conservation card. Shown only for verified entries. */
+.title-row { gap: 6px 10px; align-items: center; }
+.pill.status-badge.at_risk { background: #fde8e7; color: #9b1c1c; border: 1px solid #f5b4b0; }
+.pill.status-badge.invasive_ns { background: #fff3d6; color: #8a4b00; border: 1px solid #f2cf7c; }
+.conservation-card { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border: 1px solid var(--border-2); border-left: 4px solid #c0362c; border-radius: 8px; background: var(--panel-2); }
+.conservation-card.invasive_ns { border-left-color: #d08a00; }
+.conservation-card h3 { margin-bottom: 0; }
+.conservation-card .block { display: block; margin-top: 2px; font-weight: 400; }
+.conservation-card .facts { grid-template-columns: minmax(0, 1fr); background: var(--panel); }
+
+/* Details & Sources: readable lines, details in columns. */
 @container (min-width: 760px) {
-  .species-page .compare { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); }
-  .species-page .compare-card { grid-template-columns: 180px minmax(0, 1fr); }
-  .species-page .details-tab { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px 36px; align-items: start; }
+  /* Look-alikes: at most two or three to a row, each wide enough that its comparison reads easily. */
+  .species-page .compare { display: grid; grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); }
+  .species-page .compare-card { grid-template-columns: 160px minmax(0, 1fr); }
+  /* Details & Sources: two balanced columns. The sections flow down the left column and then the
+     right in their usual order, so short and tall sections pack together without row gaps. */
+  .species-page .details-tab { display: block; columns: 2; column-gap: 48px; }
+  .species-page .details-tab > section { break-inside: avoid; margin-bottom: 28px; }
+  .species-page .details-tab > section:last-child { margin-bottom: 0; }
   /* Map: the year range and the method and dataset filter side by side. */
   .species-page .map-filters { display: grid; grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr); gap: 0 24px; align-items: start; }
   .species-page .map-filters .record-filters { margin-top: 0; }
@@ -1163,3 +1233,45 @@ details[open] summary { margin-bottom: 6px; }
 .mean-switch input:checked::after { transform: translateX(16px); }
 .mean-switch input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .mean-note { max-width: 420px; color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 4px; }
+
+/* Drawer: the header and tabs keep their height and only the body scrolls. Before, the tab bar
+   (overflow-x: auto, so allowed to shrink) was squeezed the longer an entry was, clipping the tabs. */
+.drawer-head, .drawer > .tabs { flex: none; }
+.drawer-body { flex: 1 1 0; min-height: 0; }
+.meta.block { display: block; margin-top: 2px; font-weight: 400; }
+
+/* At a glance: one line per fact, with a small qualifier underneath. */
+.glance-sub { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: var(--muted); }
+
+/* Folds: longer material, closed in the drawer and open on the full page. */
+.fold { border-top: 1px solid var(--border-2); padding-top: 8px; }
+.fold > summary { font-size: 13px; font-weight: 600; color: var(--text); }
+.fold > summary::marker { color: var(--muted); }
+.fold-body { display: flex; flex-direction: column; gap: 8px; }
+section > .fold { border-top: 0; padding-top: 0; }
+
+/* Conservation: one headline, one chip per assessment, then the folds. */
+.conservation-card { gap: 10px; }
+.cons-headline { font-size: 15px; }
+.cons-chips { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.cons-chips li { padding: 3px 8px; border: 1px solid var(--border-2); border-radius: 999px; background: var(--panel); font-size: 12px; color: var(--text-2); }
+.cons-chips b { color: var(--text); font-weight: 600; }
+.cons-applies { font-size: 13px; }
+/* One small heading per kind of statement, so an assessment and a legal listing never read as one status. */
+.cons-group { display: flex; flex-direction: column; gap: 4px; }
+.cons-group-label { font: 500 11px var(--mono); letter-spacing: .3px; text-transform: uppercase; color: var(--muted); }
+.cons-pop { color: var(--text); font-weight: 500; }
+
+/* Look-alikes in the drawer: a smaller photo leaves room for the comparison; the detail folds. */
+.compare-card { grid-template-columns: 112px minmax(0, 1fr); gap: 12px; }
+.compare-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.compare-text .pill { align-self: flex-start; }
+.compare-note { line-height: 1.45; }
+.compare-more { border-top: 0; padding-top: 0; }
+.compare-more > summary { font-size: 12px; font-weight: 500; color: var(--accent-ink); }
+@media (max-width: 420px) { .compare-card { grid-template-columns: 1fr; } }
+
+/* The note under "How to recognise it": a quiet footnote with an info icon. */
+.id-footnote { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; font-size: 12px; line-height: 1.45; color: var(--muted); }
+.id-footnote-icon { flex: none; margin-top: 2px; color: var(--muted-2); }
+.id-footnote-link { font: inherit; color: var(--accent-ink); }

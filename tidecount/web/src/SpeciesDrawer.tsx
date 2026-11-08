@@ -2,6 +2,11 @@ import { Component, lazy, ReactNode, Suspense, useEffect, useRef, useState } fro
 import { useNavigate } from "react-router-dom";
 import { CompareImage, SpeciesImage, SpeciesMediaSummary, SpeciesProfile, SpeciesRow } from "./api";
 import { speciesPagePath, speciesProfile } from "./speciesData";
+import {
+  badgeText, environmentLabels, shortAuthority, splitFirstSentence, statusSummary,
+  STATUS_TYPE_LABEL, STATUS_TYPE_ORDER, type SpeciesTabKey,
+} from "./speciesProfile";
+import type { SpeciesConservation } from "./api";
 
 // Leaflet is only downloaded when someone opens the map.
 const OccurrenceMap = lazy(() => import("./OccurrenceMap"));
@@ -13,17 +18,16 @@ const VIEW_LABELS: Record<SpeciesImage["view"], string> = {
   illustration: "Illustration",
   other: "Photo",
 };
-const GROUPS: Record<string, string> = { Actinopterygii: "Ray-finned fish", Elasmobranchii: "Sharks and rays", "": "From fish surveys" };
-const TABS = [
-  { key: "photos", label: "Photos" },
-  { key: "identify", label: "Identify" },
+const GROUPS: Record<string, string> = { Actinopterygii: "Ray-finned fish", Elasmobranchii: "Sharks and rays", "": "Class not recorded" };
+// Photos and Identify are now both in Overview; old ?tab=photos and ?tab=identify links go there (tabFromParam).
+const TABS: { key: SpeciesTabKey; label: string }[] = [
+  { key: "overview", label: "Overview" },
   { key: "map", label: "Map" },
-  { key: "details", label: "Details" },
-] as const;
-type Tab = (typeof TABS)[number]["key"];
+  { key: "details", label: "Details & Sources" },
+];
+type Tab = SpeciesTabKey;
 
 export type SpeciesTab = Tab;
-export const isSpeciesTab = (t: string | null): t is Tab => TABS.some((x) => x.key === t);
 
 type Shared = {
   /** Scientific name exactly as in species.csv. */
@@ -51,7 +55,7 @@ type Props = Shared & {
  * open it for a BioCLIP suggestion the same way the Species page does.
  */
 export function SpeciesDrawer({ species, row, rows, media, onSelect, onClose, onExpand }: Props) {
-  const [tab, setTab] = useState<Tab>("photos");
+  const [tab, setTab] = useState<Tab>("overview");
   const closeRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
 
@@ -142,7 +146,10 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
     <>
         <header className="drawer-head">
           <div style={{ minWidth: 0 }}>
-            <Heading id="drawer-title">{title}</Heading>
+            <div className="row title-row">
+              <Heading id="drawer-title">{title}</Heading>
+              {data?.conservation && <StatusBadge c={data.conservation} />}
+            </div>
             {common && <p className="sci"><i>{species}</i>{authority ? <span className="meta"> {authority}</span> : null}</p>}
             {!common && authority && <p className="meta">{authority}</p>}
             {data && <NameCheck data={data} />}
@@ -158,7 +165,6 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
               onClick={() => onTab(t.key)}
             >
               {t.label}
-              {t.key === "photos" && data && data.images.length > 0 && <span className="tab-count">{data.images.length}</span>}
             </button>
           ))}
         </div>
@@ -168,10 +174,8 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
           {error && <p className="meta">{error}</p>}
           {!data && !error && <p className="meta">Loading…</p>}
 
-          {data && tab === "photos" && <Photos key={species} data={data} title={title} />}
-
-          {data && tab === "identify" && (
-            <Identify data={data} media={media} commonOf={commonOf} listed={listed} onSelect={onSelect} />
+          {data && tab === "overview" && (
+            <Overview data={data} row={row} title={title} media={media} commonOf={commonOf} listed={listed} onSelect={onSelect} onSources={() => onTab("details")} wide={layout === "page"} />
           )}
 
           {tab === "map" && (
@@ -234,7 +238,7 @@ function Photos({ data, title }: { data: SpeciesProfile; title: string }) {
         <p><b>{data.images.length ? "These photos couldn't be loaded" : "No reference photos yet"}</b></p>
         <p className="meta">
           {data.images.length
-            ? "The source may be offline. The credits are still under Details."
+            ? "The source may be offline. The credits are still under Details & Sources."
             : "Photos are added only after the species match and the licence have been checked by a person."}
         </p>
         <a className="meta" href={`https://www.inaturalist.org/taxa/search?q=${encodeURIComponent(data.species)}`} target="_blank" rel="noreferrer noopener">Look it up on iNaturalist</a>
@@ -305,75 +309,257 @@ function Credit({ img }: { img: SpeciesImage }) {
   );
 }
 
-type IdentifyProps = {
+type OverviewProps = {
   data: SpeciesProfile;
+  row?: SpeciesRow;
+  title: string;
   media?: SpeciesMediaSummary;
   commonOf: (name: string) => string;
   listed: (name: string) => boolean;
   onSelect?: (species: string) => void;
+  /** Opens Details & Sources, where every source is listed. */
+  onSources: () => void;
+  /** On the full page: folded sections start open. */
+  wide: boolean;
 };
 
-function Identify({ data, media, commonOf, listed, onSelect }: IdentifyProps) {
+const KIND_LABEL: Record<SpeciesConservation["kind"], string> = { at_risk: "Species at risk", invasive_ns: "Invasive in Nova Scotia" };
+
+/** Only for a verified status: a fish without one shows no badge, which means unknown, not safe. */
+function StatusBadge({ c }: { c: SpeciesConservation }) {
+  return (
+    <span
+      className={`pill status-badge ${c.kind}`}
+      title={`${KIND_LABEL[c.kind]}${c.scope === "populations" ? ": applies to some populations only, not the whole species" : ""}, verified ${c.verified_on}. Details on the Overview; sources in Details & Sources.`}
+    >
+      {badgeText(c)}
+    </span>
+  );
+}
+
+/**
+ * A section that folds in the drawer, to keep it short, and is open on the full page, which has the
+ * room. Everything stays in both: nothing is only on the page.
+ */
+function Fold({ title, wide, children, className = "" }: { title: ReactNode; wide: boolean; children: ReactNode; className?: string }) {
+  return (
+    <details className={`fold ${className}`} open={wide || undefined}>
+      <summary>{title}</summary>
+      <div className="fold-body">{children}</div>
+    </details>
+  );
+}
+
+/**
+ * The encyclopedia entry: photos, a short description, at-a-glance facts, how to recognise it,
+ * a compact conservation summary and the similar species. Longer material (assessment history,
+ * threats, range, the detail of each comparison) folds in the drawer and is open on the full page.
+ * Everything shown is from the curated files; nothing is fetched or guessed here.
+ */
+function Overview({ data, row, title, media, commonOf, listed, onSelect, onSources, wide }: OverviewProps) {
   const p = data.profile;
+  const c = data.conservation;
   // Entries that compare themselves with this one, which this one doesn't already list.
   const backlinks = data.mentioned_by.filter((m) => !p?.similar.some((s) => s.species === m.species));
+  const family = data.names?.family || data.taxon?.family || "";
+  const env = environmentLabels(data.names);
+
+  // No reference photo: a one-line placeholder instead of an empty gallery column, so the text gets the width.
+  const noPhotos = data.images.length === 0;
+  const range = c && (c.historical_range || c.current_range) ? c : null;
 
   return (
-    <div className="stack identify-tab" style={{ gap: 20 }}>
-      {p ? (
-        <section>
-          <h3>How to recognise it</h3>
-          <p>{p.summary}</p>
-          <ul className="features">{p.features.map((f) => <li key={f}>{f}</li>)}</ul>
-        </section>
+    <div className={`overview${noPhotos ? " no-media" : ""}`}>
+      {noPhotos ? (
+        <p className="gallery-empty compact overview-noimage">
+          <span><b>No reference photos yet.</b> Photos are added only after the species match and the licence have been checked by a person.</span>
+          <a href={`https://www.inaturalist.org/taxa/search?q=${encodeURIComponent(data.species)}`} target="_blank" rel="noreferrer noopener">Look it up on iNaturalist</a>
+        </p>
       ) : (
-        <section className="gallery-empty" style={{ minHeight: 120 }}>
-          <p><b>No identification notes yet</b></p>
-          <p className="meta">Notes are written from published descriptions and listed with their sources.</p>
-        </section>
+        <div className="overview-media">
+          <Photos key={data.species} data={data} title={title} />
+        </div>
       )}
 
-      {p && p.similar.length > 0 && (
+      <div className="overview-text stack" style={{ gap: 16 }}>
         <section>
-          <h3>Easily confused with</h3>
-          <div className="compare">
-            {p.similar.map((s) => (
-              <CompareCard
-                key={s.species} name={s.species} common={commonOf(s.species)} note={s.note}
-                photo={media?.[s.species]?.compare ?? null}
-                onOpen={onSelect && listed(s.species) ? () => onSelect(s.species) : undefined}
-              />
-            ))}
-          </div>
+          <h3>About</h3>
+          {p?.summary ? <p className="overview-lede">{p.summary}</p> : <p className="meta">No description has been written for this fish yet.</p>}
         </section>
-      )}
 
-      {backlinks.length > 0 && (
         <section>
-          <h3>Compared with this fish in other entries</h3>
-          <ul className="features">
-            {backlinks.map((m) => (
-              <li key={m.species}>
-                <SpeciesLink name={m.species} common={commonOf(m.species)} onOpen={onSelect && listed(m.species) ? () => onSelect(m.species) : undefined} />
-                <span className="meta"> {m.note}</span>
+          <h3>At a glance</h3>
+          <dl className="facts glance">
+            {row && <div><dt>Group</dt><dd>{GROUPS[row.group] ?? row.group}</dd></div>}
+            <div><dt>Family</dt><dd>{family || "—"}</dd></div>
+            <div>
+              <dt>Environment</dt>
+              {c?.environment_now ? (
+                // A population whose habitat now differs from the species' range: say both, not a generic list.
+                <dd>
+                  {c.environment_now}
+                  <span className="glance-sub">{[c.environment_now_note, c.environment_historical && `historically ${c.environment_historical.charAt(0).toLowerCase()}${c.environment_historical.slice(1)}`].filter(Boolean).join("; ")}</span>
+                </dd>
+              ) : (
+                <dd>{env.length ? env.join(" · ") : <span className="meta">Not recorded</span>}{env.length > 0 && <span className="glance-sub">Where the species can occur (WoRMS)</span>}</dd>
+              )}
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>
+                {c ? badgeText(c) : <span className="meta">No verified status</span>}
+                {c && c.statuses.length > 0 && <span className="glance-sub">{statusSummary(c)}</span>}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        {p && p.features.length > 0 && (
+          <section>
+            <h3>How to recognise it</h3>
+            <ul className="features">{p.features.map((f) => <li key={f}>{f}</li>)}</ul>
+            {/* Only while unreviewed: the wording says so. */}
+            {!p.expert_reviewed && (
+              <p className="id-footnote">
+                <svg className="id-footnote-icon" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
+                  <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                  <path d="M8 7v4.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="8" cy="4.7" r=".9" fill="currentColor" />
+                </svg>
+                <span>
+                  Identification notes are based on published descriptions and have not been reviewed by a fish biologist.{" "}
+                  <button type="button" className="linklike id-footnote-link" onClick={onSources}>View sources</button>
+                </span>
+              </p>
+            )}
+          </section>
+        )}
+        {!p && (
+          <section className="gallery-empty" style={{ minHeight: 100 }}>
+            <p><b>No identification notes yet</b></p>
+            <p className="meta">Notes are written from published descriptions and listed with their sources.</p>
+          </section>
+        )}
+
+        <Conservation c={c} onSources={onSources} wide={wide} />
+
+        {range && (
+          <section>
+            <h3>Range</h3>
+            <Fold wide={wide} title="Historical and current range">
+              <dl className="facts range-facts">
+                {range.historical_range && <div><dt>Historically</dt><dd>{range.historical_range}</dd></div>}
+                {range.current_range && <div><dt>Current known wild range</dt><dd>{range.current_range}</dd></div>}
+              </dl>
+              {range.range_note && <p className="meta" style={{ marginTop: 6 }}>{range.range_note}</p>}
+            </Fold>
+          </section>
+        )}
+      </div>
+
+      {((p && p.similar.length > 0) || backlinks.length > 0) && (
+        <div className="overview-wide stack" style={{ gap: 16 }}>
+          {p && p.similar.length > 0 && (
+            <section>
+              <h3>Similar species</h3>
+              <div className="compare">
+                {p.similar.map((s) => (
+                  <CompareCard
+                    key={s.species} name={s.species} common={commonOf(s.species) || s.common || ""} note={s.note}
+                    photo={media?.[s.species]?.compare ?? null}
+                    onOpen={onSelect && listed(s.species) ? () => onSelect(s.species) : undefined}
+                    unlisted={!listed(s.species)} wide={wide}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+          {backlinks.length > 0 && (
+            <section>
+              <h3>Compared with this fish in other entries</h3>
+              <ul className="features">
+                {backlinks.map((m) => (
+                  <li key={m.species}>
+                    <SpeciesLink name={m.species} common={commonOf(m.species)} onOpen={onSelect && listed(m.species) ? () => onSelect(m.species) : undefined} />
+                    <span className="meta"> {m.note}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A verified status as one line and one chip per assessment, then what it applies to; the history,
+ * why it matters and the threats fold in the drawer. A fish without a verified status says so plainly.
+ */
+function Conservation({ c, onSources, wide }: { c: SpeciesConservation | null; onSources: () => void; wide: boolean }) {
+  if (!c) {
+    return (
+      <section>
+        <h3>Conservation status</h3>
+        <p className="meta">
+          Tideflow has no verified conservation or invasive status for this fish. That means it hasn't been checked here,
+          not that the fish is secure. See COSEWIC and the Nova Scotia species-at-risk list for official assessments.
+        </p>
+      </section>
+    );
+  }
+  // Grouped by kind of statement (scientific assessment, legal listing, invasive classification),
+  // each chip with its own result, so bodies that disagree are never shown as one status.
+  const groups = STATUS_TYPE_ORDER.map((t) => ({ type: t, items: c.statuses.filter((s) => s.type === t) })).filter((g) => g.items.length);
+  const who = (s: SpeciesConservation["statuses"][number]) => `${s.authority}${s.jurisdiction ? ` (${s.jurisdiction})` : ""}`;
+  return (
+    <section className={`conservation-card ${c.kind}`}>
+      <h3>Conservation status</h3>
+      <p className="cons-headline"><b>{badgeText(c)}</b> <span className="meta">· {KIND_LABEL[c.kind]}</span></p>
+      {c.scope === "populations" && (
+        <p className="cons-applies"><b>Population-specific:</b> each status below applies only to the population it names, not to the species as a whole.</p>
+      )}
+      {groups.map((g) => (
+        <div key={g.type} className="cons-group">
+          <p className="cons-group-label">{STATUS_TYPE_LABEL[g.type]}</p>
+          <ul className="cons-chips" aria-label={STATUS_TYPE_LABEL[g.type]}>
+            {g.items.map((s, i) => (
+              <li key={`${s.authority}-${s.population}-${i}`} title={`${who(s)}: ${s.status}${s.date ? `, ${s.date}` : ""}${s.population ? `. Applies to: ${s.population}` : ""}`}>
+                {s.population && <span className="cons-pop">{s.population}: </span>}
+                <b>{shortAuthority(s.authority)}</b>{[s.status, s.date].filter(Boolean).map((t) => <span key={t}> · {t}</span>)}
               </li>
             ))}
           </ul>
-        </section>
+        </div>
+      ))}
+      {c.population && <p className="cons-applies"><b>Applies to:</b> {c.population}</p>}
+      {c.statuses.some((s) => s.note || s.source) && (
+        <Fold wide={wide} title="Assessment history">
+          <dl className="facts">
+            {c.statuses.map((s, i) => (
+              <div key={`${s.authority}-${s.population}-${i}`}>
+                <dt>{who(s)}{s.population ? <span className="meta block">{s.population}</span> : null}</dt>
+                <dd>
+                  <b>{s.status}</b>{s.date ? <span className="meta"> · {s.date}</span> : null}
+                  {s.note ? <span className="meta block">{s.note}</span> : null}
+                  {s.source ? <a className="meta block" href={s.source} target="_blank" rel="noreferrer noopener">Source</a> : null}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Fold>
       )}
-
-      {p && !p.expert_reviewed && (
-        <p className="note warn">These notes are a first draft from the sources below and have not been reviewed by a fish biologist. Check them against the sources before relying on them.</p>
+      {c.significance && <Fold wide={wide} title="Why it matters in Nova Scotia"><p>{c.significance}</p></Fold>}
+      {c.threats.length > 0 && (
+        <Fold wide={wide} title={`Threats (${c.threats.length})`}>
+          <ul className="features">{c.threats.map((t) => <li key={t}>{t}</li>)}</ul>
+        </Fold>
       )}
-      {p && p.sources.length > 0 && (
-        <section>
-          <h3>Sources for these notes</h3>
-          <ul className="features">
-            {p.sources.map((s) => <li key={s.url}><a href={s.url} target="_blank" rel="noreferrer noopener">{s.label}</a></li>)}
-          </ul>
-        </section>
-      )}
-    </div>
+      <p className="meta">
+        Checked against official sources on {c.verified_on}. <button className="linklike" onClick={onSources}>Sources in Details & Sources</button>
+      </p>
+    </section>
   );
 }
 
@@ -382,12 +568,18 @@ function SpeciesLink({ name, common, onOpen }: { name: string; common: string; o
   return onOpen ? <button className="linklike" onClick={onOpen}>{label}</button> : <span>{label}</span>;
 }
 
-type CompareProps = { name: string; common: string; note: string; photo: CompareImage | null; onOpen?: () => void };
+type CompareProps = {
+  name: string; common: string; note: string; photo: CompareImage | null; onOpen?: () => void;
+  /** A reference look-alike that isn't on species.csv, so the AI never suggests it. */
+  unlisted?: boolean;
+  /** On the full page the whole comparison shows; in the drawer the detail folds. */
+  wide?: boolean;
+};
 
 const COMPARE_VIEW: Record<string, string> = { side: "Side profile", underwater: "Underwater", in_hand: "In hand", illustration: "Illustration", other: "Photo" };
 
 /** A look-alike: its own reference photo, its name and the difference that tells it apart. */
-function CompareCard({ name, common, note, photo, onOpen }: CompareProps) {
+function CompareCard({ name, common, note, photo, onOpen, unlisted, wide }: CompareProps) {
   const [broken, setBroken] = useState(false);
   const label = common || name;
   const shown = photo && !broken;
@@ -404,7 +596,18 @@ function CompareCard({ name, common, note, photo, onOpen }: CompareProps) {
       </figure>
       <div className="compare-text">
         <SpeciesLink name={name} common={common} onOpen={onOpen} />
-        <p className="meta" style={{ marginTop: 2 }}>{note}</p>
+        {unlisted && <span className="pill muted photos" title="Shown for comparison only. It isn't on species.csv, so the AI never suggests it.">Reference only · not on the AI list</span>}
+        {(() => {
+          const [lead, rest] = splitFirstSentence(note);
+          return (
+            <>
+              <p className="meta compare-note">{lead}</p>
+              {rest && (wide ? <p className="meta compare-note">{rest}</p> : (
+                <details className="fold compare-more"><summary>More</summary><p className="meta compare-note">{rest}</p></details>
+              ))}
+            </>
+          );
+        })()}
         {shown && (
           <p className="compare-credit">
             {COMPARE_VIEW[photo.view ?? "other"] ?? "Photo"} · {photo.creator} ·{" "}
@@ -444,7 +647,13 @@ function Details({ data, row }: { data: SpeciesProfile; row?: SpeciesRow }) {
             <div><dt>Status</dt><dd>{n.status}</dd></div>
             {n.aphia_id && <div><dt>WoRMS AphiaID</dt><dd className="num">{n.url ? <a href={n.url} target="_blank" rel="noreferrer noopener">{n.aphia_id}</a> : n.aphia_id}</dd></div>}
             {n.accepted_name && n.accepted_name !== data.species && <div><dt>Accepted name</dt><dd><i>{n.accepted_name}</i></dd></div>}
-            <div><dt>Habitat in WoRMS</dt><dd>{n.source === "WoRMS" ? [n.is_marine && "marine", n.is_brackish && "brackish", n.is_freshwater && "freshwater"].filter(Boolean).join(", ") || "—" : "—"}</dd></div>
+            <div>
+              <dt>Environments in WoRMS</dt>
+              <dd>
+                {n.source === "WoRMS" ? environmentLabels(n).join(", ") || "None set" : "—"}
+                {n.source === "WoRMS" && <span className="meta block">WoRMS's species-level flags: where the species can occur, not the current habitat of a particular population.</span>}
+              </dd>
+            </div>
           </dl>
         ) : <p className="meta">This name hasn't been checked yet.</p>}
         {n && n.synonyms.length > 0 && (
@@ -453,6 +662,30 @@ function Details({ data, row }: { data: SpeciesProfile; row?: SpeciesRow }) {
             <p className="meta">{n.synonyms.map((s, i) => <span key={s}>{i ? ", " : ""}<i>{s}</i></span>)}</p>
           </details>
         )}
+      </section>
+
+      <section>
+        <h3>Sources for the identification notes</h3>
+        {data.profile && data.profile.sources.length > 0 ? (
+          <ul className="features">
+            {data.profile.sources.map((s) => <li key={s.url}><a href={s.url} target="_blank" rel="noreferrer noopener">{s.label}</a></li>)}
+          </ul>
+        ) : <p className="meta">{data.profile ? "No sources listed." : "No identification notes yet."}</p>}
+        {data.profile && !data.profile.expert_reviewed && (
+          <p className="meta" style={{ marginTop: 6 }}>The notes are a first draft from these sources and have not been reviewed by a fish biologist.</p>
+        )}
+      </section>
+
+      <section>
+        <h3>Conservation sources</h3>
+        {data.conservation ? (
+          <>
+            <ul className="features">
+              {data.conservation.sources.map((s) => <li key={s.url}><a href={s.url} target="_blank" rel="noreferrer noopener">{s.label}</a></li>)}
+            </ul>
+            <p className="meta" style={{ marginTop: 6 }}>Entered by hand from these sources and checked on {data.conservation.verified_on}. Statuses change: confirm with the source before relying on it.</p>
+          </>
+        ) : <p className="meta">No verified status recorded for this fish, so there is nothing to cite. Unknown is not the same as not at risk.</p>}
       </section>
 
       <section>
