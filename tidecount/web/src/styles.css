@@ -934,7 +934,9 @@ tr.clickable.last-viewed td:first-child { box-shadow: inset 3px 0 0 var(--accent
 .tabs[role="tablist"] { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border-2); background: var(--panel); overflow-x: auto; }
 .tabs[role="tablist"] .tab { position: relative; height: 40px; margin-bottom: 0; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--text-2); font-weight: 500; white-space: nowrap; }
 .tabs[role="tablist"] .tab:hover { color: var(--text); }
-.tab[aria-selected="true"] { color: var(--accent-ink); border-bottom-color: var(--accent); }
+/* Same specificity as the rule above, and later, so the active tab's colour and underline win. */
+.tabs[role="tablist"] .tab[aria-selected="true"] { color: var(--accent-ink); border-bottom-color: var(--accent); font-weight: 600; }
+.tabs[role="tablist"] .tab[aria-selected="true"] .tab-count { background: var(--accent-soft); color: var(--accent-ink); }
 .tabs[role="tablist"] .tab-count { padding: 0 6px; border-radius: 999px; background: var(--panel-3); color: var(--text-2); font: 500 11px/18px var(--mono); }
 .name-check { margin-top: 6px; font-size: 12px; }
 .name-check.warn { color: var(--warn); }
@@ -1048,7 +1050,7 @@ details[open] summary { margin-bottom: 6px; }
 /* The full species page (/species/<name>): the drawer's view in the main content area. Its layout
    follows the width of that area, not the window's, so it works with the sidebar open or narrow. */
 .species-page { container-type: inline-size; width: 100%; display: flex; flex-direction: column; gap: 12px; }
-.species-page-nav { display: flex; }
+.species-page-nav { display: flex; gap: 8px; } /* keeps the photo buttons the same distance from Collapse with or without Edit */
 .species-page-card { overflow: clip; } /* clip, not hidden, so the map page's right column can stay in view */
 .species-page-card .drawer-head { padding: 20px 24px 14px; }
 .species-page-card .drawer-head .sci { font-size: 15px; }

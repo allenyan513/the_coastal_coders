@@ -11,6 +11,24 @@ import { api, LibraryPhoto, PhotoCredit, PhotoReview, SpeciesImage, SpeciesProfi
 import { speciesMedia, speciesProfile, speciesRows } from "./speciesData";
 import { normalizeProfile } from "./speciesProfile";
 import { Modal } from "./Modal";
+import { useCanManagePhotos, useSession } from "./session";
+
+/**
+ * Manager-only preview of the Volunteer version of the photo controls. "View as Volunteer" starts it
+ * (not offered mid-edit, so a draft isn't hidden under it); "Exit Volunteer View" ends it. Interface
+ * only: nothing about the account or its role changes.
+ */
+export function VolunteerViewToggle({ canStart = true }: { canStart?: boolean }) {
+  const { user, volunteerView, setVolunteerView } = useSession();
+  if (user?.role !== "manager") return null;
+  if (volunteerView) return <button type="button" className="btn go" onClick={() => setVolunteerView(false)}>Exit Volunteer View</button>;
+  if (!canStart) return null;
+  return (
+    <button type="button" className="btn" onClick={() => setVolunteerView(true)} title="Preview the page as a Volunteer sees it, without the photo controls">
+      View as Volunteer
+    </button>
+  );
+}
 
 export const VIEW_LABELS: Record<SpeciesImage["view"], string> = {
   side: "Side profile",
@@ -385,6 +403,9 @@ function DeletePhotoDialog({ photo, nameOf, onClose, onDeleted }: { photo: Libra
 
 /** Every reference photo: browse, filter, upload and review. Reached from the Species wiki. */
 export function MediaLibrary() {
+  // Volunteers (and a Manager previewing their view) browse only: no upload, edit, review or delete.
+  const canManage = useCanManagePhotos();
+  const { volunteerView } = useSession();
   const [photos, setPhotos] = useState<LibraryPhoto[] | null>(null);
   const [rows, setRows] = useState<SpeciesRow[] | null>(() => speciesRows.peek() ?? null);
   const [error, setError] = useState("");
@@ -399,6 +420,8 @@ export function MediaLibrary() {
 
   const load = () => api.photoLibrary().then((r) => setPhotos(r.photos)).catch((e) => setError(e.message));
   useEffect(() => { load(); speciesRows.get().then(setRows).catch(() => {}); }, []);
+  // Closing the Manager controls also closes anything they had open.
+  useEffect(() => { if (!canManage) { setEditing(""); setDeleting(null); } }, [canManage]);
 
   const shown = useMemo(() => (photos ?? []).filter((p) =>
     (!species || (species === "none" ? p.species.length === 0 : p.species.includes(species)))
@@ -443,14 +466,18 @@ export function MediaLibrary() {
 
   return (
     <div className="stack" style={{ gap: 20 }}>
-      <nav className="species-page-nav" aria-label="Species wiki"><Link className="btn species-back" to="/species">← Back to Species list</Link></nav>
-      {deleting && <DeletePhotoDialog photo={deleting} nameOf={(s) => nameOf(rows, s)} onClose={() => setDeleting(null)} onDeleted={() => deleted(deleting)} />}
+      <nav className="species-page-nav" aria-label="Species wiki">
+        <Link className="btn species-back" to="/species">← Back to Species list</Link>
+        <span style={{ marginLeft: "auto" }}><VolunteerViewToggle /></span>
+      </nav>
+      {volunteerView && <p className="hint" role="status">Volunteer view: you're seeing this page as a Volunteer does, without the photo controls. Nothing about your account has changed.</p>}
+      {canManage && deleting && <DeletePhotoDialog photo={deleting} nameOf={(s) => nameOf(rows, s)} onClose={() => setDeleting(null)} onDeleted={() => deleted(deleting)} />}
       <div>
         <h1>Media Library</h1>
         <p className="lede">Reference photos for the Species wiki. A photo is stored once and can be shown on any number of species.</p>
       </div>
 
-      <details className="fold">
+      {canManage && <details className="fold">
         <summary>Upload a photo</summary>
         <div className="fold-body stack" style={{ gap: 8 }}>
           <label className="field">Show on species (optional)
@@ -461,7 +488,7 @@ export function MediaLibrary() {
           </label>
           <UploadForm submitLabel={busy ? "Uploading…" : "Upload"} busy={busy} onSubmit={upload} />
         </div>
-      </details>
+      </details>}
       {message && <p className="meta" role="status">{message}</p>}
       {error && <p className="meta" role="alert" style={{ color: "var(--down)" }}>{error}</p>}
 
@@ -501,7 +528,8 @@ export function MediaLibrary() {
                     <span className="meta">
                       {p.species.length ? <>On {p.species.map((s, i) => <span key={s}>{i > 0 && ", "}<Link to={`/species?species=${encodeURIComponent(s)}`}>{nameOf(rows, s)}</Link></span>)}</> : "Not on any species"}
                     </span>
-                    {p.kind === "upload" ? (
+                    {/* Volunteers browse only: the review status stays visible as its pill above, with no controls. */}
+                    {!canManage ? null : p.kind === "upload" ? (
                       editing === p.id ? (
                         <EditUpload photo={p} onDone={(saved) => { setEditing(""); if (saved) { setPhotos((all) => all?.map((x) => (x.id === p.id ? { ...x, ...saved, species: x.species } : x)) ?? null); refresh(p.species); } }} />
                       ) : (

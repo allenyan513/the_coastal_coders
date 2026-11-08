@@ -8,7 +8,8 @@ import {
   STATUS_TYPE_LABEL, STATUS_TYPE_ORDER, type SpeciesTabKey,
 } from "./speciesProfile";
 import type { SpeciesConservation } from "./api";
-import { editDrafts, PhotoEditor, VIEW_LABELS } from "./PhotoLibrary";
+import { editDrafts, PhotoEditor, VIEW_LABELS, VolunteerViewToggle } from "./PhotoLibrary";
+import { useCanManagePhotos } from "./session";
 
 // Leaflet is only downloaded when someone opens the map.
 const OccurrenceMap = lazy(() => import("./OccurrenceMap"));
@@ -99,23 +100,28 @@ type ViewProps = Shared & {
   layout: "drawer" | "page";
   /** Buttons at the right of the header. */
   actions?: ReactNode;
+  /** On the full page, where the photo buttons (View as Volunteer, Edit) go: the page's top row, beside Collapse. */
+  toolsHost?: HTMLElement | null;
 };
 
 /**
  * The species itself: name, name check, the four tabs and their content. The drawer and the full
  * page both show this, so they can't drift apart. A profile that was loaded once is reused.
  */
-export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, layout, actions }: ViewProps) {
+export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, layout, actions, toolsHost }: ViewProps) {
   const [data, setData] = useState<SpeciesProfile | null>(() => speciesProfile(species).peek() ?? null);
   const [error, setError] = useState("");
   // Read-only until Edit. Editing changes this species' photos only, and nothing is stored until Save.
   // Expand or Collapse mid-edit arrives with `editing` in the navigation state and keeps the draft.
   const location = useLocation();
-  const [editing, setEditing] = useState(() => editDrafts.resume(species, location.state));
+  // Volunteers, and a Manager previewing their view, never see the edit controls.
+  const canManage = useCanManagePhotos();
+  const [editing, setEditing] = useState(() => canManage && editDrafts.resume(species, location.state));
   const bodyRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (!canManage) setEditing(false); }, [canManage]);
 
   useEffect(() => {
-    setEditing(editDrafts.resume(species, location.state));
+    setEditing(canManage && editDrafts.resume(species, location.state));
     let live = true;
     const profile = speciesProfile(species);
     setData(profile.peek() ?? null); setError("");
@@ -143,6 +149,13 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
     document.getElementById(`tab-${t}`)?.focus();
   };
   const Heading = layout === "page" ? "h1" : "h2";
+  // View as Volunteer sits left of Edit.
+  const photoButtons = (
+    <>
+      <VolunteerViewToggle canStart={!editing} />
+      {canManage && data && !editing && <button className="btn" onClick={() => { editDrafts.start(species, data.images); setEditing(true); }} aria-label="Edit this species' photos">Edit</button>}
+    </>
+  );
 
   return (
     <>
@@ -157,7 +170,7 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
             {data && <NameCheck data={data} />}
           </div>
           <div className="row drawer-actions">
-            {data && !editing && <button className="btn" onClick={() => { editDrafts.start(species, data.images); setEditing(true); }} aria-label="Edit this species' photos">Edit</button>}
+            {layout === "page" ? (toolsHost ? createPortal(photoButtons, toolsHost) : null) : photoButtons}
             {actions}
           </div>
         </header>
@@ -175,7 +188,7 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
         </div>
 
         <div className={`drawer-body${layout === "page" ? " species-page-body" : ""}`} ref={bodyRef} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
-          {data && editing ? (
+          {canManage && data && editing ? (
             <PhotoEditor key={species} data={data} onCancel={() => setEditing(false)} onSaved={(p) => { setData(p); setEditing(false); }} />
           ) : (
           <TabBoundary key={`${species}:${tab}`}>
