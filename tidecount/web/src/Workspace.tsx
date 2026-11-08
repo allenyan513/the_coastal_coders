@@ -1,7 +1,13 @@
 import { CSSProperties, PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { api, clock, FrameBox, Segment, Track, VideoDetail } from "./api";
+import { api, clock, FrameBox, Segment, SpeciesRow, Track, VideoDetail } from "./api";
 import { guess, nameOf, pos, stateFor, UNIDENTIFIED } from "./trackHelpers";
+import { speciesRows } from "./speciesData";
+import { rowForName } from "./speciesSearch";
+import { SpeciesPicker } from "./SpeciesPicker";
+import { InfoTip } from "./InfoTip";
+import { SpeciesList } from "./SpeciesList";
+import { SpeciesReference } from "./SpeciesReference";
 import { KeyGroup, Shortcuts } from "./Shortcuts";
 import { VideoHeader } from "./VideoHeader";
 import { PicturePanel, pictureFilter, SharpenFilter, usePicture } from "./Picture";
@@ -45,7 +51,10 @@ export function Workspace() {
   const [addMode, setAddMode] = useState(false);
   const [draft, setDraft] = useState<Rect | null>(null);
   const [following, setFollowing] = useState(false);
-  const [siteSpecies, setSiteSpecies] = useState<string[]>([]);
+  const [rows, setRows] = useState<SpeciesRow[]>([]);  // the whole species list, for the picker and the reference
+  const [refSpecies, setRefSpecies] = useState<string | null>(null);  // scientific name picked for the reference; null = the track's own species
+  const [refOpen, setRefOpen] = useState(false);  // the Species reference button above the picture menu
+  const [refList, setRefList] = useState(false);  // showing the full species list rather than one species
   const [toast, setToast] = useState("");
   const [frozen, setFrozen] = useState<Frozen | null>(null);
   const [maybe, setMaybe] = useState<number | null>(null);  // which frozen box is selected
@@ -68,7 +77,7 @@ export function Workspace() {
       opening.current = asked ?? null;
       setSegId((asked && queue.find((s) => inSeg(asked, s))?.id) ?? queue.find((s) => s.id === wanted)?.id ?? queue.find((s) => s.status === "needs_review")?.id ?? queue[0]?.id ?? null);
     });
-    api.species().then((rows) => setSiteSpecies([...new Set(rows.map((r) => r.common))].sort()));
+    speciesRows.get().then((all) => setRows([...all].sort((a, b) => a.common.localeCompare(b.common)))).catch(() => flash("Couldn't load the species list. Candidates still work."));
     api.event(id, "open");
   }, [id]);
 
@@ -112,6 +121,10 @@ export function Workspace() {
     unfreeze();
     api.event(id, "segment_open", { segment: seg.id });
   }, [segId]);
+
+  // A picked reference belongs to the fish it was picked for. On another fish it falls back to that
+  // fish's own species; the drawer itself stays open or closed as the reviewer left it.
+  useEffect(() => { setRefSpecies(null); }, [selected, maybe]);
 
   useEffect(() => {
     if (!seg || full || !playing || !player.current) return;
@@ -337,7 +350,7 @@ export function Workspace() {
       else if (key === "f") { if (frozen) unfreeze(); else freeze(); }
       else if (key === "]") goFish(1);
       else if (key === "[") goFish(-1);
-      else if (key === "escape") { setAdding(false); unfreeze(); }
+      else if (key === "escape") { setAdding(false); unfreeze(); setRefOpen(false); }
       else if (key === "n") finish("reviewed");
       else if (possible) {
         if (key === "c") settleMaybe(true);
@@ -373,11 +386,36 @@ export function Workspace() {
   }, [video]);
 
   if (!video) return <p className="meta">Loading…</p>;
-  const speciesButtons = current?.candidates.map((c, i) => (
-    <button key={c.species} className="species" aria-pressed={current.decided_species === nameOf(c)} onClick={() => decide(current, nameOf(c))}>
-      <span>{i + 1}. {nameOf(c)}</span><span className="num meta">{Math.round(c.score * 100)}%</span>
+  const dock = refOpen && !possible;
+  // What the drawer shows: the species picked with Info or the search, else the track's chosen
+  // species, else BioCLIP's top suggestion (only to look at; nothing is chosen or saved).
+  const ownSpecies = current ? rowForName(rows, current.decided_species)?.species ?? current.candidates[0]?.species ?? null : null;
+  const shownSpecies = refSpecies ?? ownSpecies;
+  /** Show or hide a species' reference beside the video. It never decides anything. */
+  const inspect = (scientific: string) => {
+    if (refOpen && shownSpecies === scientific) setRefOpen(false);
+    else { setRefSpecies(scientific); setRefList(false); setRefOpen(true); }
+  };
+  const infoButton = (scientific: string, label: string) => (
+    <button type="button" className="btn species-info" aria-pressed={refOpen && shownSpecies === scientific} aria-label={`Reference photos and notes for ${label}`} title="Compare with reference photos and notes" onClick={() => inspect(scientific)}>
+      Info
     </button>
+  );
+  const speciesButtons = current?.candidates.map((c, i) => (
+    <div key={c.species} className="species-line">
+      <button className="species" aria-pressed={current.decided_species === nameOf(c)} onClick={() => decide(current, nameOf(c))}>
+        <span className="species-name">
+          <span>{i + 1}. {nameOf(c)}</span>
+          {c.common !== c.species && <i className="meta">{c.species}</i>}
+        </span>
+        <span className="num meta" title={`BioCLIP's score for this species: how well the picture matches its name, shared out across the ${rows.length || "listed"} species on the list. It ranks the options. It is not the chance this name is right.`}>{Math.round(c.score * 100)}% score</span>
+      </button>
+      {infoButton(c.species, nameOf(c))}
+    </div>
   ));
+  // A species picked from the whole list isn't one of the suggestions, so show it here once chosen.
+  const pickedRow = current && current.decided_species && !current.candidates.some((c) => nameOf(c) === current.decided_species)
+    ? rowForName(rows, current.decided_species) : null;
   const done = queue.filter((s) => s.status !== "needs_review").length;
   const ratio = (video.width || 16) / (video.height || 9);
   const filter = original ? "none" : pictureFilter(picture, "sharpen");
@@ -389,7 +427,29 @@ export function Workspace() {
       <SharpenFilter id="sharpen" amount={picture.sharpness} />
       <div className="workspace">
         <section className="review-mid" aria-label="Video" style={{ "--ratio": ratio } as CSSProperties}>
-          <PicturePanel value={picture} onChange={setPicture} onCompare={setOriginal}>
+          {/* The reference drops over the left column like a menu, under its button, without moving the layout. */}
+          {dock && (refList || !shownSpecies ? (
+            <SpeciesList
+              rows={rows}
+              current={shownSpecies}
+              suggested={current?.candidates.map((c) => c.species) ?? []}
+              onOpen={(species) => { setRefSpecies(species); setRefList(false); }}
+              onClose={() => setRefOpen(false)}
+            />
+          ) : (
+            <SpeciesReference species={shownSpecies} rows={rows} onOpen={setRefSpecies} onList={() => setRefList(true)} onClose={() => setRefOpen(false)} />
+          ))}
+          <PicturePanel
+            value={picture}
+            onChange={setPicture}
+            onCompare={setOriginal}
+            above={(
+              <button type="button" className="ref-toggle" aria-expanded={refOpen} onClick={() => setRefOpen(!refOpen)} title="Reference photos and notes (Esc closes)">
+                <span>Species reference</span>
+                <span aria-hidden="true">{refOpen ? "▾" : "▸"}</span>
+              </button>
+            )}
+          >
             <label className="switch">
               <input type="checkbox" checked={boxes} onChange={() => setBoxes(!boxes)} />
               <span>AI boxes</span><kbd className="switch-key">B</kbd>
@@ -524,6 +584,7 @@ export function Workspace() {
               </div>
             </div>
           ) : current ? (
+            <>
             <div className="panel panel-pad">
               <div className="row" style={{ justifyContent: "space-between" }}>
                 <h2 className="num">Track #{current.id}</h2>
@@ -536,9 +597,29 @@ export function Workspace() {
               {!!current.manual && current.points.length < 2 && <p className="meta">AI couldn't follow this fish, so its box marks one moment.</p>}
               {!!current.static && !current.state && <p className="meta" style={{ color: "var(--warn)" }}>This barely moves. It may be background, not a fish.</p>}
               {current.candidates.length > 0
-                ? <p className="meta">{guess(current) ? "Pick the species to confirm it" : "AI's best guesses, not sure. Pick one if it's right"}</p>
-                : <p className="meta">{current.manual ? "AI's species guesses can take a moment. You can type it below." : "Too small for AI to guess the species. Type it below."}</p>}
+                ? (
+                  <p className="meta">
+                    {guess(current) ? "Pick the species to confirm it" : "AI's best guesses, not sure. Pick one if it's right"}{" "}
+                    <InfoTip label="What the scores mean">
+                      <b>What the scores mean</b>
+                      BioCLIP ranks the species on the list by how well the picture matches each name. A score is not the chance the name is right, and the fish may not be on the list. Use Info to compare with reference photos before choosing.
+                    </InfoTip>
+                  </p>
+                )
+                : <p className="meta">{current.manual ? "AI's species guesses can take a moment. You can search the species list below." : "Too small for AI to guess the species. Search the species list below."}</p>}
               {speciesButtons}
+              {pickedRow && (
+                <div className="species-line">
+                  <div className="species chosen" aria-label={`Chosen from the species list: ${pickedRow.common}`}>
+                    <span className="species-name">
+                      <span>{pickedRow.common}</span>
+                      {pickedRow.common !== pickedRow.species && <i className="meta">{pickedRow.species}</i>}
+                    </span>
+                    <span className="meta">Chosen by you</span>
+                  </div>
+                  {infoButton(pickedRow.species, pickedRow.common)}
+                </div>
+              )}
               <div className="row" style={{ flexWrap: "nowrap" }}>
                 <button className="btn primary" style={{ flex: 1, minWidth: 0 }} aria-pressed={current.decided_species === UNIDENTIFIED} onClick={() => decide(current, UNIDENTIFIED)}>
                   <kbd>C</kbd>Unidentified fish
@@ -547,23 +628,16 @@ export function Workspace() {
                   <kbd>X</kbd>{current.manual ? "Remove this fish" : "Not a fish"}
                 </button>
               </div>
-              <input
+              <SpeciesPicker
                 key={`name-${current.id}`}
-                className="name-species"
-                list="site-species"
-                aria-label="Name the species from the site list"
-                placeholder="Name it: type a species from the site list"
-                onChange={(e) => {
-                  const name = siteSpecies.find((n) => n.toLowerCase() === e.target.value.trim().toLowerCase());
-                  if (!name) return;
-                  e.target.value = "";
-                  e.target.blur();
-                  decide(current, name);
-                }}
+                rows={rows}
+                onPick={(row) => decide(current, row.common)}
+                onPreview={(row) => { setRefSpecies(row.species); setRefList(false); setRefOpen(true); }}
+                onUnidentified={() => decide(current, UNIDENTIFIED)}
               />
-              <datalist id="site-species">{siteSpecies.map((n) => <option key={n} value={n} />)}</datalist>
               <p className="meta">Applies to the whole track.</p>
             </div>
+            </>
           ) : (
             <div className="panel panel-pad">
               <h2>{seg?.is_dense ? "Dense school" : seg?.low_vis ? "Hard to see" : segTracks.length ? "All tracks decided" : "No AI suggestions here"}</h2>

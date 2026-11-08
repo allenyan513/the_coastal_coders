@@ -268,7 +268,7 @@ function NameCheck({ data }: { data: SpeciesProfile }) {
   );
 }
 
-function Photos({ data, title }: { data: SpeciesProfile; title: string }) {
+export function Photos({ data, title }: { data: SpeciesProfile; title: string }) {
   const [broken, setBroken] = useState<Set<string>>(new Set());
   const [view, setView] = useState<SpeciesImage["view"] | "all">("all");
   const [shot, setShot] = useState(0);
@@ -377,7 +377,7 @@ type OverviewProps = {
 const KIND_LABEL: Record<SpeciesConservation["kind"], string> = { at_risk: "Species at risk", invasive_ns: "Invasive in Nova Scotia" };
 
 /** Only for a verified status: a fish without one shows no badge, which means unknown, not safe. */
-function StatusBadge({ c }: { c: SpeciesConservation }) {
+export function StatusBadge({ c }: { c: SpeciesConservation }) {
   return (
     <span
       className={`pill status-badge ${c.kind}`}
