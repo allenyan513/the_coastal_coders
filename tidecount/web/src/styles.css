@@ -1002,6 +1002,49 @@ textarea.record-input { height: auto; resize: vertical; }
 .ln .ln-foot-col a:hover { color: var(--text); }
 .ln-foot-fine { margin-top: 28px; padding-top: 16px; display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--border-2); line-height: 1.5; }
 
+/* Front page v2 (/homepage_v2, issue #50): the content is raised into <main>, and the underwater footer
+   is sticky beneath it, so scrolling to the end uncovers it like dropping below the surface. The
+   reveal (.reveal) is switched on by LandingFooter's useFits only while the footer fits the window. */
+.ln-main { position: relative; z-index: 1; padding-bottom: 96px; background: #fff; }
+/* The surface hangs off the bottom of <main>, over the top of the footer; the footer pads for it. */
+.ln-surface { position: absolute; left: 0; top: 100%; display: block; width: 100%; height: 80px; pointer-events: none; }
+.ln-deep { position: relative; z-index: 0; overflow: hidden; padding: 128px 0 24px; background: radial-gradient(900px 420px at 50% 0%, rgba(31, 94, 255, .35), rgba(31, 94, 255, 0) 70%), linear-gradient(180deg, #0b2a5c 0%, #071a3d 55%, #030d22 100%); color: #fff; }
+.ln-deep.reveal { position: sticky; bottom: 0; }
+.ln-deep > .ln-wrap { position: relative; }
+.ln-deep-rays { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(105deg, rgba(143, 180, 255, 0) 0 70px, rgba(143, 180, 255, .07) 70px 110px, rgba(143, 180, 255, 0) 110px 190px); -webkit-mask-image: linear-gradient(180deg, #000, transparent 75%); mask-image: linear-gradient(180deg, #000, transparent 75%); }
+.ln-deep-bubbles { position: absolute; inset: 0; pointer-events: none; }
+.ln-deep-bubbles i { position: absolute; bottom: -16px; border: 1px solid rgba(143, 180, 255, .55); border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, .35), rgba(143, 180, 255, .05) 60%); animation: ln-rise linear infinite; }
+@keyframes ln-rise {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translate(8px, -50vh); }
+  90% { opacity: .8; }
+  100% { transform: translate(-4px, -100vh); opacity: 0; }
+}
+.ln-deep-grid { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 32px; }
+.ln-deep-text { max-width: 360px; margin: 0; color: rgba(255, 255, 255, .78); line-height: 1.6; }
+.ln-deep-built { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; color: rgba(255, 255, 255, .78); font-size: 13px; }
+.ln-deep-built .ln-eyebrow { color: #8fb4ff; }
+.ln-deep-built b { color: #fff; font: 800 22px/1.15 var(--display); letter-spacing: -.4px; }
+.ln-deep-col { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+.ln-deep-col b { margin-bottom: 2px; font: 500 11px var(--mono); letter-spacing: .3px; text-transform: uppercase; color: #8fb4ff; }
+.ln .ln-deep-col a { color: rgba(255, 255, 255, .82); text-decoration: none; }
+.ln .ln-deep-col a:hover { color: #fff; text-decoration: underline; }
+.ln-deep-word { margin-top: 40px; font: 800 clamp(64px, 17vw, 236px)/.8 var(--display); letter-spacing: -.05em; text-align: center; white-space: nowrap; color: transparent; background: linear-gradient(180deg, rgba(143, 180, 255, .32), rgba(143, 180, 255, .04)); -webkit-background-clip: text; background-clip: text; user-select: none; }
+.ln-deep-fine { margin-top: 20px; padding-top: 16px; display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid rgba(143, 180, 255, .2); color: rgba(255, 255, 255, .6); font-size: 12px; line-height: 1.5; }
+@media (max-width: 720px) {
+  .ln-main { padding-bottom: 64px; }
+  .ln-surface { height: 48px; }
+  .ln-deep { padding-top: 84px; }
+  .ln-deep-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
+  .ln-deep-grid > :first-child { grid-column: 1 / -1; }
+  .ln-deep-word { margin-top: 28px; }
+  .ln-deep-fine { flex-direction: column; gap: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ln-deep-bubbles { display: none; }
+}
+
 @media (max-width: 1000px) {
   .ln-hero-in, .ln-ai, .ln-volunteer { grid-template-columns: minmax(0, 1fr); }
   .ln-pipe { grid-template-columns: repeat(2, minmax(0, 1fr)); }

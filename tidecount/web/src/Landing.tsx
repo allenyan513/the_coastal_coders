@@ -4,6 +4,7 @@ import { api, ModelOption, SpeciesMediaSummary, SpeciesRow, Summary, Video } fro
 import { SpeciesShowcase, StationPreview, WqiPreview } from "./LandingData";
 import { Pipeline, Research, VisionStack } from "./LandingVision";
 import { Access, Flow, JOIN_STEPS, Roles, Status } from "./LandingTeam";
+import { RevealFooter, Surface } from "./LandingFooter";
 import { countProgress } from "./Library";
 import { speciesMedia } from "./speciesData";
 import { useSession } from "./session";
@@ -141,8 +142,9 @@ function Head({ eyebrow, title, text, light }: { eyebrow: string; title: string;
   );
 }
 
-/** The public front page: what Tideflow is, how the work flows, the AI, the data it opens up, and how to help. */
-export function Landing() {
+/** The public front page: what Tideflow is, how the work flows, the AI, the data it opens up, and how to help.
+ *  `v2` (on /homepage_v2, issue #50) raises the content into a <main> and uncovers an underwater footer beneath it. */
+export function Landing({ v2 = false }: { v2?: boolean }) {
   const f = useFacts();
   // Every figure here is computed from the data, or true by how Tideflow works. None is an estimate.
   const stats: [string, string][] = [
@@ -152,8 +154,8 @@ export function Landing() {
     [hours(f.hours), `of survey video scanned, across ${f.videos} ${f.videos === 1 ? "video" : "videos"}`],
   ];
 
-  return (
-    <div className="ln">
+  const content = (
+    <>
       <section className="ln-hero">
         <Waves />
         <Nav />
@@ -238,7 +240,20 @@ export function Landing() {
           </ol>
         </div>
       </section>
+    </>
+  );
 
+  if (v2) {
+    return (
+      <div className="ln ln-v2" id="top">
+        <main className="ln-main">{content}<Surface /></main>
+        <RevealFooter />
+      </div>
+    );
+  }
+  return (
+    <div className="ln">
+      {content}
       <footer className="ln-foot">
         <div className="ln-wrap ln-foot-grid">
           <div className="stack" style={{ gap: 10 }}>
