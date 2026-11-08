@@ -497,7 +497,9 @@ def cmd_check(_args) -> int:
             if not p.get(key):
                 problems.append(f"profile {name}: missing {key}")
         for s in p.get("similar", []):
-            if s["species"] not in listed:
+            # An entry with a "common" name is a reference-only look-alike (e.g. Lake Whitefish):
+            # it is shown as plain text, so it needn't be on the list.
+            if s["species"] not in listed and not s.get("common"):
                 problems.append(f"profile {name}: similar species {s['species']} is not in species.csv, so the drawer can't link it")
             if s["species"] == name:
                 problems.append(f"profile {name}: lists itself as similar")

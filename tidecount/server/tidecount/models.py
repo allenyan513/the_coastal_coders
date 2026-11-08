@@ -101,7 +101,7 @@ def species_table() -> list[dict]:
     keep = []
     with open(config.SPECIES_CSV, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            # A blank class means iNaturalist had no record. Those rows come from fish surveys.
+            # A blank class only means the class isn't recorded in species.csv; it says nothing about where the species came from.
             if row["class"] in ("Actinopterygii", "Elasmobranchii", ""):
                 keep.append({
                     "species": row["species"],

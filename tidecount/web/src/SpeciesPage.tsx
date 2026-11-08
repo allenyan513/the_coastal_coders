@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { SpeciesMediaSummary, SpeciesRow } from "./api";
-import { isSpeciesTab, SpeciesTab, SpeciesView } from "./SpeciesDrawer";
-import { speciesMedia, speciesPagePath, speciesRows } from "./speciesData";
+import { SpeciesTab, SpeciesView } from "./SpeciesDrawer";
+import { tabFromParam } from "./speciesProfile";
+import { lastViewed, speciesMedia, speciesPagePath, speciesRows } from "./speciesData";
 
 /**
  * One species as a full page in the main content area, beside Tideflow's sidebar: the same view as
@@ -14,7 +15,8 @@ export function SpeciesPage() {
   const { name = "" } = useParams(); // React Router has decoded it already
   const species = name;
   const [params, setParams] = useSearchParams();
-  const tab: SpeciesTab = isSpeciesTab(params.get("tab")) ? (params.get("tab") as SpeciesTab) : "photos";
+  const asked = params.get("tab");
+  const tab: SpeciesTab = tabFromParam(asked);
   const navigate = useNavigate();
   const location = useLocation();
   // How many species pages ago the list was, when we came from it (Expand is 1, each look-alike
@@ -27,11 +29,15 @@ export function SpeciesPage() {
   const [error, setError] = useState("");
   useEffect(() => { speciesRows.get().then(setRows).catch((e) => setError(e.message)); }, []);
   useEffect(() => { speciesMedia.get().then(setMedia); }, []);
-  // A new species starts at the top of the page.
-  useEffect(() => { window.scrollTo({ top: 0 }); }, [species]);
+  // A new species starts at the top of the page, and becomes the one the list marks as last viewed.
+  useEffect(() => { window.scrollTo({ top: 0 }); lastViewed.species = species; }, [species]);
 
   // A tab is a view of the same page, not a new history entry.
-  const setTab = (t: SpeciesTab) => setParams(t === "photos" ? {} : { tab: t }, { replace: true, state: location.state });
+  const setTab = (t: SpeciesTab) => setParams(t === "overview" ? {} : { tab: t }, { replace: true, state: location.state });
+  // Old links (?tab=photos, ?tab=identify, or a name that never existed) are rewritten to the section they now mean.
+  useEffect(() => {
+    if (asked !== null && asked !== tab) setTab(tab);
+  }, [asked, tab]);
   const back = () => (depth > 0 ? navigate(-depth) : navigate("/species"));
 
   const backButton = <button className="btn species-back" onClick={back}>← Back to Species list</button>;

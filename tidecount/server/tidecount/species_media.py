@@ -5,6 +5,7 @@ Three hand-curated files sit next to species.csv, all written or checked with `m
 - species_media.json: photos, each with creator, licence, source page and how it was checked
 - species_profiles.json: identification notes and the species each one is easily confused with
 - species_taxonomy.json: every listed name checked against WoRMS (or GBIF when WoRMS lacks it)
+- species_conservation.json: conservation or invasive status, written by hand from official sources
 
 This module only reads them, so the Species page and, later, the video review screen share one
 source of truth. None of them changes species.csv, which stays the list BioCLIP chooses from.
@@ -35,6 +36,79 @@ def taxonomy(name: str) -> dict | None:
     except FileNotFoundError:
         return None
     return _taxonomy(mtime).get(name)
+
+
+CONSERVATION_KINDS = {"at_risk", "invasive_ns"}
+# What sort of statement each status is, so scientific assessments, legal listings and invasive
+# classifications are never shown as one agreed status.
+STATUS_TYPES = {"assessment", "legal", "introduced", "other"}
+
+
+def _status_type(s: dict, kind: str) -> str:
+    """The curated type, or one inferred from the authority for older entries without it."""
+    if s.get("type") in STATUS_TYPES:
+        return s["type"]
+    a = str(s.get("authority", "")).lower()
+    if a.startswith("cosewic"):
+        return "assessment"
+    if "species at risk act" in a or "endangered species act" in a:
+        return "legal"
+    return "introduced" if kind == "invasive_ns" else "other"
+
+
+def _statuses(raw, kind: str) -> list[dict]:
+    out = []
+    for s in raw or []:
+        if not (isinstance(s, dict) and s.get("authority") and s.get("status")):
+            continue
+        source = str(s.get("source") or "")
+        out.append({
+            "authority": str(s["authority"]), "status": str(s["status"]),
+            "date": str(s.get("date") or ""), "note": str(s.get("note") or ""),
+            "type": _status_type(s, kind),
+            # Empty means the whole species (as far as this entry covers it); otherwise only the
+            # population named, which the page must never present as the species' status.
+            "population": str(s.get("population") or ""),
+            "jurisdiction": str(s.get("jurisdiction") or ""),
+            "source": source if source.startswith("https://") else "",
+        })
+    return out
+
+
+def conservation() -> dict:
+    """Verified conservation or invasive status by scientific name, from species_conservation.json.
+    An entry is used only when it says what it is, when it was verified and where from; anything
+    less is dropped, so a half-written entry can never show as a status. A species with no entry
+    has no known status here, which the page must not present as safe."""
+    out = {}
+    for name, e in _read(config.SPECIES_CONSERVATION).items():
+        if not isinstance(e, dict) or e.get("kind") not in CONSERVATION_KINDS or not e.get("badge") or not e.get("verified_on"):
+            continue
+        sources = [s for s in (e.get("sources") or []) if isinstance(s, dict) and str(s.get("url", "")).startswith("https://")]
+        if not sources:
+            continue
+        statuses = _statuses(e.get("statuses"), e["kind"])
+        out[name] = {
+            "kind": e["kind"], "badge": str(e["badge"]), "verified_on": str(e["verified_on"]),
+            # "populations" as soon as any status names a population: the badge then describes
+            # some populations only, and the list and header must say so.
+            "scope": "populations" if any(s["population"] for s in statuses) else "species",
+            "population": e.get("population") or "",
+            # Where it lived before and where wild fish are known now, kept apart on purpose.
+            "historical_range": e.get("historical_range") or "",
+            "current_range": e.get("current_range") or "",
+            "range_note": e.get("range_note") or "",
+            # The environment the known wild population lives in now, when it differs from WoRMS's
+            # species-level list (e.g. a landlocked population of a once sea-run fish).
+            "environment_now": e.get("environment_now") or "",
+            "environment_now_note": e.get("environment_now_note") or "",
+            "environment_historical": e.get("environment_historical") or "",
+            "statuses": statuses,
+            "significance": e.get("significance") or "",
+            "threats": [t for t in (e.get("threats") or []) if isinstance(t, str) and t],
+            "sources": [{"label": s.get("label") or s["url"], "url": s["url"]} for s in sources],
+        }
+    return out
 
 
 def load() -> dict:
@@ -70,13 +144,17 @@ def compare_image(images: list[dict]) -> dict | None:
 def summaries() -> dict:
     """One small record per curated species: enough for a table badge or a comparison card."""
     out = {}
-    for name, entry in load().items():
+    curated, status = load(), conservation()
+    for name in curated.keys() | status.keys():
+        entry = curated.get(name, {})
         images = entry.get("images", [])
         out[name] = {
             "image_count": len(images),
             "thumb": (images[0].get("thumb_url") or images[0]["url"]) if images else None,
             "compare": compare_image(images),
             "has_profile": bool(entry.get("profile")),
+            # Only verified statuses; a fish without one has no badge at all.
+            "conservation": {k: status[name][k] for k in ("kind", "badge", "scope")} if name in status else None,
         }
     return out
 
@@ -101,4 +179,5 @@ def profile(name: str) -> dict:
         **entry,
         "names": taxonomy(name),
         "mentioned_by": mentioned_by,
+        "conservation": conservation().get(name),
     }

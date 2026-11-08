@@ -291,10 +291,13 @@ Select a fish on the **Species wiki** page to open its entry in a drawer on the 
 
 | Tab | What's in it |
 |---|---|
-| Photos | Reference photos, filtered by side profile, underwater, in hand or illustration, each with its creator, licence and a link to the original |
-| Identify | How to recognise the fish, the fish it is easily confused with side by side, and entries that compare themselves with it |
+| Overview | The photo gallery with credits beside a short description, at-a-glance facts (group, family, WoRMS habitat, status), how to recognise it and its conservation status; similar species below. Two columns on the full page, one in the drawer |
 | Map | Where OBIS has occurrence records of the fish, plus opt-in eDNA water-sample evidence and net-survey non-detections, each by sampling site-date |
-| Details | TideCount's own counts, the name check against WoRMS, photo credits and links to iNaturalist, OBIS, FishBase and GBIF |
+| Details & Sources | TideCount's own counts, the name check against WoRMS, the sources for the notes and the conservation status, photo credits and links to iNaturalist, OBIS, FishBase and GBIF |
+
+Old links to `?tab=photos` and `?tab=identify` open Overview.
+
+**Conservation status** comes from `server/tidecount/species_conservation.json`, written by hand from official sources (COSEWIC, the SARA registry, Nova Scotia's species-at-risk list) with the date it was checked. It starts with Atlantic Whitefish: Endangered under COSEWIC (confirmed December 2022), SARA Schedule 1 (2003) and Nova Scotia's Endangered Species Act (2002), in the three Petite Rivière lakes. An entry without a kind, a verification date and an https source is ignored. A species with no entry shows "no verified status", never a badge and never "not at risk". `kind: "invasive_ns"` is supported for fish verified as invasive in Nova Scotia; none has been added yet.
 
 The drawer needs only a scientific name, so the review screen can later open the same one for a BioCLIP suggestion. None of this changes `species.csv`, which stays the list BioCLIP chooses from.
 

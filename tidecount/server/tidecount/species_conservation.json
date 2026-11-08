@@ -1,0 +1,367 @@
+{
+ "about": "Hand-curated conservation and invasive-status entries for the species list. Only add a species after checking each statement against the official source listed with it, and set verified_on to that day. A species with no entry here has NO verified status in Tideflow, which is not the same as being secure. kind is at_risk or invasive_ns (introduced and invasive in Nova Scotia). Each status has a type: assessment (a scientific status, e.g. COSEWIC), legal (a listing under an act, e.g. SARA or the Nova Scotia Endangered Species Act) or introduced (an introduced or invasive classification); optional jurisdiction, population and source (https). A status with a population applies to that population only; the badge then covers some populations only and the page says so.",
+ "species": {
+  "Coregonus huntsmani": {
+   "kind": "at_risk",
+   "badge": "Endangered",
+   "verified_on": "2026-11-07",
+   "population": "The only wild population: three small, partly interconnected lakes (Hebb, Milipsigate and Minamkeak) in the upper Petite Rivière drainage near Bridgewater, southwestern Nova Scotia.",
+   "statuses": [
+    {
+     "authority": "COSEWIC",
+     "status": "Endangered",
+     "date": "December 2022",
+     "note": "Designated Endangered in April 1984; re-examined and confirmed in November 2000, November 2010 and December 2022 (rapid review of classification).",
+     "type": "assessment",
+     "jurisdiction": "Canada"
+    },
+    {
+     "authority": "Species at Risk Act (Canada)",
+     "status": "Endangered, Schedule 1",
+     "date": "June 2003",
+     "note": "Listed when the Act came into force, which protects individuals and their residence and requires recovery planning.",
+     "type": "legal",
+     "jurisdiction": "Canada"
+    },
+    {
+     "authority": "Nova Scotia Endangered Species Act",
+     "status": "Endangered",
+     "date": "2002",
+     "note": "Year added to the provincial list of species at risk.",
+     "type": "legal",
+     "jurisdiction": "Nova Scotia"
+    }
+   ],
+   "environment_now": "Freshwater",
+   "environment_now_note": "Landlocked in three lakes",
+   "environment_historical": "Anadromous: moved between fresh water and the Atlantic",
+   "historical_range": "Once anadromous, migrating between fresh water and the Atlantic Ocean. Known historically from the Tusket River and Petite Rivière watersheds in southwestern Nova Scotia, and almost certainly more widespread before European colonization.",
+   "current_range": "Landlocked. Reproduction is largely restricted to three small, partly interconnected lakes (Hebb, Milipsigate and Minamkeak) in the upper Petite Rivière drainage near Bridgewater. Believed extirpated from the Tusket River. No other wild population is known: captive-reared fish released into Anderson Lake, Dartmouth, are unlikely to persist (eDNA survey, 2017).",
+   "range_note": "Older guides, including Coastal Action's identification sheets, still describe the fish as sea-run and present in the Tusket River. The current range here follows COSEWIC's 2022 assessment.",
+   "significance": "Endemic to Canada and found only in Nova Scotia: wild Atlantic Whitefish live nowhere else in the world. Once anadromous, moving between fresh water and the Atlantic, it is now landlocked. It is believed extirpated from the Tusket River, where it was once reportedly abundant.",
+   "threats": [
+    "Illegally introduced predatory fishes: Smallmouth Bass now reproduce in all three lakes, and Chain Pickerel were reported in two of them in 2013 (COSEWIC: high impact)",
+    "Water-control structures and dams that block movement, and changes to water levels for the Town of Bridgewater's water supply (medium impact)",
+    "Pollution from forestry runoff, leachate from historical mine sites and land development (low impact at current levels)",
+    "Acidification of the watershed from acid rain (named in the federal recovery strategy and Coastal Action's guide)",
+    "Climate change, through egg incubation conditions, cold-water refuges and lake productivity (impact unknown)",
+    "A very small population in a very limited range"
+   ],
+   "sources": [
+    {
+     "label": "COSEWIC (2022). Rapid review of classification on the Atlantic Whitefish in Canada. Species at Risk Public Registry",
+     "url": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/rroc-atlantic-whitefish-2022.html"
+    },
+    {
+     "label": "Fisheries and Oceans Canada. Recovery strategy for the Atlantic Whitefish: executive summary (SARA listing)",
+     "url": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/recovery-strategies/atlantic-whitefish/executive-summary.html"
+    },
+    {
+     "label": "Nova Scotia. Categorized List of Species at Risk, Endangered Species Act (N.S. Reg. 146/2017)",
+     "url": "https://novascotia.ca/just/regulations/regs/eslist.htm"
+    },
+    {
+     "label": "Bluenose Coastal Action Foundation. Atlantic Whitefish: Identification & Status (threats)",
+     "url": "https://www.coastalaction.org/uploads/1/2/2/2/122203881/aw_lg_low.pdf"
+    }
+   ]
+  },
+  "Anguilla rostrata": {
+   "kind": "at_risk",
+   "badge": "Threatened (COSEWIC)",
+   "verified_on": "2026-11-07",
+   "population": "All American Eel in Canada, including Nova Scotia's. The species forms one population across its whole range (DFO), and COSEWIC assessed it as a single unit, so this is not a regional status. It is an assessment only: the eel has no legal at-risk listing federally or in Nova Scotia.",
+   "statuses": [
+    {
+     "authority": "COSEWIC",
+     "status": "Threatened",
+     "date": "May 2012",
+     "note": "Assessed Special Concern in April 2006; re-examined and designated Threatened in May 2012.",
+     "type": "assessment",
+     "jurisdiction": "Canada"
+    },
+    {
+     "authority": "Species at Risk Act (Canada)",
+     "status": "Not listed",
+     "date": "December 2025",
+     "note": "The Governor in Council decided not to add American Eel to Schedule 1 and to manage it under the Fisheries Act instead (announced 2 December 2025). DFO noted that a 2024 national science review found abundance across Canada relatively stable over the past two decades.",
+     "type": "legal",
+     "jurisdiction": "Canada"
+    },
+    {
+     "authority": "Nova Scotia Endangered Species Act",
+     "status": "Not listed",
+     "date": "",
+     "note": "Not on the provincial Categorized List of Species at Risk (N.S. Reg. 146/2017, unofficial consolidation checked 2026-11-07).",
+     "type": "legal",
+     "jurisdiction": "Nova Scotia"
+    }
+   ],
+   "significance": "American Eel live in rivers, lakes, estuaries and coastal waters connected to the Atlantic, including throughout Nova Scotia, and spawn only once, far away in the Sargasso Sea. The eel is culturally and spiritually important to many Indigenous communities in Atlantic Canada, and the Scotia-Fundy region has a managed fishery for elvers (young eels). COSEWIC reported declines in southwest Nova Scotia between the 1980s and the 2000s.",
+   "threats": [
+    "Dams and other barriers that block young eels moving upstream, and hydroelectric turbines that kill maturing eels heading downstream to the sea (COSEWIC: losses of up to 40% through several dams)",
+    "Habitat degradation, including pollution",
+    "Fishing in Canada and elsewhere, including harvest of elvers",
+    "Contaminants that build up in eels' bodies",
+    "An introduced swim-bladder parasite (a nematode), found in Nova Scotia on Cape Breton Island",
+    "Changing ocean conditions linked to climate change"
+   ],
+   "sources": [
+    {
+     "label": "COSEWIC (2012). Assessment and status report on the American Eel in Canada. Species at Risk Public Registry",
+     "url": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/american-eel-2012.html"
+    },
+    {
+     "label": "Fisheries and Oceans Canada (2 December 2025). Government of Canada commits to adaptive management approach to conserve and protect American Eel (decision not to list under SARA)",
+     "url": "https://www.canada.ca/en/fisheries-oceans/news/2025/12/government-of-canada-commits-to-adaptive-management-approach-to-conserve-and-protect-american-eel.html"
+    },
+    {
+     "label": "Nova Scotia. Categorized List of Species at Risk, Endangered Species Act (N.S. Reg. 146/2017)",
+     "url": "https://novascotia.ca/just/regulations/regs/eslist.htm"
+    }
+   ]
+  },
+  "Esox niger": {
+   "kind": "invasive_ns",
+   "badge": "Introduced",
+   "verified_on": "2026-11-07",
+   "population": "Every Chain Pickerel population in Nova Scotia. The species is native to eastern North America north to Maine, not to Nova Scotia. This is an introduced-species classification, not a conservation assessment.",
+   "statuses": [
+    {
+     "authority": "Nova Scotia Fisheries and Aquaculture",
+     "status": "Mandatory retention",
+     "date": "1 April 2025",
+     "note": "Listed by the province as an aquatic invasive species. Every Chain Pickerel caught in any Nova Scotia water must be kept and humanely killed, not released; sale is prohibited. It is also illegal to use or possess pickerel as bait, alive or dead.",
+     "type": "introduced",
+     "jurisdiction": "Nova Scotia"
+    }
+   ],
+   "historical_range": "Not native to Nova Scotia. First planted in three lakes in 1945.",
+   "current_range": "Widespread throughout Nova Scotia, according to the province, because of illegal introductions. A 2011 study with the provincial fisheries department counted 95 known lakes by 2010, spread by illegal movement of live fish and dispersal within connected waters.",
+   "significance": "The province names Chain Pickerel and Smallmouth Bass as the two most serious invasive-fish threats in Nova Scotia, harming native fish, especially Brook Trout, with implications for the endangered Atlantic Whitefish and Inner Bay of Fundy Atlantic Salmon. In northeastern Nova Scotia lakes, lakes with pickerel had altered fish communities, fewer fish overall and few small fish left. Report pickerel from new places to reportais@novascotia.ca.",
+   "threats": [],
+   "sources": [
+    {
+     "label": "Nova Scotia Fisheries and Aquaculture. Aquatic Invasive Species: mandatory retention (effective 1 April 2025)",
+     "url": "https://novascotia.ca/fish/sportfishing/resource-management/ais/"
+    },
+    {
+     "label": "Nova Scotia Fisheries and Aquaculture. New regulations to address the threat of aquatic invasive species: Live Fish Possession Regulations, questions and answers",
+     "url": "https://novascotia.ca/fish/sportfishing/resource-management/ais/FCRA-QandA.pdf"
+    },
+    {
+     "label": "Mitchell, LeBlanc and Heggelin (2011). Impact of introduced Chain Pickerel (Esox niger) on lake fish communities in Nova Scotia (with N.S. Fisheries and Aquaculture)",
+     "url": "https://novascotia.ca/fish/documents/special-management-areas-reports/impact-chain-pickerel.pdf"
+    }
+   ]
+  },
+  "Micropterus dolomieu": {
+   "kind": "invasive_ns",
+   "badge": "Introduced",
+   "verified_on": "2026-11-07",
+   "population": "Every Smallmouth Bass population in Nova Scotia. The species is native to the Great Lakes and St. Lawrence River region of Canada, not to Nova Scotia. This is an introduced-species classification, not a conservation assessment.",
+   "statuses": [
+    {
+     "authority": "Nova Scotia Fisheries and Aquaculture",
+     "status": "Mandatory retention in set areas",
+     "date": "1 April 2025",
+     "note": "Listed by the province as an aquatic invasive species. Smallmouth Bass caught in any water east of a line along Highway 102 (from its junction with Highway 104), Highway 118, Highway 107 and Highway 328 (Ross Road) near Upper Lawrencetown, or in the west branch of the LaHave River upstream of the main branch (with its lakes and tributaries), must be kept and humanely killed, not released; sale is prohibited. It is illegal everywhere in the province to use or possess bass as bait.",
+     "type": "introduced",
+     "jurisdiction": "Nova Scotia"
+    }
+   ],
+   "historical_range": "Not native to Nova Scotia. The first authorized introduction was in 1942 in Yarmouth County; more authorized and unauthorized introductions followed.",
+   "current_range": "Widespread throughout Nova Scotia, according to the province, because of illegal introductions; a 2018 report counted more than 180 lakes.",
+   "significance": "The province names Smallmouth Bass and Chain Pickerel as the two most serious invasive-fish threats in Nova Scotia, harming native fish, especially Brook Trout, with implications for the endangered Atlantic Whitefish and Inner Bay of Fundy Atlantic Salmon. Bass eat Atlantic Salmon smolts as they migrate to sea, and in 2022 COSEWIC found them reproducing in all three lakes that hold the last wild Atlantic Whitefish. Report bass from new places to reportais@novascotia.ca.",
+   "threats": [],
+   "sources": [
+    {
+     "label": "Nova Scotia Fisheries and Aquaculture. Aquatic Invasive Species: mandatory retention (effective 1 April 2025)",
+     "url": "https://novascotia.ca/fish/sportfishing/resource-management/ais/"
+    },
+    {
+     "label": "Nova Scotia Fisheries and Aquaculture. New regulations to address the threat of aquatic invasive species: Live Fish Possession Regulations, questions and answers",
+     "url": "https://novascotia.ca/fish/sportfishing/resource-management/ais/FCRA-QandA.pdf"
+    },
+    {
+     "label": "Bluenose Coastal Action Foundation (2019). LaHave River Invasive Species Project, 2018 final report (published by N.S. Fisheries and Aquaculture)",
+     "url": "https://novascotia.ca/fish/documents/2019_-_LaHave_River_Invasive_Species_Project.pdf"
+    },
+    {
+     "label": "COSEWIC (2022). Rapid review of classification on the Atlantic Whitefish in Canada (Smallmouth Bass in the whitefish lakes)",
+     "url": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/rroc-atlantic-whitefish-2022.html"
+    }
+   ]
+  },
+  "Salmo salar": {
+   "kind": "at_risk",
+   "badge": "Endangered",
+   "verified_on": "2026-11-07",
+   "population": "Sea-run (anadromous) Atlantic Salmon only, assessed by population. COSEWIC recognizes 19 populations in eastern Canada; the five that include Nova Scotia rivers are listed here. Landlocked salmon are not covered.",
+   "statuses": [
+    {
+     "authority": "COSEWIC",
+     "type": "assessment",
+     "jurisdiction": "Canada",
+     "population": "Nova Scotia Southern Upland East population",
+     "status": "Endangered",
+     "date": "2025",
+     "note": "Formerly part of a single Nova Scotia Southern Upland population (Endangered in 2010), split in two in 2025.",
+     "source": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/multiple-populations-atlantic-salmon-2025.html"
+    },
+    {
+     "authority": "COSEWIC",
+     "type": "assessment",
+     "jurisdiction": "Canada",
+     "population": "Nova Scotia Southern Upland West population",
+     "status": "Endangered",
+     "date": "2025",
+     "note": "Formerly part of a single Nova Scotia Southern Upland population (Endangered in 2010), split in two in 2025. Directed recreational salmon fishing in this unit has been closed since 2010.",
+     "source": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/multiple-populations-atlantic-salmon-2025.html"
+    },
+    {
+     "authority": "COSEWIC",
+     "type": "assessment",
+     "jurisdiction": "Canada",
+     "population": "Southern Gulf of St. Lawrence and Cape Breton population",
+     "status": "Endangered",
+     "date": "2025",
+     "note": "A unit new in 2025, joining the southern Gulf of St. Lawrence rivers with the former Eastern Cape Breton population.",
+     "source": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/multiple-populations-atlantic-salmon-2025.html"
+    },
+    {
+     "authority": "COSEWIC",
+     "type": "assessment",
+     "jurisdiction": "Canada",
+     "population": "Inner Bay of Fundy population",
+     "status": "Endangered",
+     "date": "2025",
+     "note": "49 rivers in New Brunswick and Nova Scotia. Assessed Endangered in 2001, 2006, 2010 and 2025; fewer than 100 spawners a year in most years from 2013 to 2017.",
+     "source": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/multiple-populations-atlantic-salmon-2025.html"
+    },
+    {
+     "authority": "COSEWIC",
+     "type": "assessment",
+     "jurisdiction": "Canada",
+     "population": "Outer Bay of Fundy population",
+     "status": "Endangered",
+     "date": "December 2025",
+     "note": "Rivers on the New Brunswick side of the Bay of Fundy, plus the Gaspereau River in Nova Scotia, which was moved here from the Inner Bay of Fundy population in December 2025.",
+     "source": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/multiple-populations-atlantic-salmon-2025.html"
+    },
+    {
+     "authority": "Species at Risk Act (Canada)",
+     "type": "legal",
+     "jurisdiction": "Canada",
+     "population": "Inner Bay of Fundy population",
+     "status": "Endangered, Schedule 1",
+     "date": "June 2003",
+     "note": "Listed when the Act came into force. A recovery strategy was finalized in 2010 and freshwater critical habitat is protected by order.",
+     "source": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/multiple-populations-atlantic-salmon-2025.html"
+    },
+    {
+     "authority": "Species at Risk Act (Canada)",
+     "type": "legal",
+     "jurisdiction": "Canada",
+     "population": "Southern Upland East and West, Southern Gulf of St. Lawrence and Cape Breton, and Outer Bay of Fundy populations",
+     "status": "Not listed; consultation open",
+     "date": "2 November 2026 to 29 January 2027",
+     "note": "Among 12 Atlantic Salmon populations the federal government is consulting on for possible listing.",
+     "source": "https://www.canada.ca/en/fisheries-oceans/news/2026/11/government-of-canada-consults-canadians-on-atlantic-salmon.html"
+    },
+    {
+     "authority": "Nova Scotia Endangered Species Act",
+     "type": "legal",
+     "jurisdiction": "Nova Scotia",
+     "population": "",
+     "status": "Not listed",
+     "date": "",
+     "note": "COSEWIC (2025) reports that the species is not listed in Nova Scotia; it is not on the provincial Categorized List of Species at Risk (unofficial consolidation checked 2026-11-07).",
+     "source": "https://novascotia.ca/just/regulations/regs/eslist.htm"
+    }
+   ],
+   "significance": "Atlantic Salmon (Plamu in Mi'kmaq) is an important food, social and ceremonial species for more than 50 Indigenous nations and organizations in eastern Canada, and a long-standing recreational fishery. COSEWIC found the steepest declines in the Maritime populations, and spawner numbers in the southern units remain very low. In Nova Scotia's Southern Upland, acid rain has cost salmon in about a fifth of the region's 65 salmon rivers.",
+   "threats": [
+    "Low survival at sea, which COSEWIC considers the main limit on persistence and rebuilding",
+    "Dams and other barriers between fresh water and estuaries",
+    "Degraded freshwater habitat from agriculture, forestry, mining, urban development and acidification (acid rain), severe in the Southern Upland",
+    "Salmon aquaculture (escapees breeding with wild fish, sea lice, disease) and stocking",
+    "Non-native fishes: Smallmouth Bass and Chain Pickerel are broadly established in the Southern Upland West watersheds",
+    "Fishing, including illegal fishing and fisheries outside Canada",
+    "Changes to freshwater and ocean ecosystems made worse by climate change"
+   ],
+   "sources": [
+    {
+     "label": "COSEWIC (2025). Assessment and status report on the Atlantic Salmon, multiple populations, in Canada. Species at Risk Public Registry",
+     "url": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/multiple-populations-atlantic-salmon-2025.html"
+    },
+    {
+     "label": "Fisheries and Oceans Canada (5 November 2026). Government of Canada consults Canadians on Atlantic salmon",
+     "url": "https://www.canada.ca/en/fisheries-oceans/news/2026/11/government-of-canada-consults-canadians-on-atlantic-salmon.html"
+    },
+    {
+     "label": "Nova Scotia. Categorized List of Species at Risk, Endangered Species Act (N.S. Reg. 146/2017)",
+     "url": "https://novascotia.ca/just/regulations/regs/eslist.htm"
+    }
+   ]
+  },
+  "Gadus morhua": {
+   "kind": "at_risk",
+   "badge": "Endangered",
+   "verified_on": "2026-11-07",
+   "population": "Assessed by population. COSEWIC divides Atlantic Cod in Canada into six populations; the two in Nova Scotia waters are listed here.",
+   "statuses": [
+    {
+     "authority": "COSEWIC",
+     "type": "assessment",
+     "jurisdiction": "Canada",
+     "population": "Laurentian South population (southern Gulf of St. Lawrence and eastern Scotian Shelf; NAFO 4TVW)",
+     "status": "Endangered",
+     "date": "2010",
+     "note": "Adults declined about 90% over three generations (27 years).",
+     "source": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/consultation-documents/atlantic-cod-consultations-listing-under.html"
+    },
+    {
+     "authority": "COSEWIC",
+     "type": "assessment",
+     "jurisdiction": "Canada",
+     "population": "Southern population (southern Nova Scotia and the Bay of Fundy, Canadian waters of NAFO 4X5YZ)",
+     "status": "Endangered",
+     "date": "2010",
+     "note": "Adults declined about 64% over three generations (22.5 years). Previously part of a Maritimes population assessed Special Concern.",
+     "source": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/consultation-documents/atlantic-cod-consultations-listing-under.html"
+    },
+    {
+     "authority": "Nova Scotia Endangered Species Act",
+     "type": "legal",
+     "jurisdiction": "Nova Scotia",
+     "population": "",
+     "status": "Not listed",
+     "date": "",
+     "note": "Not on the provincial Categorized List of Species at Risk (unofficial consolidation checked 2026-11-07).",
+     "source": "https://novascotia.ca/just/regulations/regs/eslist.htm"
+    }
+   ],
+   "significance": "Atlantic Cod has been fished in Canadian waters for more than 500 years and was an economic and dietary mainstay for Atlantic communities. Cod grow faster in warmer water: Bay of Fundy cod can mature at 2 to 3 years, against 5 to 7 in Newfoundland and Labrador. COSEWIC's Endangered designations are scientific assessments; the federal government consulted on adding these populations to the Species at Risk Act in 2013 and 2014, and Tideflow has not verified a final listing decision.",
+   "threats": [
+    "Fishing, directed and as bycatch, still a primary threat to the Southern population",
+    "Higher natural mortality south of the Laurentian Channel",
+    "Alteration of bottom habitat by fishing gear (potential, not yet evaluated)"
+   ],
+   "sources": [
+    {
+     "label": "Species at Risk Public Registry. Atlantic Cod: consultations on listing four populations under the Species at Risk Act (COSEWIC statuses and declines)",
+     "url": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/consultation-documents/atlantic-cod-consultations-listing-under.html"
+    },
+    {
+     "label": "COSEWIC (2010). Assessment and status report on the Atlantic Cod in Canada",
+     "url": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/atlantic-cod-gadus-morhua-2010.html"
+    },
+    {
+     "label": "Nova Scotia. Categorized List of Species at Risk, Endangered Species Act (N.S. Reg. 146/2017)",
+     "url": "https://novascotia.ca/just/regulations/regs/eslist.htm"
+    }
+   ]
+  }
+ }
+}
