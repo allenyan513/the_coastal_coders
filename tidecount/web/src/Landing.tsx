@@ -295,7 +295,7 @@ export function Landing() {
               })}
             </div>
             <p className="ln-card-note">From the newest visit to this site. Readings sit beside the fish counts from the same sites, so a change in one can be checked against the other.</p>
-            <Link className="ln-more" to="/river">Open the water trends <span aria-hidden>→</span></Link>
+            <Link className="ln-more" to="/analysis/trends">Open the water trends <span aria-hidden>→</span></Link>
           </div>
         </div>
       </section>
@@ -321,7 +321,7 @@ export function Landing() {
             <Brand dark />
             <p className="meta" style={{ maxWidth: 340, lineHeight: 1.6 }}>Underwater video in, confirmed fish counts out, for the people who survey Nova Scotia's living shorelines. Built at RBC HubHacks 2026 with Coastal Action.</p>
           </div>
-          <div className="ln-foot-col"><b>Platform</b><Link to="/workspace">Workspace</Link><Link to="/workflow">Workflow board</Link><Link to="/reports">Reports</Link><Link to="/login">Sign in</Link></div>
+          <div className="ln-foot-col"><b>Platform</b><Link to="/workspace">Workspace</Link><Link to="/workflow">Workflow board</Link><Link to="/analysis/trends">Station report</Link><Link to="/login">Sign in</Link></div>
           <div className="ln-foot-col"><b>Explore</b><Link to="/species">Species wiki</Link><Link to="/river">Water quality</Link><a href="#ai">How the AI works</a></div>
           <div className="ln-foot-col"><b>Project</b><a href="https://github.com/allenyan513/the_coastal_coders" target="_blank" rel="noreferrer">Source on GitHub</a><span className="meta">RBC HubHacks 2026</span><span className="meta">Coastal Action</span></div>
         </div>

@@ -114,7 +114,7 @@ export function Reports() {
     <div className="stack" style={{ gap: 20 }}>
       <div className="pagehead">
         <div>
-          <h1>Reports</h1>
+          <h1>Station report</h1>
           <p className="lede">{answer}</p>
         </div>
         <div className="row">
