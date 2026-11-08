@@ -168,8 +168,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
-          {/* The front page with the underwater reveal footer, for testing before it replaces / (issue #50). */}
-          <Route path="/homepage_v2" element={<Landing v2 />} />
+          {/* The underwater-footer front page was tested here before it replaced / (issue #50). */}
+          <Route path="/homepage_v2" element={<Navigate to="/" replace />} />
           {/* Old QR codes and links still lead somewhere. */}
           <Route path="/start" element={<Navigate to="/" replace />} />
           <Route path="/login" element={<Login />} />

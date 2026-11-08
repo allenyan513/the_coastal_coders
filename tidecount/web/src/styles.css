@@ -785,7 +785,6 @@ textarea.record-input { height: auto; resize: vertical; }
 .ln .btn.go, .ln .btn.primary { color: #fff; }
 .ln-wrap { width: min(1240px, 100%); margin: 0 auto; padding: 0 24px; }
 .ln-brand { display: inline-flex; align-items: center; gap: 8px; color: #fff; font: 800 20px/1 var(--display); letter-spacing: -.4px; text-decoration: none; }
-.ln .ln-brand.dark { color: var(--text); }
 .ln-brand img { width: 28px; height: 28px; }
 .ln-ghost { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .35); color: #fff !important; }
 .ln-ghost:hover { background: rgba(255, 255, 255, .16); border-color: #fff; }
@@ -994,15 +993,7 @@ textarea.record-input { height: auto; resize: vertical; }
 .ln-rules li .ln-tag { margin-top: 1px; }
 .ln-join p { margin-top: 2px; color: rgba(255, 255, 255, .78); }
 
-.ln-foot { margin-top: 96px; padding: 40px 0 28px; background: var(--panel-2); border-top: 1px solid var(--border); }
-.ln-foot-grid { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 24px; }
-.ln-foot-col { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
-.ln-foot-col b { margin-bottom: 2px; font: 500 11px var(--mono); letter-spacing: .3px; text-transform: uppercase; color: var(--text); }
-.ln .ln-foot-col a { color: var(--text-2); text-decoration: none; }
-.ln .ln-foot-col a:hover { color: var(--text); }
-.ln-foot-fine { margin-top: 28px; padding-top: 16px; display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--border-2); line-height: 1.5; }
-
-/* Front page v2 (/homepage_v2, issue #50): the content is raised into <main>, and the underwater footer
+/* Front page footer (issue #50): the content is raised into <main>, and the underwater footer
    is sticky beneath it, so scrolling to the end uncovers it like dropping below the surface. The
    reveal (.reveal) is switched on by LandingFooter's useFits only while the footer fits the window. */
 .ln-main { position: relative; z-index: 1; padding-bottom: 96px; background: #fff; }
@@ -1089,10 +1080,6 @@ textarea.record-input { height: auto; resize: vertical; }
   .ln-fish li:nth-child(n+7) { display: none; }
   .ln-dark { margin-top: 64px; padding-bottom: 64px; }
   .ln-volunteer { padding: 28px 20px; gap: 28px; border-radius: 18px; }
-  .ln-foot { margin-top: 64px; }
-  .ln-foot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ln-foot-grid > :first-child { grid-column: 1 / -1; }
-  .ln-foot-fine { flex-direction: column; }
 }
 /* Species encyclopedia: rows that open a drawer, and the drawer itself. */
 tr.clickable { cursor: pointer; }
