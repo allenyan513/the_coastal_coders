@@ -180,7 +180,7 @@ export function Library() {
           <h1>Surveys</h1>
           <p className="lede">{editing ? "Add or change sites, transects and stations. Footage stays where it is." : "What's been filmed and counted at every station."}</p>
         </div>
-        <div className="row">
+        <div className="row pagehead-actions">
           {manager && <button className="btn tall" onClick={() => setEditing(!editing)}>{editing ? "Done" : "Edit structure"}</button>}
           {!editing && <button className="btn primary" onClick={() => setImporting({})}>Import video</button>}
         </div>
