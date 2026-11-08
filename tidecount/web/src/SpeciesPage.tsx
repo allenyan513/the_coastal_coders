@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { SpeciesMediaSummary, SpeciesRow } from "./api";
 import { SpeciesTab, SpeciesView } from "./SpeciesDrawer";
+import { editDrafts } from "./PhotoLibrary";
 import { tabFromParam } from "./speciesProfile";
 import { lastViewed, speciesMedia, speciesPagePath, speciesRows } from "./speciesData";
 
@@ -27,6 +28,8 @@ export function SpeciesPage() {
   const [rows, setRows] = useState<SpeciesRow[] | null>(() => speciesRows.peek() ?? null);
   const [media, setMedia] = useState<SpeciesMediaSummary>(() => speciesMedia.peek() ?? {});
   const [error, setError] = useState("");
+  // Where the photo buttons (View as Volunteer, Edit) are placed: the top row, beside Collapse.
+  const [tools, setTools] = useState<HTMLElement | null>(null);
   useEffect(() => { speciesRows.get().then(setRows).catch((e) => setError(e.message)); }, []);
   useEffect(() => { speciesMedia.get().then(setMedia); }, []);
   // A new species starts at the top of the page, and becomes the one the list marks as last viewed.
@@ -39,6 +42,15 @@ export function SpeciesPage() {
     if (asked !== null && asked !== tab) setTab(tab);
   }, [asked, tab]);
   const back = () => (depth > 0 ? navigate(-depth) : navigate("/species"));
+
+  // The reverse of Expand: the page's history entry becomes the list with this species open in its
+  // drawer, on the same tab. The list restores its own search, sort and scroll.
+  const collapse = () => {
+    const q = new URLSearchParams({ species });
+    if (tab !== "overview") q.set("tab", tab);
+    // Mid-edit, the drawer opens in edit mode with the same unsaved changes.
+    navigate(`/species?${q}`, { replace: true, state: { fromList: true, ...(editDrafts.has(species) ? { editing: true } : {}) } });
+  };
 
   const backButton = <button className="btn species-back" onClick={back}>← Back to Species list</button>;
   if (error) return <div className="stack">{backButton}<p className="meta">{error}</p></div>;
@@ -58,13 +70,18 @@ export function SpeciesPage() {
 
   return (
     <div className="species-page">
-      <nav className="species-page-nav" aria-label="Species wiki">{backButton}</nav>
+      <nav className="species-page-nav" aria-label="Species wiki">
+        {backButton}
+        {/* View as Volunteer and Edit land here, from the species view below. */}
+        <span ref={setTools} className="row" style={{ marginLeft: "auto", gap: 8 }} />
+        <button className="btn hide-phone" onClick={collapse} title="Back to the list with this species in the side drawer" aria-label="Collapse: open this species in the side drawer">Collapse</button>
+      </nav>
       <article className="species-page-card panel" aria-labelledby="drawer-title">
         <SpeciesView
           species={species} row={row} rows={rows} media={media}
           // A look-alike opens as its own page; Back returns to this one.
           onSelect={(other) => navigate(speciesPagePath(other, tab), { state: depth > 0 ? { listDepth: depth + 1 } : null })}
-          tab={tab} onTab={setTab} layout="page"
+          tab={tab} onTab={setTab} layout="page" toolsHost={tools}
         />
       </article>
     </div>

@@ -17,6 +17,12 @@ SPECIES_MEDIA = Path(__file__).parent / "species_media.json"        # images, cr
 SPECIES_PROFILES = Path(__file__).parent / "species_profiles.json"  # identification notes
 SPECIES_TAXONOMY = Path(__file__).parent / "species_taxonomy.json"  # names checked against WoRMS
 SPECIES_CONSERVATION = Path(__file__).parent / "species_conservation.json"  # verified at-risk / invasive status
+# Photos people upload in the Media Library, and which species each curated or uploaded photo is
+# shown on. Data, not code: it lives with the videos, never in the package beside species.csv.
+SPECIES_LIBRARY = DATA / "species_library"
+# Permanently deleting an uploaded photo is allowed from the computer running Tideflow, or with this
+# key in the X-Tideflow-Admin-Token header (e.g. on a server behind Caddy). Unset: no key works.
+MEDIA_ADMIN_TOKEN = os.environ.get("TIDECOUNT_MEDIA_ADMIN_TOKEN", "")
 
 CFD_RELEASE = "https://github.com/WildHackers/community-fish-detector/releases/download/2026.07.06-release/"
 DETECTORS = {
@@ -90,5 +96,5 @@ SNAPSHOT_ORDER_SEED = 42  # the benchmark's seed, so both offer a video's frames
 
 def ensure_folders() -> None:
     """Create the data folders. Called at start-up, not on import, so importing config is free."""
-    for folder in (DATA, VIDEOS, PROXIES, CROPS, FRAMES, EXPORTS, WEIGHTS):
+    for folder in (DATA, VIDEOS, PROXIES, CROPS, FRAMES, EXPORTS, WEIGHTS, SPECIES_LIBRARY):
         folder.mkdir(parents=True, exist_ok=True)

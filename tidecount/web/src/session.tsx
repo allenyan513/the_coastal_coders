@@ -41,6 +41,9 @@ type Session = {
   signIn: (role: Role) => void;
   signOut: () => void;
   updateProfile: (patch: Partial<Profile>) => void;
+  /** A Manager previewing the Volunteer version of the photo controls. Never stored; ends on reload or sign-out. */
+  volunteerView: boolean;
+  setVolunteerView: (on: boolean) => void;
 };
 
 const SessionContext = createContext<Session | null>(null);
@@ -52,19 +55,24 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setStored(next);
   };
 
+  // Only a visual preview for Managers: the stored role and account are never touched.
+  const [previewing, setPreviewing] = useState(false);
+
   const value = useMemo<Session>(() => {
     const { role, profiles } = stored;
     return {
       user: role ? { role, avatar: "", ...ACCOUNTS[role], ...profiles[role] } : null,
-      signIn: (next) => commit({ ...stored, role: next }),
-      signOut: () => commit({ ...stored, role: null }),
+      signIn: (next) => { setPreviewing(false); commit({ ...stored, role: next }); },
+      signOut: () => { setPreviewing(false); commit({ ...stored, role: null }); },
+      volunteerView: role === "manager" && previewing,
+      setVolunteerView: setPreviewing,
       updateProfile: (patch) => {
         if (!role) return;
         const current = { name: ACCOUNTS[role].name, avatar: "", ...profiles[role] };
         commit({ ...stored, profiles: { ...profiles, [role]: { ...current, ...patch } } });
       },
     };
-  }, [stored]);
+  }, [stored, previewing]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
@@ -73,6 +81,15 @@ export function useSession() {
   const session = useContext(SessionContext);
   if (!session) throw new Error("useSession needs a SessionProvider");
   return session;
+}
+
+/**
+ * Whether the photo controls (upload, edit, review, assign, remove, delete) are shown: Managers
+ * only, and not while a Manager previews the Volunteer view. Hiding them here is interface only.
+ */
+export function useCanManagePhotos() {
+  const { user, volunteerView } = useSession();
+  return user?.role === "manager" && !volunteerView;
 }
 
 /** The signed-in person, for pages the shell only shows after sign-in. */

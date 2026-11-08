@@ -224,6 +224,16 @@ button.side-link { width: 100%; background: none; border: 0; font: inherit; font
 .rvalue { position: relative; margin-bottom: 3px; color: var(--text); font-size: 11px; font-weight: 600; text-align: center; }
 .rtip { position: absolute; left: 50%; bottom: calc(100% - 28px); z-index: 5; transform: translateX(-50%); display: none; padding: 4px 8px; background: var(--text); color: #fff; border-radius: 4px; font-size: 12px; white-space: nowrap; pointer-events: none; }
 .rbar:hover .rtip, .rbar:focus-visible .rtip { display: block; }
+
+/* Bootstrap-style tooltip: dark bubble with an arrow, above the term */
+.tip-wrap { display: inline-block; border-bottom: 1px dotted currentColor; cursor: help; outline: none; }
+.tip { position: fixed; transform: translateY(calc(-100% + 3px)); z-index: 1000; width: 230px; box-sizing: border-box; padding: 8px 10px; background: var(--text); color: #fff; border-radius: 6px; font-size: 12px; font-weight: 400; line-height: 1.4; text-align: left; white-space: normal; opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+.tip.show { opacity: 1; visibility: visible; }
+.tip b { display: block; margin-bottom: 2px; font-weight: 600; }
+.tip::after { content: ""; position: absolute; top: 100%; left: var(--arrow, 14px); border: 6px solid transparent; border-top-color: var(--text); }
+/* Not enough room above: open below with the arrow on top */
+.tip.below { transform: none; }
+.tip.below::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--text); }
 .rlabel { color: var(--text-2); font-size: 12px; text-align: center; }
 /* Picking a station: the map, the bars and the table rows all point at the same one. */
 .rstation { padding: 4px 2px 0; border-radius: 6px; cursor: pointer; }
@@ -657,6 +667,12 @@ button.step:disabled { opacity: .5; }
 .drop-big svg { color: var(--accent); }
 .file-chip { padding: 10px 12px; display: flex; align-items: center; gap: 10px; background: var(--panel-2); border: 1px solid var(--border-2); border-radius: 8px; min-width: 0; }
 .file-chip b { overflow-wrap: anywhere; }
+/* A file input styled as the import dialog's "Choose file" button; the input is only visually hidden. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.file-pick { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; cursor: pointer; }
+.file-pick .btn { flex: none; pointer-events: none; }
+.file-pick .sr-only:focus-visible + .btn { outline: 2px solid var(--accent); outline-offset: 2px; }
+.file-pick-name { min-width: 0; color: var(--text-2); font-size: 13px; overflow-wrap: anywhere; }
 .file-chip .num { flex: none; padding: 2px 6px; background: var(--panel-3); border-radius: 4px; font-size: 11px; color: var(--text-2); }
 .hint { padding: 8px 10px; background: var(--accent-soft); border-radius: 6px; color: var(--accent-ink); font-size: 13px; }
 .facts { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); border: 1px solid var(--border-2); border-radius: 8px; overflow: hidden; }
@@ -1240,9 +1256,11 @@ tr.clickable.last-viewed td:first-child { box-shadow: inset 3px 0 0 var(--accent
 .drawer .gallery-frame { max-height: min(52vh, 540px); }
 /* Scoped to the drawer's tablist so the video page's .tabs/.tab nav keeps its own look. */
 .tabs[role="tablist"] { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border-2); background: var(--panel); overflow-x: auto; }
-.tabs[role="tablist"] .tab { position: relative; height: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--text-2); font-weight: 500; white-space: nowrap; }
+.tabs[role="tablist"] .tab { position: relative; height: 40px; margin-bottom: 0; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--text-2); font-weight: 500; white-space: nowrap; }
 .tabs[role="tablist"] .tab:hover { color: var(--text); }
-.tab[aria-selected="true"] { color: var(--accent-ink); border-bottom-color: var(--accent); }
+/* Same specificity as the rule above, and later, so the active tab's colour and underline win. */
+.tabs[role="tablist"] .tab[aria-selected="true"] { color: var(--accent-ink); border-bottom-color: var(--accent); font-weight: 600; }
+.tabs[role="tablist"] .tab[aria-selected="true"] .tab-count { background: var(--accent-soft); color: var(--accent-ink); }
 .tabs[role="tablist"] .tab-count { padding: 0 6px; border-radius: 999px; background: var(--panel-3); color: var(--text-2); font: 500 11px/18px var(--mono); }
 .name-check { margin-top: 6px; font-size: 12px; }
 .name-check.warn { color: var(--warn); }
@@ -1356,7 +1374,7 @@ details[open] summary { margin-bottom: 6px; }
 /* The full species page (/species/<name>): the drawer's view in the main content area. Its layout
    follows the width of that area, not the window's, so it works with the sidebar open or narrow. */
 .species-page { container-type: inline-size; width: 100%; display: flex; flex-direction: column; gap: 12px; }
-.species-page-nav { display: flex; }
+.species-page-nav { display: flex; gap: 8px; } /* keeps the photo buttons the same distance from Collapse with or without Edit */
 .species-page-card { overflow: clip; } /* clip, not hidden, so the map page's right column can stay in view */
 .species-page-card .drawer-head { padding: 20px 24px 14px; }
 .species-page-card .drawer-head .sci { font-size: 15px; }
@@ -1629,3 +1647,15 @@ section > .fold { border-top: 0; padding-top: 0; }
 .id-footnote { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; font-size: 12px; line-height: 1.45; color: var(--muted); }
 .id-footnote-icon { flex: none; margin-top: 2px; color: var(--muted-2); }
 .id-footnote-link { font: inherit; color: var(--accent-ink); }
+
+/* Media Library and the species photo editor (edit mode only; the gallery itself is unchanged). */
+.photo-grid { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 12px; }
+.photo-card { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.photo-thumb { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #101828; }
+.photo-card-body { padding: 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 13px; min-width: 0; overflow-wrap: anywhere; }
+.photo-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 10px; }
+.photo-fields .field input, .photo-fields .field select { width: 100%; min-width: 0; max-width: none; }
+.photo-upload { gap: 12px; }
+.photo-editor-head { display: flex; flex-direction: column; gap: 2px; }
+.picker-group { margin: 4px 0 0; font: 600 13px var(--sans, inherit); color: var(--text); }
+.photo-editor-actions { position: sticky; bottom: 0; padding: 10px 0; background: var(--panel); border-top: 1px solid var(--border-2); }

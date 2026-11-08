@@ -1,5 +1,6 @@
 import { Component, lazy, ReactNode, Suspense, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CompareImage, SpeciesImage, SpeciesMediaSummary, SpeciesProfile, SpeciesRow } from "./api";
 import { speciesPagePath, speciesProfile } from "./speciesData";
 import {
@@ -7,17 +8,12 @@ import {
   STATUS_TYPE_LABEL, STATUS_TYPE_ORDER, type SpeciesTabKey,
 } from "./speciesProfile";
 import type { SpeciesConservation } from "./api";
+import { editDrafts, PhotoEditor, VIEW_LABELS, VolunteerViewToggle } from "./PhotoLibrary";
+import { useCanManagePhotos } from "./session";
 
 // Leaflet is only downloaded when someone opens the map.
 const OccurrenceMap = lazy(() => import("./OccurrenceMap"));
 
-const VIEW_LABELS: Record<SpeciesImage["view"], string> = {
-  side: "Side profile",
-  underwater: "Underwater",
-  in_hand: "In hand",
-  illustration: "Illustration",
-  other: "Photo",
-};
 const GROUPS: Record<string, string> = { Actinopterygii: "Ray-finned fish", Elasmobranchii: "Sharks and rays", "": "Class not recorded" };
 // Photos and Identify are now both in Overview; old ?tab=photos and ?tab=identify links go there (tabFromParam).
 const TABS: { key: SpeciesTabKey; label: string }[] = [
@@ -46,6 +42,8 @@ type Props = Shared & {
   onClose: () => void;
   /** Opens the full page for this species on this tab. Without it, Expand goes there itself. */
   onExpand?: (tab: Tab) => void;
+  /** The tab to open on, e.g. when the full page is collapsed back into the drawer. */
+  initialTab?: Tab;
 };
 
 /**
@@ -54,8 +52,8 @@ type Props = Shared & {
  * a full page (see SpeciesPage). It only needs a scientific name, so the video review screen can
  * open it for a BioCLIP suggestion the same way the Species page does.
  */
-export function SpeciesDrawer({ species, row, rows, media, onSelect, onClose, onExpand }: Props) {
-  const [tab, setTab] = useState<Tab>("overview");
+export function SpeciesDrawer({ species, row, rows, media, onSelect, onClose, onExpand, initialTab }: Props) {
+  const [tab, setTab] = useState<Tab>(initialTab ?? "overview");
   const closeRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
 
@@ -74,7 +72,7 @@ export function SpeciesDrawer({ species, row, rows, media, onSelect, onClose, on
     };
   }, [onClose]);
 
-  const expand = () => (onExpand ? onExpand(tab) : navigate(speciesPagePath(species, tab)));
+  const expand = () => (onExpand ? onExpand(tab) : navigate(speciesPagePath(species, tab), { state: editDrafts.has(species) ? { editing: true } : null }));
 
   return (
     <div className="drawer-root">
@@ -102,18 +100,28 @@ type ViewProps = Shared & {
   layout: "drawer" | "page";
   /** Buttons at the right of the header. */
   actions?: ReactNode;
+  /** On the full page, where the photo buttons (View as Volunteer, Edit) go: the page's top row, beside Collapse. */
+  toolsHost?: HTMLElement | null;
 };
 
 /**
  * The species itself: name, name check, the four tabs and their content. The drawer and the full
  * page both show this, so they can't drift apart. A profile that was loaded once is reused.
  */
-export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, layout, actions }: ViewProps) {
+export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, layout, actions, toolsHost }: ViewProps) {
   const [data, setData] = useState<SpeciesProfile | null>(() => speciesProfile(species).peek() ?? null);
   const [error, setError] = useState("");
+  // Read-only until Edit. Editing changes this species' photos only, and nothing is stored until Save.
+  // Expand or Collapse mid-edit arrives with `editing` in the navigation state and keeps the draft.
+  const location = useLocation();
+  // Volunteers, and a Manager previewing their view, never see the edit controls.
+  const canManage = useCanManagePhotos();
+  const [editing, setEditing] = useState(() => canManage && editDrafts.resume(species, location.state));
   const bodyRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (!canManage) setEditing(false); }, [canManage]);
 
   useEffect(() => {
+    setEditing(canManage && editDrafts.resume(species, location.state));
     let live = true;
     const profile = speciesProfile(species);
     setData(profile.peek() ?? null); setError("");
@@ -141,6 +149,13 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
     document.getElementById(`tab-${t}`)?.focus();
   };
   const Heading = layout === "page" ? "h1" : "h2";
+  // View as Volunteer sits left of Edit.
+  const photoButtons = (
+    <>
+      <VolunteerViewToggle canStart={!editing} />
+      {canManage && data && !editing && <button className="btn" onClick={() => { editDrafts.start(species, data.images); setEditing(true); }} aria-label="Edit this species' photos">Edit</button>}
+    </>
+  );
 
   return (
     <>
@@ -154,7 +169,10 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
             {!common && authority && <p className="meta">{authority}</p>}
             {data && <NameCheck data={data} />}
           </div>
-          {actions}
+          <div className="row drawer-actions">
+            {layout === "page" ? (toolsHost ? createPortal(photoButtons, toolsHost) : null) : photoButtons}
+            {actions}
+          </div>
         </header>
 
         <div className="tabs" role="tablist" aria-label="Species details" onKeyDown={onTabKey}>
@@ -170,6 +188,9 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
         </div>
 
         <div className={`drawer-body${layout === "page" ? " species-page-body" : ""}`} ref={bodyRef} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
+          {canManage && data && editing ? (
+            <PhotoEditor key={species} data={data} onCancel={() => setEditing(false)} onSaved={(p) => { setData(p); setEditing(false); }} />
+          ) : (
           <TabBoundary key={`${species}:${tab}`}>
           {error && <p className="meta">{error}</p>}
           {!data && !error && <p className="meta">Loading…</p>}
@@ -186,6 +207,7 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
 
           {data && tab === "details" && <Details data={data} row={row} />}
           </TabBoundary>
+          )}
         </div>
     </>
   );
@@ -205,6 +227,30 @@ class TabBoundary extends Component<{ children: ReactNode }, { failed: boolean }
       </div>
     );
   }
+}
+
+/** "WoRMS" with a hover explanation of what it is. */
+function WormsTerm() {
+  const [pos, setPos] = useState<{ left: number; top: number; arrow: number; below: boolean } | null>(null);
+  const place = (e: { currentTarget: HTMLElement }) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const width = 230;
+    const left = Math.max(8, Math.min(r.left, window.innerWidth - width - 8));
+    // Open above the term; below it when there isn't room.
+    const above = r.top > 110;
+    setPos({ left, top: above ? r.top - 8 : r.bottom + 8, below: !above, arrow: Math.max(10, Math.min(r.left - left + r.width / 2 - 6, width - 22)) });
+  };
+  return (
+    <span className="tip-wrap" tabIndex={0} onMouseEnter={place} onFocus={place} onMouseLeave={() => setPos(null)} onBlur={() => setPos(null)}>
+      WoRMS
+      {pos && createPortal(
+      <span className={`tip show${pos.below ? " below" : ""}`} role="tooltip"
+        style={{ left: pos.left, top: pos.top, ["--arrow" as string]: `${pos.arrow}px` }}>
+        <b>World Register of Marine Species</b>
+        An expert-reviewed list of accepted marine species names. Tideflow checks each fish against it.
+      </span>, document.body)}
+    </span>
+  );
 }
 
 /** A one-line note when the list's name isn't the one WoRMS accepts, so nobody files records under a synonym unknowingly. */
@@ -295,14 +341,19 @@ function Photos({ data, title }: { data: SpeciesProfile; title: string }) {
   );
 }
 
+/** A credit link, or plain text when there's no page to link to (an uploaded photo used with permission). */
+function MaybeLink({ href, children }: { href?: string; children: ReactNode }) {
+  return href ? <a href={href} target="_blank" rel="noreferrer noopener">{children}</a> : <span>{children}</span>;
+}
+
 function Credit({ img }: { img: SpeciesImage }) {
   return (
     <figcaption className="credit">
       {img.caption && <span>{img.caption}. </span>}
       <span>{img.view === "illustration" ? "Illustration" : "Photo"} by {img.creator}. </span>
-      <a href={img.license_url} target="_blank" rel="noreferrer noopener">{img.license}</a>
+      <MaybeLink href={img.license_url}>{img.license}</MaybeLink>
       {" · "}
-      <a href={img.source_url} target="_blank" rel="noreferrer noopener">Original on {img.source}</a>
+      <MaybeLink href={img.source_url}>{img.source_url ? `Original on ${img.source}` : img.source}</MaybeLink>
       {img.place ? <span> · {img.place}</span> : null}
       <span className="verify"> {img.verification}</span>
     </figcaption>
@@ -611,8 +662,8 @@ function CompareCard({ name, common, note, photo, onOpen, unlisted, wide }: Comp
         {shown && (
           <p className="compare-credit">
             {COMPARE_VIEW[photo.view ?? "other"] ?? "Photo"} · {photo.creator} ·{" "}
-            <a href={photo.license_url} target="_blank" rel="noreferrer noopener">{photo.license}</a> ·{" "}
-            <a href={photo.source_url} target="_blank" rel="noreferrer noopener">{photo.source}</a>
+            <MaybeLink href={photo.license_url}>{photo.license}</MaybeLink> ·{" "}
+            <MaybeLink href={photo.source_url}>{photo.source}</MaybeLink>
           </p>
         )}
       </div>
@@ -630,12 +681,10 @@ function Details({ data, row }: { data: SpeciesProfile; row?: SpeciesRow }) {
           <dl className="facts">
             <div><dt>Group</dt><dd>{GROUPS[row.group] ?? row.group}</dd></div>
             <div><dt>Family</dt><dd>{n?.family || data.taxon?.family || "—"}</dd></div>
-            <div><dt>iNaturalist sightings</dt><dd className="num">{row.inat_obs || "—"}</dd></div>
-            <div><dt>OBIS nearshore</dt><dd className="num">{row.obis_nearshore_records || "—"}</dd></div>
-            <div><dt>Seine surveys</dt><dd className="num">{row.seine_records || "—"}</dd></div>
+            <div><dt>iNaturalist (NS snapshot)</dt><dd className="num">{row.inat_obs || "—"}</dd></div>
             <div><dt>Named here</dt><dd className="num">{row.confirmed || "—"}</dd></div>
           </dl>
-          <p className="meta" style={{ marginTop: 6 }}>These counts are why the fish is on the AI list. They come from species.csv and don't change with the map.</p>
+          <p className="meta" style={{ marginTop: 6 }}>The iNaturalist count is a historical snapshot of research-grade Nova Scotia observations from species.csv, and it is why the fish is on the AI list. It is not fish abundance. "Named here" counts the names people gave it in Tideflow review.</p>
         </section>
       )}
 
@@ -643,12 +692,12 @@ function Details({ data, row }: { data: SpeciesProfile; row?: SpeciesRow }) {
         <h3>Name check</h3>
         {n ? (
           <dl className="facts">
-            <div><dt>Checked against</dt><dd>{n.source ?? "Not found"}</dd></div>
+            <div><dt>Checked against</dt><dd>{n.source === "WoRMS" ? <WormsTerm /> : (n.source ?? "Not found")}</dd></div>
             <div><dt>Status</dt><dd>{n.status}</dd></div>
-            {n.aphia_id && <div><dt>WoRMS AphiaID</dt><dd className="num">{n.url ? <a href={n.url} target="_blank" rel="noreferrer noopener">{n.aphia_id}</a> : n.aphia_id}</dd></div>}
+            {n.aphia_id && <div><dt><WormsTerm /> AphiaID</dt><dd className="num">{n.url ? <a href={n.url} target="_blank" rel="noreferrer noopener">{n.aphia_id}</a> : n.aphia_id}</dd></div>}
             {n.accepted_name && n.accepted_name !== data.species && <div><dt>Accepted name</dt><dd><i>{n.accepted_name}</i></dd></div>}
             <div>
-              <dt>Environments in WoRMS</dt>
+              <dt>Environments in <WormsTerm /></dt>
               <dd>
                 {n.source === "WoRMS" ? environmentLabels(n).join(", ") || "None set" : "—"}
                 {n.source === "WoRMS" && <span className="meta block">WoRMS's species-level flags: where the species can occur, not the current habitat of a particular population.</span>}
@@ -656,6 +705,7 @@ function Details({ data, row }: { data: SpeciesProfile; row?: SpeciesRow }) {
             </div>
           </dl>
         ) : <p className="meta">This name hasn't been checked yet.</p>}
+        {n?.source === "WoRMS" && <p className="meta" style={{ marginTop: 6 }}>WoRMS is the World Register of Marine Species, an expert-reviewed list of accepted scientific names. Tideflow checks each fish against it so records aren't filed under an outdated name. The AphiaID is its permanent number for this species.</p>}
         {n && n.synonyms.length > 0 && (
           <details className="synonyms">
             <summary>{n.synonyms.length} other name{n.synonyms.length === 1 ? "" : "s"} in older records</summary>
@@ -694,7 +744,7 @@ function Details({ data, row }: { data: SpeciesProfile; row?: SpeciesRow }) {
           <ul className="features">
             {data.images.map((img) => (
               <li key={img.id}>
-                {img.creator} · <a href={img.license_url} target="_blank" rel="noreferrer noopener">{img.license}</a> · <a href={img.source_url} target="_blank" rel="noreferrer noopener">{img.source}</a>
+                {img.creator} · <MaybeLink href={img.license_url}>{img.license}</MaybeLink> · <MaybeLink href={img.source_url}>{img.source}</MaybeLink>
               </li>
             ))}
           </ul>

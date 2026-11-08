@@ -287,13 +287,22 @@ def edna_world(obis):
 
 
 def ask_nd(name="Scomber scombrus"):
-    """Follow the background job the way the browser does, until the survey summary is in."""
+    """Follow the background job until the survey summary is in. The endpoint is withdrawn (410), so
+    these tests call the calculation it kept, occurrences.nondetections, directly."""
     for _ in range(100):
-        d = client.get(f"/api/species/{name}/occurrences/nondetections").json()
+        d = occurrences.nondetections(name, "atlantic-canada", wait=0.05)
         if d.get("status") not in ("computing", "queued"):
             return d
         time.sleep(0.05)
     raise AssertionError("non-detection summary never finished")
+
+
+def test_the_survey_nondetections_endpoint_is_withdrawn(obis):
+    calls, _ = obis
+    r = client.get("/api/species/Pseudopleuronectes americanus/occurrences/nondetections")
+    assert r.status_code == 410 and "withdrawn" in r.json()["detail"] and "/occurrences/edna" in r.json()["detail"]
+    assert calls == []  # nothing is asked of OBIS
+    assert client.get("/api/species/Homo sapiens/occurrences/nondetections").status_code == 410
 
 
 def test_nondetections_count_site_dates_not_zero_filled_rows(obis):
@@ -351,11 +360,11 @@ def test_nondetections_are_cached_and_survive_obis_going_down(obis, monkeypatch)
     edna_world(obis)
     ask_nd()
     n = len(calls)
-    again = client.get("/api/species/Scomber scombrus/occurrences/nondetections").json()
+    again = occurrences.nondetections("Scomber scombrus", "atlantic-canada", wait=0.05)
     assert len(calls) == n and again["cached"]
     monkeypatch.setattr(occurrences, "CACHE_TTL_S", -1)
     answers["dataset"] = urllib.error.URLError("offline")
-    stale = client.get("/api/species/Scomber scombrus/occurrences/nondetections").json()
+    stale = occurrences.nondetections("Scomber scombrus", "atlantic-canada", wait=0.05)
     assert stale["stale"] and stale["methods"]
 
 

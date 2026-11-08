@@ -21,6 +21,7 @@ import { Snapshots } from "./Snapshots";
 import { Validate } from "./Validate";
 import { Species } from "./Species";
 import { SpeciesPage } from "./SpeciesPage";
+import { MediaLibrary } from "./PhotoLibrary";
 import { SummaryPage } from "./Summary";
 import { Team } from "./Team";
 import { TopBar } from "./TopBar";
@@ -146,6 +147,7 @@ function Shell() {
           <Route path="/reports" element={<Navigate to="/analysis/stations" replace />} />
           <Route path="/river" element={<Navigate to="/analysis/trends" replace />} />
           <Route path="/species" element={<Species />} />
+          <Route path="/species/library" element={<MediaLibrary />} />
           <Route path="/species/:name" element={<SpeciesPage />} />
           <Route path="/team" element={<ManagerOnly><Team /></ManagerOnly>} />
           <Route path="/settings" element={<Settings />} />
