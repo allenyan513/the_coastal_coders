@@ -22,6 +22,7 @@ import { Species } from "./Species";
 import { SpeciesPage } from "./SpeciesPage";
 import { SummaryPage } from "./Summary";
 import { Team } from "./Team";
+import { TopBar } from "./TopBar";
 import { Tracks } from "./Tracks";
 import { Workspace } from "./Workspace";
 
@@ -131,6 +132,7 @@ function Shell() {
   return (
     <div className="shell">
       <Sidebar />
+      <TopBar />
       <main className="page">
         <Routes>
           <Route path="/workspace" element={<Home />} />

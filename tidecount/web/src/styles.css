@@ -48,6 +48,8 @@ button.side-link { width: 100%; background: none; border: 0; font: inherit; font
 .side-settings { margin-top: auto; }
 /* Phone-only parts of the bar: short labels and the More tab with its sheet. */
 .side-short, .side-link.side-more, .more-back { display: none; }
+/* Phone-only top bar: Back below the tabs, and the page title once the page's own heading has scrolled away. */
+.topbar { display: none; }
 .avatar { flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; object-fit: cover; }
 .page { padding: 20px 24px 32px; min-width: 0; }
 
@@ -429,11 +431,15 @@ a.vname:hover { color: var(--accent-ink); }
 
 @media (max-width: 900px) {
   .vcols { display: none; }
-  .vrow { grid-template-columns: 96px minmax(0, 1fr); gap: 10px 12px; }
+  /* Thumb and name on top; progress and the next step share the line under them. */
+  .vrow { grid-template-columns: 88px minmax(0, 1fr) auto; gap: 10px 12px; }
   .vrow > .hide-narrow { display: none; }
-  .vrow > .vprogress, .vrow > .vactions { grid-column: 1 / -1; }
+  .vrow > :nth-child(2) { grid-column: 2 / -1; }
+  .vrow > .vprogress { grid-column: 1 / 3; }
+  .vrow > .vactions { grid-column: 3; }
   .vrow > .vactions:empty { display: none; }
-  .vactions .btn.go, .vactions > a.btn { flex: 1; }
+  .vrow:has(> .vactions:empty) > .vprogress { grid-column: 1 / -1; }
+  .vactions > a.btn { min-width: 88px; }
 }
 
 .review-page { height: calc(100vh - 52px); }
@@ -600,7 +606,22 @@ button.step:disabled { opacity: .5; }
   .lede { font-size: 14px; }
   .hide-phone { display: none; }
   .only-phone { display: inline; }
-  .page { padding: 12px 16px calc(76px + env(safe-area-inset-bottom)); }
+  :root { --topbar-h: calc(48px + env(safe-area-inset-top)); }
+  .page { padding: 4px 16px calc(76px + env(safe-area-inset-bottom)); }
+
+  .topbar { position: sticky; top: 0; z-index: 18; height: var(--topbar-h); padding: env(safe-area-inset-top) 4px 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr); align-items: center; gap: 4px; background: color-mix(in srgb, var(--bg) 88%, transparent); -webkit-backdrop-filter: saturate(1.6) blur(14px); backdrop-filter: saturate(1.6) blur(14px); border-bottom: 1px solid transparent; transition: border-color .15s, background-color .15s; }
+  .topbar.scrolled { background: color-mix(in srgb, var(--panel) 90%, transparent); border-bottom-color: var(--border); }
+  .topbar-side { min-width: 0; display: flex; align-items: center; }
+  .topbar-back { min-width: 44px; max-width: 100%; height: 44px; padding: 0 8px 0 2px; display: inline-flex; align-items: center; gap: 0; background: none; border: 0; border-radius: 8px; color: var(--accent-ink); font-size: 15px; font-weight: 500; }
+  .topbar-back span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topbar-back svg { flex: none; }
+  .topbar-back:active { background: var(--accent-soft); }
+  .topbar-brand { height: 44px; padding: 0 10px; display: inline-flex; align-items: center; gap: 8px; color: var(--text); font: 800 17px/1 var(--display); letter-spacing: -.3px; text-decoration: none; }
+  .topbar-brand img { width: 24px; height: 24px; }
+  .topbar-title { max-width: 56vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 16px/1.2 var(--display); text-align: center; opacity: 0; transform: translateY(4px); transition: opacity .15s, transform .15s; }
+  .topbar-title.on { opacity: 1; transform: none; }
+  /* The bar's Back replaces the crumb at the top of a video. */
+  .vhead .crumb, .vhead .crumb-sep { display: none; }
   .shell:has(.side.rail) .page { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 
   .side { position: fixed; top: auto; left: 0; right: 0; bottom: 0; z-index: 20; height: auto; padding: 0 4px env(safe-area-inset-bottom); gap: 0; border-top: 1px solid var(--border); border-bottom: 0; }
@@ -620,6 +641,10 @@ button.step:disabled { opacity: .5; }
   .more-link[aria-current] { background: var(--accent-soft); color: var(--accent-ink); }
 
   .pagehead .btn.primary { width: 100%; }
+  /* A page's own buttons share one row, each an equal share of it, instead of stacking at odd widths. */
+  .pagehead > div:first-child { width: 100%; }
+  .pagehead-actions { width: 100%; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
+  .pagehead-actions .btn { width: 100%; height: 44px; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi { padding: 10px 12px; border-bottom: 1px solid var(--border-2); }
   .kpi:nth-child(2n) { border-right: 0; }
@@ -653,7 +678,7 @@ button.step:disabled { opacity: .5; }
   /* Video first, and it stays on screen while you scroll to name what you saw. */
   .workspace { gap: 10px; }
   .review-mid { display: contents; }
-  .review-page .stage, .split > .stage { position: sticky; top: 0; z-index: 6; }
+  .review-page .stage, .split > .stage { position: sticky; top: var(--topbar-h); z-index: 6; }
   .review-page .stage { order: 1; width: 100% !important; }
   .player-controls { order: 2; }
   .side-col { order: 3; }
@@ -685,11 +710,22 @@ button.step:disabled { opacity: .5; }
 
 
   .board { grid-template-columns: minmax(0, 1fr); }
-  .flow-search, .flow-site, .flow-total { width: 100%; max-width: none; flex: 1 1 100%; }
+  /* Search and site share a line; the total runs under them. */
+  .flow-search { flex: 1 1 0; width: auto; min-width: 0; height: 44px; }
+  .flow-site { flex: 0 1 42%; min-width: 0; max-width: none; height: 44px; }
+  .flow-bar > .spacer { display: none; }
+  .flow-total { width: 100%; flex: 1 1 100%; }
+  /* An empty stage is just its heading and its 0, so the stages with work in them come up sooner. */
+  .board-col:not(:has(.flow-card)) .board-head .meta, .board-col:not(:has(.flow-card)) .board-empty { display: none; }
+  .board-col:not(:has(.flow-card)) .board-head { padding-bottom: 0; }
   .task-row { grid-template-columns: minmax(0, 1fr); }
   .task-row .btn { width: 100%; }
   .tree-videos { padding-left: 0; }
-  .tree-roll { width: 110px; }
+  .tree-roll { width: 104px; }
+  .tree-head .tree-name { flex-wrap: wrap; row-gap: 4px; }
+  /* The site name gets the line to itself; its flags sit under it, in line with the name. */
+  .tree-head h2 { flex: 1 1 calc(100% - 30px); min-width: 0; }
+  .tree-head .tree-name > .pill { margin-left: 30px; }
   .tree-leaf { padding-left: 12px; }
   .tree-import { opacity: 1; }
   .tree-add-station { padding-left: 12px; }

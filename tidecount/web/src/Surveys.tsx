@@ -134,7 +134,7 @@ function Rollup({ stats, empty }: { stats: StationStats; empty: string }) {
   const finished = stats.done >= stats.total;
   return (
     <div className="tree-roll">
-      <span className="meta"><span className="num">{stats.done} of {stats.total}</span> points counted</span>
+      <span className="meta"><span className="num">{stats.done} of {stats.total}</span> points<span className="hide-phone"> counted</span></span>
       <span className="bar wide"><i className={finished ? "up" : ""} style={{ width: `${(stats.done / stats.total) * 100}%` }} /></span>
     </div>
   );
