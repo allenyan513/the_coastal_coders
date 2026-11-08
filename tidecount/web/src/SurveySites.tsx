@@ -34,9 +34,9 @@ type Props = {
   onRetry: (videoId: string) => void;
 };
 
-const SORTS = { attention: "Needs attention first", name: "Name", filmed: "Last filmed", counted: "Least counted" } as const;
+const SORTS = { attention: "To fix first", name: "Name", filmed: "Last filmed", counted: "Least counted" } as const;
 type Sort = keyof typeof SORTS;
-const FILTERS = { all: "All", attention: "Needs attention", unfilmed: "No footage yet", treatment: "Treatment", reference: "Reference" } as const;
+const FILTERS = { all: "All sites", attention: "Something to fix", unfilmed: "No footage yet", treatment: "Treatment", reference: "Reference" } as const;
 type Filter = keyof typeof FILTERS;
 
 const addUp = (all: Points[]) => all.reduce((a, b) => ({ done: a.done + b.done, total: a.total + b.total }), { done: 0, total: 0 });
@@ -215,21 +215,24 @@ export function SurveySites({ groups, shown, points, row, onImport, onPlace, onR
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <div className="row sv-chips">
-            {(Object.keys(FILTERS) as Filter[]).filter((f) => f === "all" || counts[f] > 0).map((f) => (
-              <button key={f} className="chip" aria-pressed={filter === f} onClick={() => setFilter(f)}>
-                {FILTERS[f]} <span className="num">{counts[f]}</span>
-              </button>
-            ))}
-          </div>
-          <div className="sv-sort">
-            <span className="meta">{listed.length === sites.length ? `${sites.length} sites` : `${listed.length} of ${sites.length} sites`}</span>
-            <label className="meta">Sort{" "}
+          <div className="sv-pickers">
+            <label>
+              <span className="meta">Show</span>
+              <select value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
+                {(["all", "attention", "unfilmed"] as Filter[]).map((f) => <option key={f} value={f}>{FILTERS[f]} ({counts[f]})</option>)}
+                <optgroup label="Type">
+                  {(["treatment", "reference"] as Filter[]).map((f) => <option key={f} value={f}>{FILTERS[f]} ({counts[f]})</option>)}
+                </optgroup>
+              </select>
+            </label>
+            <label>
+              <span className="meta">Sort</span>
               <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
                 {(Object.keys(SORTS) as Sort[]).map((k) => <option key={k} value={k}>{SORTS[k]}</option>)}
               </select>
             </label>
           </div>
+          {listed.length !== sites.length && <span className="meta">{listed.length} of {sites.length} sites</span>}
         </div>
         <ul className="sv-items">
           {listed.map((info) => {
