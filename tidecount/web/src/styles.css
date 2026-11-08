@@ -283,6 +283,86 @@ kbd { margin-right: 4px; padding: 0 4px; border: 1px solid currentColor; border-
 .choice:hover, .choice:focus-visible { border-color: var(--accent); }
 .link { padding: 0; background: none; border: 0; color: var(--accent-ink); font: inherit; text-decoration: underline; cursor: pointer; }
 .rules { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; line-height: 1.5; }
+
+/* Count tab: the frame with arrows either side and a time bar under it, and one card to decide it. */
+.count-page { gap: 14px; }
+.count-split { grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; }
+.count-view { display: flex; align-items: center; justify-content: flex-start; gap: 12px; min-width: 0; margin-left: -8px; }
+/* As big as fits on screen at the video's own shape, so it never jumps while a frame loads. */
+.count-col { flex: 0 1 max(320px, calc((100vh - 300px) * var(--ratio))); min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.count-col > .stage { width: 100%; }
+/* The picture panel from Identify, the same width, down the left of the frame. Only the footage takes the look, not the dots. */
+.count-view > .picture-col { flex: 0 0 210px; align-self: stretch; }
+.count-col .stage > img, .count-col .stage > video { filter: var(--pic, none); }
+/* Zoom: a blue button on the Picture panel, and a magnifying glass that follows the pointer. */
+.zoom-btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px; background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.zoom-btn:hover { background: var(--accent-ink); border-color: var(--accent-ink); color: #fff; }
+.zoom-btn.on { background: var(--accent-ink); box-shadow: 0 0 0 3px var(--accent-soft); }
+.zoom-btn kbd { border-color: rgba(255, 255, 255, .7); color: #fff; opacity: .9; }
+.count-col.zooming .stage { cursor: zoom-in !important; }
+.zoom-host { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.zoom-lens { position: absolute; overflow: hidden; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px rgba(16, 24, 40, .35), 0 10px 30px rgba(16, 24, 40, .45); background: #101828; }
+.zoom-inner { position: absolute; }
+.zoom-inner img { display: block; width: 100%; height: 100%; object-fit: contain; filter: var(--pic, none); }
+.zoom-badge { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); padding: 1px 6px; border-radius: 4px; background: rgba(16, 24, 40, .7); color: #fff; font-size: 11px; }
+.count-nav { flex: none; width: 48px; height: 96px; display: grid; place-items: center; padding: 0 0 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 34px; line-height: 1; cursor: pointer; box-shadow: 0 1px 2px rgba(16, 24, 40, .06); }
+.count-nav:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.count-nav:disabled { opacity: .35; cursor: default; }
+.count-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; }
+.count-play { min-width: 112px; }
+.count-time { font-size: 13px; color: var(--text-2); white-space: nowrap; }
+.count-time small { margin-left: 6px; color: var(--muted); }
+.count-time small.in { color: var(--up); font-weight: 600; }
+.count-bar .chip kbd { margin-left: 4px; }
+.count-side { display: flex; flex-direction: column; gap: 12px; }
+.count-card { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.count-where { font-size: 15px; }
+.count-total { display: flex; align-items: baseline; gap: 10px; }
+.count-total span { font-size: 48px; font-weight: 700; letter-spacing: -1.5px; line-height: 1; }
+.count-total small { color: var(--text-2); font-size: 14px; }
+.count-legend { display: flex; gap: 16px; font-size: 13px; color: var(--text-2); }
+.count-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot-key { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); background: var(--accent); }
+.dot-key.user { background: var(--up); }
+.count-hint { line-height: 1.5; margin: 0; }
+.count-save { height: 52px; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+/* Species on the Count tab: pick one under the frame, its dots take its colour, the right side tallies them. */
+.count-species { flex-basis: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; padding-top: 10px; border-top: 1px solid var(--border-2); }
+.count-species-label { grid-column: 1 / -1; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.species-pick { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font: inherit; font-size: 13px; cursor: pointer; text-align: left; min-width: 0; }
+.species-pick i { width: 12px; height: 12px; flex: none; border-radius: 50%; background: var(--sp); box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--border); }
+.species-pick-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.species-pick b { font-size: 13px; color: var(--text-2); }
+.species-pick kbd { margin-left: 2px; }
+.species-pick:hover { border-color: var(--sp, var(--accent)); }
+.species-pick[aria-checked="true"] { border-color: var(--sp); box-shadow: 0 0 0 1px var(--sp) inset; background: color-mix(in srgb, var(--sp) 12%, var(--panel)); font-weight: 600; }
+.species-pick.add { justify-content: center; border-style: dashed; color: var(--accent-ink); }
+.species-add input { width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--accent); border-radius: 8px; font: inherit; font-size: 13px; background: var(--panel); color: var(--text); }
+.species-swatch { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 50%; vertical-align: 0; }
+.species-tally { display: flex; flex-direction: column; gap: 8px; }
+.species-box { display: flex; align-items: baseline; gap: 12px; padding: 12px 16px; background: var(--panel); border: 1px solid var(--border); border-left: 6px solid var(--sp); border-radius: 10px; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.species-box b { font-size: 26px; font-weight: 700; letter-spacing: -.5px; color: var(--sp); min-width: 36px; }
+.species-box span { font-size: 15px; font-weight: 600; }
+.species-box[aria-pressed="true"] { box-shadow: 0 0 0 2px color-mix(in srgb, var(--sp) 35%, transparent); }
+.count-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.count-progress { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-2); white-space: nowrap; }
+.count-progress .bar { width: 140px; }
+.count-progress.done { color: var(--up); font-weight: 600; }
+.count-top .btn.go { height: 34px; }
+@media (max-width: 1500px) {
+  .count-view > .picture-col { flex-basis: 184px; }
+  .count-split { grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; }
+}
+@media (max-width: 1180px) {
+  .count-split { grid-template-columns: minmax(0, 1fr); }
+  .count-col { flex-basis: 100%; }
+}
+@media (max-width: 720px) {
+  .count-view { flex-wrap: wrap; gap: 8px; }
+  .count-col { order: -1; }
+  .count-view > .picture-col { order: 5; flex-basis: 100%; contain: none; overflow: visible; }
+  .count-nav { flex: 1; height: 44px; width: auto; font-size: 26px; }
+}
 .pagehead { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
 .vhead { display: flex; flex-direction: column; gap: 10px; }

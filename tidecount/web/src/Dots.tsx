@@ -11,11 +11,15 @@ type Props = {
   onRemove: (dot: Dot) => void;
   onLoad?: () => void;
   onError?: () => void;
+  /** A dot's own colour, such as its species. Without one it keeps the AI or person colour. */
+  colorOf?: (dot: Dot) => string | undefined;
+  /** The name shown when hovering a dot. */
+  labelOf?: (dot: Dot) => string | undefined;
   children?: ReactNode;
 };
 
 /** A frozen frame. Click empty water to add a dot, click a dot to remove it. */
-export function DotStage({ src, dots, showDots, showGrid, aspect, onAdd, onRemove, onLoad, onError, children }: Props) {
+export function DotStage({ src, dots, showDots, showGrid, aspect, onAdd, onRemove, onLoad, onError, colorOf, labelOf, children }: Props) {
   const cells = useMemo(() => {
     const out = Array(15).fill(0);
     dots.forEach((d) => { out[Math.min(2, Math.floor(d.y * 3)) * 5 + Math.min(4, Math.floor(d.x * 5))] += 1; });
@@ -35,8 +39,9 @@ export function DotStage({ src, dots, showDots, showGrid, aspect, onAdd, onRemov
         <button
           key={i}
           className={`dot ${d.source}`}
-          style={{ left: `${d.x * 100}%`, top: `${d.y * 100}%` }}
-          aria-label={`Remove dot ${i + 1}`}
+          style={{ left: `${d.x * 100}%`, top: `${d.y * 100}%`, background: colorOf?.(d) }}
+          aria-label={`${labelOf?.(d) ?? "Dot"} ${i + 1}`}
+          title={labelOf?.(d)}
           onClick={(e) => { e.stopPropagation(); onRemove(d); }}
         />
       ))}
