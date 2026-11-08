@@ -10,6 +10,7 @@ import { Accuracy } from "./Accuracy";
 import { Analysis, AnalysisHome } from "./Analysis";
 import { MyTasks, Workflow } from "./Board";
 import { Compare } from "./Compare";
+import { FishScan } from "./FishScan";
 import { Library } from "./Library";
 import { Login } from "./Login";
 import { ModelLab } from "./ModelLab";
@@ -34,6 +35,8 @@ const ICONS = {
   board: "M4 5h4v14H4zM10 5h4v9h-4zM16 5h4v6h-4z",
   reports: "M5 20V10M12 20V4M19 20v-7",
   species: "M3 12c3-4 6-6 10-6 3 0 6 2 8 6-2 4-5 6-8 6-4 0-7-2-10-6zM17 10.5v.01M3 8l3 4-3 4",
+  // A fish inside a viewfinder.
+  scan: "M3 8V4h4M17 4h4v4M21 16v4h-4M7 20H3v-4M7 12c2-2.2 3.8-3.2 5.6-3.2 1.8 0 3.3 1 4.4 3.2-1.1 2.2-2.6 3.2-4.4 3.2-1.8 0-3.6-1-5.6-3.2z",
   river: "M3 8c3-2 6-2 9 0s6 2 9 0M3 13c3-2 6-2 9 0s6 2 9 0M3 18c3-2 6-2 9 0s6 2 9 0",
   team: "M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 20v-2a4 4 0 0 0-3-3.9M16 2.1a4 4 0 0 1 0 7.8",
   settings: "M4 7h10M18 7h2M4 17h2M10 17h10M16 5v4M8 15v4",
@@ -97,8 +100,11 @@ function Sidebar() {
     { to: "/workflow", label: "Workflow", short: "Workflow", icon: "board", on: pathname.startsWith("/workflow") },
     { to: "/analysis", label: "Data analysis", short: "Analysis", icon: "reports", on: pathname.startsWith("/analysis") },
     { to: "/species", label: "Species wiki", short: "Species", icon: "species", on: pathname.startsWith("/species"), more: manager },
+    // In the phone's More tab for everyone, so the tab bar keeps its five tabs.
+    { to: "/scan", label: "Fish Scan", short: "Scan", icon: "scan", on: pathname.startsWith("/scan"), more: true },
     ...(manager ? [{ to: "/team", label: "Team", short: "Team", icon: "team" as const, on: pathname.startsWith("/team"), more: true }] : []),
-    { to: "/settings", label: "Settings", short: "Settings", icon: "settings", on: pathname.startsWith("/settings"), more: manager, className: "side-settings" },
+    // With Fish Scan in More, a volunteer's Settings joins it there too, so the bar still has five tabs.
+    { to: "/settings", label: "Settings", short: "Settings", icon: "settings", on: pathname.startsWith("/settings"), more: true, className: "side-settings" },
   ];
   return (
     <aside className={`side ${inVideo ? "rail" : ""}`}>
@@ -149,6 +155,7 @@ function Shell() {
           <Route path="/species" element={<Species />} />
           <Route path="/species/library" element={<MediaLibrary />} />
           <Route path="/species/:name" element={<SpeciesPage />} />
+          <Route path="/scan" element={<FishScan />} />
           <Route path="/team" element={<ManagerOnly><Team /></ManagerOnly>} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/models" element={<ManagerOnly><ModelLab /></ManagerOnly>} />

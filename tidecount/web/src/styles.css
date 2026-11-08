@@ -1748,3 +1748,65 @@ section > .fold { border-top: 0; padding-top: 0; }
   .info-tip { position: relative; }
   .info-tip::before { content: ""; position: absolute; inset: -12px; }
 }
+
+/* Fish Scan: choose a picture on the left; crop, scan and the suggestions on the right. One column below laptop width. */
+.scan-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; align-items: start; }
+.scan-work { gap: 16px; min-width: 0; }
+.scan-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.scan-head h2 { font-size: 15px; }
+.scan-picked { min-width: 0; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scan-drop { min-height: 160px; }
+.scan-drop span:not(.btn) { color: var(--text-2); font-size: 13px; }
+.scan-source .field input { width: 100%; min-width: 0; }
+.scan-library { margin: 0; padding: 0 2px 2px; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(132px, 100%), 1fr)); gap: 8px; max-height: min(62vh, 640px); overflow-y: auto; overscroll-behavior: contain; }
+.scan-photo { width: 100%; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; color: var(--text); font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.scan-photo:hover { border-color: var(--muted-2); }
+.scan-photo[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.scan-photo .pill { margin: 0 6px 6px; font-size: 11px; line-height: 18px; }
+.scan-photo-name { padding: 0 6px 6px; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+
+/* The picture keeps its own shape; the crop box is drawn in fractions of it, so it lines up at any size. */
+.scan-frame { display: grid; place-items: center; padding: 8px; background: #101828; border-radius: 8px; }
+.scan-stage { position: relative; display: inline-block; max-width: 100%; line-height: 0; overflow: hidden; user-select: none; }
+.scan-stage img { display: block; max-width: 100%; max-height: min(56vh, 560px); width: auto; height: auto; }
+.scan-stage.cropping { cursor: crosshair; touch-action: none; }
+.scan-crop { position: absolute; border: 2px solid #fff; box-shadow: 0 0 0 9999px rgba(16, 24, 40, .55); pointer-events: none; }
+.scan-tools { gap: 8px; }
+.scan-go { width: 100%; }
+
+.scan-results { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.scan-result { display: grid; grid-template-columns: 22px 56px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 0; }
+.scan-result + .scan-result { border-top: 1px solid var(--border-2); }
+.scan-rank { color: var(--muted); font-size: 13px; text-align: center; }
+.scan-ref { width: 56px; height: 42px; background: var(--panel-3); border-radius: 4px; overflow: hidden; }
+.scan-ref img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.scan-names { display: flex; flex-direction: column; gap: 2px; min-width: 0; line-height: 1.3; }
+.scan-names b { font-weight: 600; overflow-wrap: anywhere; }
+.scan-names i { overflow-wrap: anywhere; }
+.scan-score { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+.scan-bar { flex: 0 1 120px; height: 6px; background: var(--panel-3); border-radius: 3px; overflow: hidden; }
+.scan-bar i { display: block; height: 100%; background: var(--muted-2); border-radius: 3px; }
+.scan-links { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.scan-links a { color: var(--accent-ink); white-space: nowrap; }
+@media (max-width: 1180px) {
+  .scan-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  /* A shorter library scroll, so the picture and the results below it are a short scroll away. */
+  .scan-library { max-height: 48vh; }
+  .scan-result { grid-template-columns: 18px 44px minmax(0, 1fr); }
+  .scan-ref { width: 44px; height: 33px; }
+  .scan-links { grid-column: 3; flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; }
+}
+
+/* Fish Scan while it works: a ring in the button and a sliding bar in the results. Both stand still for people who ask for less motion. */
+.spinner { flex: none; width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, .4); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.scan-busy { display: flex; flex-direction: column; gap: 8px; padding: 6px 0; }
+.scan-progress { position: relative; width: 100%; }
+.scan-progress i { position: absolute; top: 0; bottom: 0; left: 0; width: 35%; border-radius: 3px; animation: scan-slide 1.3s ease-in-out infinite; }
+@keyframes scan-slide { from { transform: translateX(-100%); } to { transform: translateX(290%); } }
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+  .scan-progress i { width: 100%; opacity: .55; animation: none; }
+}
