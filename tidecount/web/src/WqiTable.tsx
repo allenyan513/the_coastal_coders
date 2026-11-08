@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { api, WqiTable as WqiTableData } from "./api";
 
 /** Coastal Action's report card colors for each rating, taken from their 2023 LaHave report card. */
-const RATINGS = [
+export const RATINGS = [
   { name: "Poor", range: "0 - 44", color: "#d13518", ink: "#ffffff" },
   { name: "Marginal", range: "45 - 64", color: "#f47321", ink: "#101828" },
   { name: "Fair", range: "65 - 79", color: "#ffdc29", ink: "#101828" },
