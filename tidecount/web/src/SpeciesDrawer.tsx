@@ -1,5 +1,5 @@
 import { Component, lazy, ReactNode, Suspense, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CompareImage, SpeciesImage, SpeciesMediaSummary, SpeciesProfile, SpeciesRow } from "./api";
 import { speciesPagePath, speciesProfile } from "./speciesData";
 import {
@@ -7,17 +7,11 @@ import {
   STATUS_TYPE_LABEL, STATUS_TYPE_ORDER, type SpeciesTabKey,
 } from "./speciesProfile";
 import type { SpeciesConservation } from "./api";
+import { editDrafts, PhotoEditor, VIEW_LABELS } from "./PhotoLibrary";
 
 // Leaflet is only downloaded when someone opens the map.
 const OccurrenceMap = lazy(() => import("./OccurrenceMap"));
 
-const VIEW_LABELS: Record<SpeciesImage["view"], string> = {
-  side: "Side profile",
-  underwater: "Underwater",
-  in_hand: "In hand",
-  illustration: "Illustration",
-  other: "Photo",
-};
 const GROUPS: Record<string, string> = { Actinopterygii: "Ray-finned fish", Elasmobranchii: "Sharks and rays", "": "Class not recorded" };
 // Photos and Identify are now both in Overview; old ?tab=photos and ?tab=identify links go there (tabFromParam).
 const TABS: { key: SpeciesTabKey; label: string }[] = [
@@ -76,7 +70,7 @@ export function SpeciesDrawer({ species, row, rows, media, onSelect, onClose, on
     };
   }, [onClose]);
 
-  const expand = () => (onExpand ? onExpand(tab) : navigate(speciesPagePath(species, tab)));
+  const expand = () => (onExpand ? onExpand(tab) : navigate(speciesPagePath(species, tab), { state: editDrafts.has(species) ? { editing: true } : null }));
 
   return (
     <div className="drawer-root">
@@ -113,9 +107,14 @@ type ViewProps = Shared & {
 export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, layout, actions }: ViewProps) {
   const [data, setData] = useState<SpeciesProfile | null>(() => speciesProfile(species).peek() ?? null);
   const [error, setError] = useState("");
+  // Read-only until Edit. Editing changes this species' photos only, and nothing is stored until Save.
+  // Expand or Collapse mid-edit arrives with `editing` in the navigation state and keeps the draft.
+  const location = useLocation();
+  const [editing, setEditing] = useState(() => editDrafts.resume(species, location.state));
   const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setEditing(editDrafts.resume(species, location.state));
     let live = true;
     const profile = speciesProfile(species);
     setData(profile.peek() ?? null); setError("");
@@ -156,7 +155,10 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
             {!common && authority && <p className="meta">{authority}</p>}
             {data && <NameCheck data={data} />}
           </div>
-          {actions}
+          <div className="row drawer-actions">
+            {data && !editing && <button className="btn" onClick={() => { editDrafts.start(species, data.images); setEditing(true); }} aria-label="Edit this species' photos">Edit</button>}
+            {actions}
+          </div>
         </header>
 
         <div className="tabs" role="tablist" aria-label="Species details" onKeyDown={onTabKey}>
@@ -172,6 +174,9 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
         </div>
 
         <div className={`drawer-body${layout === "page" ? " species-page-body" : ""}`} ref={bodyRef} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
+          {data && editing ? (
+            <PhotoEditor key={species} data={data} onCancel={() => setEditing(false)} onSaved={(p) => { setData(p); setEditing(false); }} />
+          ) : (
           <TabBoundary key={`${species}:${tab}`}>
           {error && <p className="meta">{error}</p>}
           {!data && !error && <p className="meta">Loading…</p>}
@@ -188,6 +193,7 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
 
           {data && tab === "details" && <Details data={data} row={row} />}
           </TabBoundary>
+          )}
         </div>
     </>
   );
@@ -297,14 +303,19 @@ function Photos({ data, title }: { data: SpeciesProfile; title: string }) {
   );
 }
 
+/** A credit link, or plain text when there's no page to link to (an uploaded photo used with permission). */
+function MaybeLink({ href, children }: { href?: string; children: ReactNode }) {
+  return href ? <a href={href} target="_blank" rel="noreferrer noopener">{children}</a> : <span>{children}</span>;
+}
+
 function Credit({ img }: { img: SpeciesImage }) {
   return (
     <figcaption className="credit">
       {img.caption && <span>{img.caption}. </span>}
       <span>{img.view === "illustration" ? "Illustration" : "Photo"} by {img.creator}. </span>
-      <a href={img.license_url} target="_blank" rel="noreferrer noopener">{img.license}</a>
+      <MaybeLink href={img.license_url}>{img.license}</MaybeLink>
       {" · "}
-      <a href={img.source_url} target="_blank" rel="noreferrer noopener">Original on {img.source}</a>
+      <MaybeLink href={img.source_url}>{img.source_url ? `Original on ${img.source}` : img.source}</MaybeLink>
       {img.place ? <span> · {img.place}</span> : null}
       <span className="verify"> {img.verification}</span>
     </figcaption>
@@ -613,8 +624,8 @@ function CompareCard({ name, common, note, photo, onOpen, unlisted, wide }: Comp
         {shown && (
           <p className="compare-credit">
             {COMPARE_VIEW[photo.view ?? "other"] ?? "Photo"} · {photo.creator} ·{" "}
-            <a href={photo.license_url} target="_blank" rel="noreferrer noopener">{photo.license}</a> ·{" "}
-            <a href={photo.source_url} target="_blank" rel="noreferrer noopener">{photo.source}</a>
+            <MaybeLink href={photo.license_url}>{photo.license}</MaybeLink> ·{" "}
+            <MaybeLink href={photo.source_url}>{photo.source}</MaybeLink>
           </p>
         )}
       </div>
@@ -696,7 +707,7 @@ function Details({ data, row }: { data: SpeciesProfile; row?: SpeciesRow }) {
           <ul className="features">
             {data.images.map((img) => (
               <li key={img.id}>
-                {img.creator} · <a href={img.license_url} target="_blank" rel="noreferrer noopener">{img.license}</a> · <a href={img.source_url} target="_blank" rel="noreferrer noopener">{img.source}</a>
+                {img.creator} · <MaybeLink href={img.license_url}>{img.license}</MaybeLink> · <MaybeLink href={img.source_url}>{img.source}</MaybeLink>
               </li>
             ))}
           </ul>

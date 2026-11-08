@@ -536,6 +536,12 @@ button.step:disabled { opacity: .5; }
 .drop-big svg { color: var(--accent); }
 .file-chip { padding: 10px 12px; display: flex; align-items: center; gap: 10px; background: var(--panel-2); border: 1px solid var(--border-2); border-radius: 8px; min-width: 0; }
 .file-chip b { overflow-wrap: anywhere; }
+/* A file input styled as the import dialog's "Choose file" button; the input is only visually hidden. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.file-pick { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; cursor: pointer; }
+.file-pick .btn { flex: none; pointer-events: none; }
+.file-pick .sr-only:focus-visible + .btn { outline: 2px solid var(--accent); outline-offset: 2px; }
+.file-pick-name { min-width: 0; color: var(--text-2); font-size: 13px; overflow-wrap: anywhere; }
 .file-chip .num { flex: none; padding: 2px 6px; background: var(--panel-3); border-radius: 4px; font-size: 11px; color: var(--text-2); }
 .hint { padding: 8px 10px; background: var(--accent-soft); border-radius: 6px; color: var(--accent-ink); font-size: 13px; }
 .facts { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); border: 1px solid var(--border-2); border-radius: 8px; overflow: hidden; }
@@ -1277,3 +1283,14 @@ section > .fold { border-top: 0; padding-top: 0; }
 .id-footnote { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; font-size: 12px; line-height: 1.45; color: var(--muted); }
 .id-footnote-icon { flex: none; margin-top: 2px; color: var(--muted-2); }
 .id-footnote-link { font: inherit; color: var(--accent-ink); }
+
+/* Media Library and the species photo editor (edit mode only; the gallery itself is unchanged). */
+.photo-grid { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 12px; }
+.photo-card { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.photo-thumb { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #101828; }
+.photo-card-body { padding: 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 13px; min-width: 0; overflow-wrap: anywhere; }
+.photo-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 10px; }
+.photo-fields .field input, .photo-fields .field select { width: 100%; min-width: 0; max-width: none; }
+.photo-upload { gap: 12px; }
+.photo-editor-head { display: flex; flex-direction: column; gap: 2px; }
+.photo-editor-actions { position: sticky; bottom: 0; padding: 10px 0; background: var(--panel); border-top: 1px solid var(--border-2); }

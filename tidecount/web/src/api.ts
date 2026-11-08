@@ -107,7 +107,16 @@ export type SpeciesImage = {
   source_url: string;
   place?: string;
   verification: string;
+  /** Curated photos are verified; uploads start "pending" and are not identification references until verified. */
+  review?: PhotoReview;
+  /** "curated": Wikimedia Commons or iNaturalist, from species_media.json. "upload": stored in the Media Library. */
+  kind?: "curated" | "upload";
 };
+export type PhotoReview = "pending" | "verified" | "rejected";
+/** A photo in the Media Library, with the species it is shown on (none is fine). */
+export type LibraryPhoto = SpeciesImage & { added_on: string; species: string[]; home?: string; duplicate?: boolean };
+/** What an upload is sent with: the credit its use needs. Uploads always start pending review. */
+export type PhotoCredit = Pick<SpeciesImage, "view" | "caption" | "creator" | "license" | "license_url" | "source" | "source_url" | "place">;
 export type SpeciesProfile = {
   species: string;
   curated: boolean;
@@ -372,6 +381,29 @@ export const api = {
   species: () => call<SpeciesRow[]>("/api/species"),
   speciesMedia: () => call<SpeciesMediaSummary>("/api/species/media"),
   speciesProfile: (name: string) => call<SpeciesProfile>(`/api/species/${encodeURIComponent(name)}/profile`),
+  photoLibrary: () => call<{ photos: LibraryPhoto[] }>("/api/species/library"),
+  /** Stores the file once (the same file again returns the stored photo), pending review and linked to no species. */
+  uploadPhoto: (file: File, credit: PhotoCredit) => {
+    const form = new FormData();
+    form.append("file", file);
+    for (const [k, v] of Object.entries(credit)) form.append(k, v ?? "");
+    return call<LibraryPhoto>("/api/species/library", { method: "POST", body: form });
+  },
+  editPhoto: (id: string, patch: Partial<PhotoCredit> & { review?: PhotoReview }) =>
+    call<LibraryPhoto>(`/api/species/library/${encodeURIComponent(id)}`, json("PATCH", patch)),
+  /**
+   * Permanently deletes an uploaded photo and its links on every species. The server allows it on the
+   * computer running Tideflow, or with the deletion key. The error carries `status`, so a 403 can ask for the key.
+   */
+  deletePhoto: async (id: string, key = "") => {
+    const res = await fetch(`/api/species/library/${encodeURIComponent(id)}`, { method: "DELETE", headers: key ? { "X-Tideflow-Admin-Token": key } : {} });
+    if (res.ok) return;
+    const body = await res.json().catch(() => null);
+    throw Object.assign(new Error(body?.detail ?? `Request failed (${res.status})`), { status: res.status });
+  },
+  /** The photos a species shows, in one save. Leaving one out only unlinks it; it stays in the library. */
+  saveSpeciesPhotos: (name: string, ids: string[]) =>
+    call<SpeciesProfile>(`/api/species/${encodeURIComponent(name)}/photos`, json("PUT", { ids })),
   obisSummary: (name: string, region: string, filter: RecordFilter = NO_FILTER) =>
     call<ObisSummary>(`/api/species/${encodeURIComponent(name)}/occurrences/summary?region=${region}${methodParams(filter)}`),
   obisCatalog: (name: string, region: string) =>

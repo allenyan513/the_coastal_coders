@@ -13,7 +13,7 @@ source of truth. None of them changes species.csv, which stays the list BioCLIP 
 import json
 from functools import lru_cache
 
-from . import config
+from . import config, species_library
 
 
 def _read(path) -> dict:
@@ -115,18 +115,27 @@ def load() -> dict:
     """Images joined with identification notes by scientific name. Missing files give an empty
     result, so the app still runs without them."""
     images, notes = _read(config.SPECIES_MEDIA), _read(config.SPECIES_PROFILES)
+    # The Media Library's links and hidden photos, on top of the curated manifest (which it never changes).
+    galleries = species_library.apply(curated_images(images))
     out = {}
-    for name in images.keys() | notes.keys():
+    for name in images.keys() | notes.keys() | galleries.keys():
         entry = images.get(name, {"taxon": None, "images": []})
-        out[name] = {**entry, "profile": notes.get(name)}
+        out[name] = {**entry, "images": galleries.get(name, []), "profile": notes.get(name)}
     return out
+
+
+def curated_images(images: dict | None = None) -> dict:
+    """The curated photos by species, exactly as in species_media.json."""
+    images = _read(config.SPECIES_MEDIA) if images is None else images
+    return {name: [i for i in (e.get("images") or []) if isinstance(i, dict)] for name, e in images.items() if isinstance(e, dict)}
 
 
 def compare_image(images: list[dict]) -> dict | None:
     """The photo a look-alike card shows: a side profile if there is one, else a photograph of any
     other view, else an illustration. Carries its credit, because CC BY needs it wherever it's shown."""
     rank = {"side": 0, "in_hand": 1, "underwater": 2, "other": 3, "illustration": 4}
-    usable = [i for i in images if isinstance(i, dict) and i.get("url")]
+    # Only checked photos: an upload pending review is never offered as the reference to compare with.
+    usable = [i for i in images if isinstance(i, dict) and i.get("url") and i.get("review", "verified") == "verified"]
     if not usable:
         return None
     best = min(usable, key=lambda i: rank.get(i.get("view"), 5))

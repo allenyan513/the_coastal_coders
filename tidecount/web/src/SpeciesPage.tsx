@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { SpeciesMediaSummary, SpeciesRow } from "./api";
 import { SpeciesTab, SpeciesView } from "./SpeciesDrawer";
+import { editDrafts } from "./PhotoLibrary";
 import { tabFromParam } from "./speciesProfile";
 import { lastViewed, speciesMedia, speciesPagePath, speciesRows } from "./speciesData";
 
@@ -45,7 +46,8 @@ export function SpeciesPage() {
   const collapse = () => {
     const q = new URLSearchParams({ species });
     if (tab !== "overview") q.set("tab", tab);
-    navigate(`/species?${q}`, { replace: true, state: { fromList: true } });
+    // Mid-edit, the drawer opens in edit mode with the same unsaved changes.
+    navigate(`/species?${q}`, { replace: true, state: { fromList: true, ...(editDrafts.has(species) ? { editing: true } : {}) } });
   };
 
   const backButton = <button className="btn species-back" onClick={back}>← Back to Species list</button>;

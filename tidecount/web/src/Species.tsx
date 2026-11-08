@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { SpeciesMediaSummary, SpeciesRow } from "./api";
 import { SpeciesDrawer, SpeciesTab } from "./SpeciesDrawer";
+import { editDrafts } from "./PhotoLibrary";
 import { lastViewed, speciesMedia, speciesPagePath, speciesRows } from "./speciesData";
 import { badgeText, tabFromParam } from "./speciesProfile";
 
@@ -49,7 +50,10 @@ export function Species() {
   const expand = useCallback((tab: SpeciesTab) => {
     if (!open) return;
     const fromList = Boolean((location.state as { fromList?: boolean } | null)?.fromList);
-    navigate(speciesPagePath(open, tab), { replace: true, state: fromList ? { listDepth: 1 } : null });
+    // Mid-edit, the page opens in edit mode with the same unsaved changes.
+    const editing = editDrafts.has(open);
+    const state = { ...(fromList ? { listDepth: 1 } : {}), ...(editing ? { editing: true } : {}) };
+    navigate(speciesPagePath(open, tab), { replace: true, state: fromList || editing ? state : null });
   }, [open, location.state, navigate]);
   // A ?species= link opened on a phone, or a window narrowed to phone width with the drawer open, goes to the page.
   useEffect(() => {
@@ -90,9 +94,12 @@ export function Species() {
 
   return (
     <div className="stack" style={{ gap: 20 }}>
-      <div>
-        <h1>Species wiki</h1>
-        <p className="lede">AI only suggests fish from this list, built from records of fish seen in Nova Scotia. A person always makes the final call.</p>
+      <div className="pagehead">
+        <div>
+          <h1>Species wiki</h1>
+          <p className="lede">AI only suggests fish from this list, built from records of fish seen in Nova Scotia. A person always makes the final call.</p>
+        </div>
+        <Link className="btn" to="/species/library">Media Library</Link>
       </div>
 
       <div className="panel kpis">
