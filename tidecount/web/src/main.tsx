@@ -37,7 +37,11 @@ const ICONS = {
   team: "M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 20v-2a4 4 0 0 0-3-3.9M16 2.1a4 4 0 0 1 0 7.8",
   settings: "M4 7h10M18 7h2M4 17h2M10 17h10M16 5v4M8 15v4",
   more: "M3.5 12a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0M10.5 12a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0M17.5 12a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0",
+  signin: "M15 3h4v18h-4M10 17l5-5-5-5M15 12H3",
 };
+
+/** Pages a guest may open without signing in: the Species wiki, its Media Library, and the water readings. */
+const isPublicPath = (pathname: string) => pathname === "/species" || pathname.startsWith("/species/") || pathname === "/river";
 
 function Icon({ name }: { name: keyof typeof ICONS }) {
   return (
@@ -84,9 +88,10 @@ function MoreTab({ items }: { items: NavItem[] }) {
 /** What the bar offers depends on the signed-in role. Inside a video it shrinks to icons, so the footage keeps its width.
  *  On a phone it is a tab bar with short labels and at most five tabs. Pages marked `more` move into the More tab there. */
 function Sidebar() {
-  const user = useUser();
-  const manager = user.role === "manager";
+  const { user } = useSession();
   const { pathname, search } = useLocation();
+  if (!user) return <GuestSidebar pathname={pathname} search={search} />;
+  const manager = user.role === "manager";
   const inVideo = pathname.startsWith("/videos/");
   // The model lab and AI accuracy have no entry here. People following the procedure don't need them,
   // and both still open from their own addresses for anyone tuning Tideflow.
@@ -116,6 +121,28 @@ function Sidebar() {
   );
 }
 
+/** For a guest on a public page: the public pages and Sign in, in the same bar (a tab bar on a phone). */
+function GuestSidebar({ pathname, search }: { pathname: string; search: string }) {
+  const items: NavItem[] = [
+    { to: "/species", label: "Species wiki", short: "Species", icon: "species", on: pathname.startsWith("/species") },
+    { to: "/river", label: "Water quality", short: "Water", icon: "river", on: pathname === "/river" },
+    { to: `/login?next=${encodeURIComponent(pathname + search)}`, label: "Sign in", short: "Sign in", icon: "signin", on: false, className: "side-settings" },
+  ];
+  return (
+    <aside className="side">
+      <Link to="/" className="brand" aria-label="Tideflow"><img src="/favicon.svg" alt="" />Tideflow</Link>
+      <nav className="side-nav" aria-label="Public pages">
+        <p className="side-label">Reference</p>
+        {items.map((i) => (
+          <Link key={i.label} to={i.to} className={`side-link ${i.className ?? ""}`} aria-current={i.on ? "page" : undefined} title={i.label}>
+            <Icon name={i.icon} /><span className="side-full">{i.label}</span><span className="side-short">{i.short}</span>
+          </Link>
+        ))}
+      </nav>
+    </aside>
+  );
+}
+
 /** Volunteers open their tasks and managers open the surveys. The front page's upload link stays open to both. */
 function Home() {
   const user = useUser();
@@ -128,9 +155,11 @@ function ManagerOnly({ children }: { children: ReactNode }) {
 }
 
 function Shell() {
-  const { user } = useSession();
+  const { user, loading } = useSession();
   const { pathname, search } = useLocation();
-  if (!user) return <Navigate to={`/login?next=${encodeURIComponent(pathname + search)}`} replace />;
+  // Wait for the server to say who this is, so a signed-in person isn't sent to sign-in on reload.
+  if (loading) return <main className="page"><p className="meta">Loading…</p></main>;
+  if (!user && !isPublicPath(pathname)) return <Navigate to={`/login?next=${encodeURIComponent(pathname + search)}`} replace />;
   return (
     <div className="shell">
       <Sidebar />

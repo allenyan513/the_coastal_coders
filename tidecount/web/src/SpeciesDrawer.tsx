@@ -7,7 +7,7 @@ import {
   STATUS_TYPE_LABEL, STATUS_TYPE_ORDER, type SpeciesTabKey,
 } from "./speciesProfile";
 import type { SpeciesConservation } from "./api";
-import { editDrafts, PhotoEditor, VIEW_LABELS } from "./PhotoLibrary";
+import { editDrafts, PhotoEditor, useCanManagePhotos, VIEW_LABELS } from "./PhotoLibrary";
 
 // Leaflet is only downloaded when someone opens the map.
 const OccurrenceMap = lazy(() => import("./OccurrenceMap"));
@@ -110,11 +110,13 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
   // Read-only until Edit. Editing changes this species' photos only, and nothing is stored until Save.
   // Expand or Collapse mid-edit arrives with `editing` in the navigation state and keeps the draft.
   const location = useLocation();
-  const [editing, setEditing] = useState(() => editDrafts.resume(species, location.state));
+  // Only managers edit; anyone else never resumes a draft (and Edit isn't shown to them).
+  const manager = useCanManagePhotos();
+  const [editing, setEditing] = useState(() => manager && editDrafts.resume(species, location.state));
   const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setEditing(editDrafts.resume(species, location.state));
+    setEditing(manager && editDrafts.resume(species, location.state));
     let live = true;
     const profile = speciesProfile(species);
     setData(profile.peek() ?? null); setError("");
@@ -156,7 +158,7 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
             {data && <NameCheck data={data} />}
           </div>
           <div className="row drawer-actions">
-            {data && !editing && <button className="btn" onClick={() => { editDrafts.start(species, data.images); setEditing(true); }} aria-label="Edit this species' photos">Edit</button>}
+            {manager && data && !editing && <button className="btn" onClick={() => { editDrafts.start(species, data.images); setEditing(true); }} aria-label="Edit this species' photos">Edit</button>}
             {actions}
           </div>
         </header>
@@ -174,7 +176,7 @@ export function SpeciesView({ species, row, rows, media, onSelect, tab, onTab, l
         </div>
 
         <div className={`drawer-body${layout === "page" ? " species-page-body" : ""}`} ref={bodyRef} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
-          {data && editing ? (
+          {manager && data && editing ? (
             <PhotoEditor key={species} data={data} onCancel={() => setEditing(false)} onSaved={(p) => { setData(p); setEditing(false); }} />
           ) : (
           <TabBoundary key={`${species}:${tab}`}>
@@ -275,7 +277,10 @@ function Photos({ data, title }: { data: SpeciesProfile; title: string }) {
               alt={`${title}, ${VIEW_LABELS[current.view].toLowerCase()}${current.caption ? `: ${current.caption}` : ""}`}
               onError={() => lose(current.id)}
             />
-            <span className="pill muted gallery-view">{VIEW_LABELS[current.view]}</span>
+            {/* Signed-in people also see uploads awaiting review; those say so on the photo itself. */}
+            <span className={`pill ${current.review === "pending" ? "warn" : "muted"} gallery-view`}>
+              {VIEW_LABELS[current.view]}{current.review === "pending" ? " · Pending review" : ""}
+            </span>
             {images.length > 1 && (
               <>
                 <button className="gallery-nav prev" aria-label="Previous photo" onClick={() => setShot((s) => (s - 1 + images.length) % images.length)}>‹</button>
@@ -289,7 +294,7 @@ function Photos({ data, title }: { data: SpeciesProfile; title: string }) {
       {images.length > 1 && (
         <div className="thumbs" role="group" aria-label="Choose a reference image">
           {images.map((img, i) => (
-            <button key={img.id} className="thumb" aria-pressed={i === shot} aria-label={`${VIEW_LABELS[img.view]}, image ${i + 1} of ${images.length}`} onClick={() => setShot(i)}>
+            <button key={img.id} className="thumb" aria-pressed={i === shot} aria-label={`${VIEW_LABELS[img.view]}${img.review === "pending" ? ", pending review" : ""}, image ${i + 1} of ${images.length}`} onClick={() => setShot(i)}>
               <img
                 src={img.thumb_url ?? img.url} alt="" loading="lazy"
                 // A missing thumbnail falls back to the full image; only drop the photo if both fail.

@@ -346,6 +346,42 @@ uv run python ../ml/species_media.py check --links
 
 `candidates` matches the name exactly on iNaturalist, GBIF and WoRMS, then collects openly licensed photos: research-grade iNaturalist observations of exactly that taxon, Atlantic Canada first, and Wikimedia Commons files in the species' category. It writes a numbered contact sheet to `data/species_media/<species>/sheet.jpg`. Look at every photo before adding it. Research-grade observations still show the wrong animal: some "haddock", "winter flounder" and "lumpfish" observations were photos of the gull or eagle that ate the fish. `check` rejects licences other than CC0, CC BY, CC BY-SA and public domain, missing credits, and look-alikes that aren't on the list. `--links` also fetches every image and source link, and asks iNaturalist whether each observation still exists, is still research grade and still names the same species, since identifications can change after a photo is picked.
 
+## Sign-in and roles
+
+Accounts live on the server, in `data/tidecount.db`. The server checks every request against the signed-in account. Nothing the browser says about its role counts.
+
+| Who | Can |
+|---|---|
+| Anyone, signed in or not | Browse the Species wiki, its Media Library (verified photos only), OBIS maps and eDNA, and the water readings |
+| Volunteer | View research recordings and results, upload videos, count and review fish, retry failed analysis. Pending photos are shown, marked as such |
+| Manager | Everything, plus surveys and filing, other models, Reports, Accuracy, Model lab, the Media Library and the team |
+
+**Signing up:** anyone can create an account at `/login`, with **Create an account**, or straight from `/login?register`. Enter a name and email and choose Volunteer or Manager.
+- Anyone who signs up as a manager gets every manager permission. That's the team's choice for now.
+- The server makes a random password, shows it once with a **Copy password** button, and signs the person in.
+- Only the password's hash is stored. Change it any time in **Settings**.
+- An email that already has an account can't sign up again, and nothing about the existing account changes.
+- Sign-ups are limited to 20 an hour from one address (`TIDECOUNT_SIGNUPS_PER_HOUR`).
+
+**Demo sign-in:** the sign-in page works as it always did. Pick Volunteer or Manager and press Sign in; no password is checked.
+- It opens one shared demo account per role, `volunteer@tideflow.demo` or `manager@tideflow.demo`, made on first use.
+- Each demo account has a random password nobody knows, so it can't be opened any other way, and nobody can sign up with a `@tideflow.demo` address.
+- Roles and permissions are still checked on the server.
+- Anyone who can reach the site can sign in as the demo manager. Set `TIDECOUNT_DEMO_SIGNIN=0` to turn the demo sign-in off, or switch a demo account off on the **Team** page.
+
+**Command line:** `docker compose run --rm app .venv/bin/python -m tidecount.users create-manager you@example.org` still works. The same tool runs `reset-password EMAIL` and `list`.
+
+**The team:** managers change roles and remove access from **Team**. **Copy sign-up link** gives the address to share. Invites by email and password reset links still work: Tideflow sends no email, so copy each link and send it yourself. A link works once, within 7 days. Removing someone's access signs them out at once.
+
+**Sessions:** a session lasts 30 days without use and 90 days in all, and it survives restarts and redeploys. Team changes, permanent photo deletion and deleting survey items ask for the password again if it was last entered more than 10 minutes ago.
+
+**Behind Caddy (HTTPS):** nothing to configure. The cookie is `__Host-tideflow_session`, marked Secure, HttpOnly and SameSite=Lax. Writes from other sites are refused.
+- `TIDECOUNT_SECURE_COOKIES=1` or `0` overrides how HTTPS is detected.
+- `TIDECOUNT_ALLOWED_ORIGINS` adds sites allowed to send writes, comma-separated.
+- `TIDECOUNT_LOGIN_PER_10_MIN` sets the sign-in limit per address. The default is 10.
+
+**Before upgrading a deployment,** copy `data/tidecount.db` somewhere safe. The upgrade only adds the `users`, `sessions` and `invites` tables.
+
 ## Known limits
 
 - AI output is weak in murky water and on dense schools, so treat every box as a suggestion.

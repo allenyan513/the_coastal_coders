@@ -177,6 +177,13 @@ class Limiter:
         with self._lock:
             self._hits.clear()
 
+    def peek(self, key: str) -> float | None:
+        """Like check, but counts nothing: None when an event would be allowed now."""
+        with self._lock:
+            now = self._clock()
+            q = [t for t in self._hits.get(key, ()) if now - t <= self.window_s]
+            return self.window_s - (now - q[0]) if len(q) >= self.limit else None
+
     def check(self, key: str) -> float | None:
         """None when the event is allowed (and counted), else seconds until it would be."""
         with self._lock:

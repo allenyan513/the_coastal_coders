@@ -4,19 +4,20 @@ from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 
-from .. import db, summary as report
+from .. import auth, db, summary as report
 from .common import get_video
 
 router = APIRouter()
 
 
+# Public: the home page's statistics read every ready video's summary, for guests too.
 @router.get("/api/videos/{video_id}/summary")
 def summary(video_id: str):
     with db.session() as con:
         return report.build(con, get_video(con, video_id))
 
 
-@router.get("/api/videos/{video_id}/export.csv")
+@router.get("/api/videos/{video_id}/export.csv", dependencies=auth.SIGNED_IN)
 def export(video_id: str):
     with db.session() as con:
         s = report.build(con, get_video(con, video_id))
@@ -24,7 +25,7 @@ def export(video_id: str):
     return PlainTextResponse(report.to_csv(s), media_type="text/csv", headers={"Content-Disposition": f'attachment; filename="{name}-summary.csv"'})
 
 
-@router.get("/api/videos/{video_id}/protocol.csv")
+@router.get("/api/videos/{video_id}/protocol.csv", dependencies=auth.SIGNED_IN)
 def protocol_export(video_id: str):
     """The per-point sheet from Coastal Action's procedure."""
     with db.session() as con:

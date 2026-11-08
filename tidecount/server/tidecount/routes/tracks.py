@@ -9,10 +9,11 @@ from fastapi.responses import FileResponse
 from PIL import Image
 from pydantic import BaseModel
 
-from .. import config, db, follow, merge as merging, settings, video
+from .. import auth, config, db, follow, merge as merging, settings, video
 from .common import detector, get_video, suggester
 
-router = APIRouter()
+# Tracks, decisions and crops are research data and counting work: any signed-in volunteer or manager.
+router = APIRouter(dependencies=auth.SIGNED_IN)
 log = logging.getLogger("tidecount.tracks")
 
 

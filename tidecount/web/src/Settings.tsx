@@ -1,6 +1,7 @@
 import { FormEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Avatar, ROLES, useSession, useUser } from "./session";
+import { authApi } from "./api";
+import { Avatar, isDemoAccount, ROLES, useSession, useUser } from "./session";
 
 const AVATAR_SIZE = 128;
 
@@ -32,11 +33,15 @@ function Profile() {
   const [message, setMessage] = useState("");
   const input = useRef<HTMLInputElement>(null);
 
-  const save = (e: FormEvent) => {
+  const save = async (e: FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return setMessage("Enter a name.");
-    updateProfile({ name: name.trim() });
-    setMessage("Saved in this browser.");
+    try {
+      await updateProfile({ name: name.trim() });
+      setMessage(isDemoAccount(user.email) ? "Saved in this browser." : "Saved.");
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
   };
 
   const pick = async (file?: File) => {
@@ -88,33 +93,46 @@ function Profile() {
 }
 
 function Password() {
+  const demo = isDemoAccount(useUser().email);
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [message, setMessage] = useState("");
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!current || !next) return setMessage("Fill in every field.");
-    if (next.length < 8) return setMessage("Use at least 8 characters.");
+    if (demo) {
+      // The shared demo accounts, as in the old demo: nothing is changed.
+      if (next.length < 8) return setMessage("Use at least 8 characters.");
+      if (next !== confirm) return setMessage("The new passwords don't match.");
+      setCurrent(""); setNext(""); setConfirm("");
+      return setMessage("Demo only: no password was changed.");
+    }
+    if (next.length < 10) return setMessage("Use at least 10 characters.");
     if (next !== confirm) return setMessage("The new passwords don't match.");
-    setCurrent("");
-    setNext("");
-    setConfirm("");
-    setMessage("Demo only: no password was changed.");
+    try {
+      await authApi.changePassword(current, next);
+      setCurrent("");
+      setNext("");
+      setConfirm("");
+      setMessage("Password changed. You've been signed out on every other device.");
+    } catch (err) {
+      setMessage((err as Error).message);
+    }
   };
 
   return (
     <form className="panel panel-pad settings-card" onSubmit={submit}>
       <h2>Change password</h2>
       <label className="field">Current password
-        <input type="password" autoComplete="off" value={current} onChange={(e) => setCurrent(e.target.value)} />
+        <input type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
       </label>
-      <label className="field">New password
-        <input type="password" autoComplete="off" value={next} onChange={(e) => setNext(e.target.value)} />
+      <label className="field">New password (at least 10 characters)
+        <input type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
       </label>
       <label className="field">Confirm new password
-        <input type="password" autoComplete="off" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+        <input type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
       </label>
       <div className="row">
         <button className="btn go" type="submit">Update password</button>
@@ -128,9 +146,9 @@ export function Settings() {
   const { signOut } = useSession();
   const navigate = useNavigate();
   // Go to sign-in first: the next person starts on their own home, not on this page.
-  const leave = () => {
+  const leave = async () => {
     navigate("/login", { replace: true });
-    signOut();
+    await signOut().catch(() => {}); // the server session ends; the page is signed out either way
   };
   return (
     <div className="stack" style={{ gap: 20 }}>

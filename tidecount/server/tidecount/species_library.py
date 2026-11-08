@@ -188,10 +188,11 @@ def update(photo_id: str, fields: dict) -> dict:
         return photo
 
 
-def file_of(photo_id: str) -> tuple[Path, str] | None:
-    """The stored file and its content type, or None for an unknown id."""
+def file_of(photo_id: str, level: str = "guest") -> tuple[Path, str] | None:
+    """The stored file and its content type, or None for an unknown id or one this viewer may not see
+    (so a guest can't fetch a pending photo by guessing its address)."""
     photo = read()["photos"].get(photo_id)
-    if not photo or not re.fullmatch(r"upload-[0-9a-f]{12}\.(jpg|png|webp)", str(photo.get("file", ""))):
+    if not photo or not visible(photo.get("review", "pending"), level) or not re.fullmatch(r"upload-[0-9a-f]{12}\.(jpg|png|webp)", str(photo.get("file", ""))):
         return None
     path = _folder() / "files" / photo["file"]
     return (path, KINDS[photo["file"].rsplit(".", 1)[1]]) if path.is_file() else None
@@ -220,9 +221,21 @@ def _curated_index(curated: dict) -> dict:
     return out
 
 
-def apply(curated: dict) -> dict:
+def visible(review: str, level: str) -> bool:
+    """Who may see a photo, by its review status and the viewer's level (auth.level): guests see
+    verified photos only; anyone signed in also sees pending ones; rejected ones only managers, in
+    the Media Library, so they can be reviewed again or deleted."""
+    if review == "verified":
+        return True
+    if review == "pending":
+        return level in ("user", "manager")
+    return level == "manager"
+
+
+def apply(curated: dict, level: str = "guest") -> dict:
     """Each species' gallery after the library's edits: its curated photos minus the hidden ones,
-    then the photos linked to it. Rejected uploads are not shown. `curated` maps species to images."""
+    then the photos linked to it that this viewer may see (rejected uploads never appear on a
+    profile). `curated` maps species to images."""
     data = read()
     index = _curated_index(curated)
     out = {}
@@ -231,7 +244,8 @@ def apply(curated: dict) -> dict:
         images = [{**img, "review": "verified", "kind": "curated"} for img in curated.get(species, []) if isinstance(img, dict) and img.get("id") not in hidden]
         for pid in data["links"].get(species) or []:
             if pid in data["photos"]:
-                if data["photos"][pid].get("review") != "rejected":
+                review = data["photos"][pid].get("review", "pending")
+                if review != "rejected" and visible(review, level):
                     images.append(as_image(data["photos"][pid]))
             elif pid in index:
                 img = {k: v for k, v in index[pid].items() if k != "home"}
@@ -240,8 +254,8 @@ def apply(curated: dict) -> dict:
     return out
 
 
-def catalogue(curated: dict) -> list[dict]:
-    """Every photo in the library, uploads first, each with the species it is shown on."""
+def catalogue(curated: dict, level: str = "guest") -> list[dict]:
+    """Every photo in the library this viewer may see, uploads first, each with the species it is shown on."""
     data = read()
     shown_on: dict[str, list[str]] = {}
     for species, ids in data["links"].items():
@@ -249,6 +263,8 @@ def catalogue(curated: dict) -> list[dict]:
             shown_on.setdefault(pid, []).append(species)
     items = []
     for photo in sorted(data["photos"].values(), key=lambda p: p.get("added_on", ""), reverse=True):
+        if not visible(photo.get("review", "pending"), level):
+            continue
         items.append({**as_image(photo), "added_on": photo.get("added_on", ""), "species": sorted(shown_on.get(photo["id"], []))})
     for pid, img in _curated_index(curated).items():
         home = img.pop("home")

@@ -7,23 +7,25 @@ import math
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from .. import db, models, api_guard, occurrences, species_media
+from .. import auth, db, models, api_guard, occurrences, species_media
 
 router = APIRouter()
 
 
 @router.get("/api/species")
 def species():
-    """Every fish the suggester may name, and how many tracks a person has given that name here."""
+    """Every fish the suggester may name, and how many tracks a person has given that name here.
+    Public. `confirmed` is one total per species and says nothing of which recordings, sites or dates."""
     with db.session() as con:
         named = dict(con.execute("SELECT species, COUNT(*) FROM decisions WHERE state != 'Rejected' AND species IS NOT NULL GROUP BY species").fetchall())
     return [{**row, "confirmed": named.get(row["common"], 0)} for row in models.species_table()]
 
 
 @router.get("/api/species/media")
-def species_media_summary():
-    """Which species have reference photos or notes, keyed by scientific name."""
-    return species_media.summaries()
+def species_media_summary(user: auth.User | None = Depends(auth.viewer)):
+    """Which species have reference photos or notes, keyed by scientific name. Public; guests'
+    counts and thumbnails cover verified photos only."""
+    return species_media.summaries(auth.level(user))
 
 
 def _listed(name: str) -> str:
@@ -33,10 +35,11 @@ def _listed(name: str) -> str:
 
 
 @router.get("/api/species/{name}/profile")
-def species_profile(name: str):
+def species_profile(name: str, user: auth.User | None = Depends(auth.viewer)):
     """Reference photos with credits and licences, identification notes and the checked name for
-    one scientific name. Species nobody has curated yet come back with `curated: false`."""
-    return species_media.profile(_listed(name))
+    one scientific name. Species nobody has curated yet come back with `curated: false`. Public;
+    guests see verified photos only, signed-in people pending ones too (marked by `review`)."""
+    return species_media.profile(_listed(name), auth.level(user))
 
 
 def _retry(seconds) -> dict:

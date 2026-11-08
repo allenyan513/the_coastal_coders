@@ -8,11 +8,15 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
-from .. import config, db, settings, snapshots as rules, video
+from .. import auth, config, db, settings, snapshots as rules, video
 from .common import get_video
 from .schools import Dot
 
-router = APIRouter()
+# Point counts on research recordings: any signed-in volunteer or manager. Several GETs here create
+# frames or cache images the first time; they need sign-in like the rest. The accuracy figures
+# are read by every video's Summary page, so volunteers get them too (the Accuracy page itself is
+# a manager page in the app).
+router = APIRouter(dependencies=auth.SIGNED_IN)
 
 
 def get_snapshot(con, count_id: int) -> dict:
@@ -178,7 +182,7 @@ def snapshot_save(count_id: int, body: SnapshotSave):
         return {"stats": rules.stats(con, row["video_id"])}
 
 
-@router.get("/api/accuracy")
+@router.get("/api/accuracy")  # signed in, like the router: a video's Summary shows its figures to volunteers too
 def accuracy():
     """Opening the page creates each video's frames, as the snapshot screen does."""
     with db.session() as con:

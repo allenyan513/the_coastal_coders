@@ -11,6 +11,12 @@ import { api, LibraryPhoto, PhotoCredit, PhotoReview, SpeciesImage, SpeciesProfi
 import { speciesMedia, speciesProfile, speciesRows } from "./speciesData";
 import { normalizeProfile } from "./speciesProfile";
 import { Modal } from "./Modal";
+import { useSession } from "./session";
+
+/** Only managers change photos: upload, link, unlink, credits, review and delete. Everyone else browses. */
+export function useCanManagePhotos() {
+  return useSession().user?.role === "manager";
+}
 
 export const VIEW_LABELS: Record<SpeciesImage["view"], string> = {
   side: "Side profile",
@@ -282,21 +288,18 @@ function EditUpload({ photo, onDone }: { photo: LibraryPhoto; onDone: (p?: Libra
 }
 
 /**
- * Confirms a permanent delete. Nothing happens until "Delete photo". If the server asks for the
- * deletion key (anywhere but the computer running Tideflow), a field for it appears.
+ * Confirms a permanent delete. Nothing happens until "Delete photo". When the manager's password
+ * was last confirmed a while ago, the server asks for it again (the session's password prompt).
  */
 function DeletePhotoDialog({ photo, nameOf, onClose, onDeleted }: { photo: LibraryPhoto; nameOf: (s: string) => string; onClose: () => void; onDeleted: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [needsKey, setNeedsKey] = useState(false);
-  const [key, setKey] = useState("");
   const go = async () => {
     setBusy(true); setError("");
     try {
-      await api.deletePhoto(photo.id, key);
+      await api.deletePhoto(photo.id);
       onDeleted();
     } catch (e) {
-      if ((e as { status?: number }).status === 403) setNeedsKey(true);
       setError(e instanceof Error ? e.message : String(e));
       setBusy(false);
     }
@@ -317,15 +320,11 @@ function DeletePhotoDialog({ photo, nameOf, onClose, onDeleted }: { photo: Libra
           : "It will also be removed from every species profile linked to it. It isn't on any species now."}
         {" "}This can't be undone. To take it off one species only, use Remove from species in that species' Edit mode instead.
       </p>
-      {needsKey && (
-        <label className="field">Deletion key
-          <input type="password" autoComplete="off" value={key} onChange={(e) => setKey(e.target.value)} />
-        </label>
-      )}
+
       {error && <p className="meta" role="alert" style={{ color: "var(--down)" }}>{error}</p>}
       <div className="row dialog-foot" style={{ justifyContent: "flex-end" }}>
         <button className="btn" onClick={onClose} disabled={busy}>Cancel</button>
-        <button className="btn danger" onClick={go} disabled={busy || (needsKey && !key)}>{busy ? "Deleting…" : "Delete photo"}</button>
+        <button className="btn danger" onClick={go} disabled={busy}>{busy ? "Deleting…" : "Delete photo"}</button>
       </div>
     </Modal>
   );
@@ -333,6 +332,7 @@ function DeletePhotoDialog({ photo, nameOf, onClose, onDeleted }: { photo: Libra
 
 /** Every reference photo: browse, filter, upload and review. Reached from the Species wiki. */
 export function MediaLibrary() {
+  const manager = useCanManagePhotos();
   const [photos, setPhotos] = useState<LibraryPhoto[] | null>(null);
   const [rows, setRows] = useState<SpeciesRow[] | null>(() => speciesRows.peek() ?? null);
   const [error, setError] = useState("");
@@ -398,7 +398,7 @@ export function MediaLibrary() {
         <p className="lede">Reference photos for the Species wiki. A photo is stored once and can be shown on any number of species.</p>
       </div>
 
-      <details className="fold">
+      {manager && <details className="fold">
         <summary>Upload a photo</summary>
         <div className="fold-body stack" style={{ gap: 8 }}>
           <label className="field">Show on species (optional)
@@ -409,7 +409,7 @@ export function MediaLibrary() {
           </label>
           <UploadForm submitLabel={busy ? "Uploading…" : "Upload"} busy={busy} onSubmit={upload} />
         </div>
-      </details>
+      </details>}
       {message && <p className="meta" role="status">{message}</p>}
       {error && <p className="meta" role="alert" style={{ color: "var(--down)" }}>{error}</p>}
 
@@ -449,7 +449,8 @@ export function MediaLibrary() {
                     <span className="meta">
                       {p.species.length ? <>On {p.species.map((s, i) => <span key={s}>{i > 0 && ", "}<Link to={`/species?species=${encodeURIComponent(s)}`}>{nameOf(rows, s)}</Link></span>)}</> : "Not on any species"}
                     </span>
-                    {p.kind === "upload" ? (
+                    {/* Volunteers browse only: the review status shows as its pill above, with no controls. */}
+                    {!manager ? null : p.kind === "upload" ? (
                       editing === p.id ? (
                         <EditUpload photo={p} onDone={(saved) => { setEditing(""); if (saved) { setPhotos((all) => all?.map((x) => (x.id === p.id ? { ...x, ...saved, species: x.species } : x)) ?? null); refresh(p.species); } }} />
                       ) : (

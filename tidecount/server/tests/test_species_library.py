@@ -113,17 +113,9 @@ def test_the_ai_list_is_untouched():
     assert species_library.read()["links"] == {}
 
 
-# --- permanent deletion -------------------------------------------------------------------------
+# --- permanent deletion (managers, after a recent password confirmation) -----------------------
 
-KEY = {"X-Tideflow-Admin-Token": "s3cret-key"}
-
-
-@pytest.fixture
-def deletion_key(monkeypatch):
-    monkeypatch.setattr(config, "MEDIA_ADMIN_TOKEN", KEY["X-Tideflow-Admin-Token"])
-
-
-def test_deleting_an_upload_removes_its_file_and_every_link(library, deletion_key):
+def test_deleting_an_upload_removes_its_file_and_every_link(library):
     pid = upload().json()["id"]
     keep = upload(data=PNG).json()["id"]
     cod = [i["id"] for i in cod_profile()["images"]]
@@ -131,7 +123,7 @@ def test_deleting_an_upload_removes_its_file_and_every_link(library, deletion_ke
     client.put("/api/species/Pollachius virens/photos", json={"ids": [pid]})
     assert len(list((library / "files").iterdir())) == 2
 
-    assert client.delete(f"/api/species/library/{pid}", headers=KEY).status_code == 204
+    assert client.delete(f"/api/species/library/{pid}").status_code == 204
     assert [i["id"] for i in cod_profile()["images"]] == cod + [keep]
     assert client.get("/api/species/Pollachius virens/profile").json()["images"] == []
     assert pid not in {p["id"] for p in client.get("/api/species/library").json()["photos"]}
@@ -139,36 +131,60 @@ def test_deleting_an_upload_removes_its_file_and_every_link(library, deletion_ke
     assert len(list((library / "files").iterdir())) == 1
     data = species_library.read()
     assert pid not in data["photos"] and "Pollachius virens" not in data["links"]
-    assert client.delete(f"/api/species/library/{pid}", headers=KEY).status_code == 404
+    assert client.delete(f"/api/species/library/{pid}").status_code == 404
 
 
-def test_curated_photos_can_never_be_deleted(deletion_key):
+def test_curated_photos_can_never_be_deleted():
     before = config.SPECIES_MEDIA.read_bytes()
     own = cod_profile()["images"][0]["id"]
-    r = client.delete(f"/api/species/library/{own}", headers=KEY)
+    r = client.delete(f"/api/species/library/{own}")
     assert r.status_code == 403 and "Curated" in r.json()["detail"]
     assert own in [i["id"] for i in cod_profile()["images"]]
     assert config.SPECIES_MEDIA.read_bytes() == before
 
 
-def test_deleting_is_refused_without_the_key_from_another_computer(library, monkeypatch):
+@pytest.mark.parametrize("role, status", [(None, 401), ("volunteer", 403)])
+def test_only_managers_change_the_library(library, as_role, role, status):
     pid = upload().json()["id"]
-    # TestClient's requests come from "testclient", not this computer, like a visitor's would.
-    assert client.delete(f"/api/species/library/{pid}").status_code == 403
-    assert client.delete(f"/api/species/library/{pid}", headers={"X-Tideflow-Admin-Token": "guess"}).status_code == 403
-    monkeypatch.setattr(config, "MEDIA_ADMIN_TOKEN", "")  # no key set: no key works, not even an empty one
-    assert client.delete(f"/api/species/library/{pid}", headers={"X-Tideflow-Admin-Token": ""}).status_code == 403
-    assert pid in species_library.read()["photos"] and len(list((library / "files").iterdir())) == 1
+    own = [i["id"] for i in cod_profile()["images"]]
+    as_role(role)
+    assert upload(data=PNG).status_code == status
+    assert client.patch(f"/api/species/library/{pid}", json={"review": "verified"}).status_code == status
+    assert client.put("/api/species/Gadus morhua/photos", json={"ids": own + [pid]}).status_code == status
+    assert client.delete(f"/api/species/library/{pid}").status_code == status
+    assert len(list((library / "files").iterdir())) == 1 and species_library.read()["links"] == {}
+    assert species_library.read()["photos"][pid]["review"] == "pending"
 
 
-def test_only_a_direct_request_on_this_computer_counts_as_local(monkeypatch):
-    from types import SimpleNamespace
-    from tidecount.routes.species_library import may_delete
+# --- who sees which photos ---------------------------------------------------------------------
 
-    monkeypatch.setattr(config, "MEDIA_ADMIN_TOKEN", "")
-    req = lambda host, headers=None: SimpleNamespace(client=SimpleNamespace(host=host), headers=headers or {})
-    assert may_delete(req("127.0.0.1")) and may_delete(req("::1"))
-    assert not may_delete(req("203.0.113.9"))
-    # Through a proxy on the same machine, the request isn't the operator's own.
-    assert not may_delete(req("127.0.0.1", {"x-forwarded-for": "203.0.113.9"}))
-    assert not may_delete(req("127.0.0.1", {"forwarded": "for=203.0.113.9"}))
+def test_guests_see_verified_photos_only_everywhere(as_role):
+    pending = upload().json()["id"]
+    verified = upload(data=PNG).json()["id"]
+    client.patch(f"/api/species/library/{verified}", json={"review": "verified"})
+    own = [i["id"] for i in cod_profile()["images"]]
+    client.put("/api/species/Gadus morhua/photos", json={"ids": own + [pending, verified]})
+
+    as_role(None)
+    shown = [i["id"] for i in cod_profile()["images"]]
+    assert verified in shown and pending not in shown and set(own) <= set(shown)
+    listed = {p["id"] for p in client.get("/api/species/library").json()["photos"]}
+    assert verified in listed and pending not in listed
+    assert client.get(f"/api/species/library/{pending}/file").status_code == 404  # the address is no use to a guest
+    assert client.get(f"/api/species/library/{verified}/file").status_code == 200
+    assert client.get("/api/species/media").json()["Gadus morhua"]["image_count"] == len(own) + 1
+
+    as_role("volunteer")
+    images = {i["id"]: i for i in cod_profile()["images"]}
+    assert images[pending]["review"] == "pending"  # shown to researchers, and labelled
+    assert client.get(f"/api/species/library/{pending}/file").status_code == 200
+
+
+def test_rejected_photos_are_for_managers_only(as_role):
+    pid = upload().json()["id"]
+    client.patch(f"/api/species/library/{pid}", json={"review": "rejected"})
+    assert pid in {p["id"] for p in client.get("/api/species/library").json()["photos"]}
+    for role in (None, "volunteer"):
+        as_role(role)
+        assert pid not in {p["id"] for p in client.get("/api/species/library").json()["photos"]}
+        assert client.get(f"/api/species/library/{pid}/file").status_code == 404

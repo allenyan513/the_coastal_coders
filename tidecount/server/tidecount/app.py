@@ -10,10 +10,11 @@ import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
-from . import config, db, settings, surveys, trends, water
-from .routes import review, schools, snapshots, species, species_library, stats, summary, surveys as survey_routes, tracks, videos, water as water_routes, web
+from . import auth, config, db, settings, surveys, trends, water
+from .routes import auth as auth_routes, review, schools, snapshots, species, species_library, stats, summary, surveys as survey_routes, team, tracks, videos, water as water_routes, web
 
 
 def worker_loop() -> None:
@@ -50,6 +51,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Tideflow", lifespan=lifespan)
-for module in (survey_routes, videos, tracks, review, schools, snapshots, species_library, species, summary, stats, water_routes):
+
+
+@app.middleware("http")
+async def refuse_cross_site_writes(request: Request, call_next):
+    """Every API write must come from Tideflow's own pages (see auth.origin_problem)."""
+    problem = auth.origin_problem(request)
+    if problem:
+        return JSONResponse({"detail": problem}, status_code=403)
+    return await call_next(request)
+
+
+for module in (auth_routes, team, survey_routes, videos, tracks, review, schools, snapshots, species_library, species, summary, stats, water_routes):
     app.include_router(module.router)
 app.include_router(web.router)  # last, because its catch-all path would hide the API

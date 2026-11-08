@@ -8,9 +8,12 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from .. import db, surveys
+from .. import auth, db, surveys
 
-router = APIRouter()
+# Anyone signed in reads the survey tree (volunteers file uploads under a station); changing it,
+# and filing videos afterwards, is survey administration: managers. Deleting also needs a recent
+# password confirmation.
+router = APIRouter(dependencies=auth.SIGNED_IN)
 Kind = Literal["sites", "transects", "stations"]
 
 
@@ -49,21 +52,21 @@ class ItemChange(BaseModel):
     archived: bool | None = None
 
 
-@router.post("/api/surveys/{kind}")
+@router.post("/api/surveys/{kind}", dependencies=auth.MANAGER)
 def add(kind: Kind, body: NewItem):
     with answer() as con:
         values = body.model_dump(exclude={"id", "parent_id"})
         return {"id": surveys.add(con, kind, values, body.parent_id, body.id)}
 
 
-@router.patch("/api/surveys/{kind}/{item_id}")
+@router.patch("/api/surveys/{kind}/{item_id}", dependencies=auth.MANAGER)
 def change(kind: Kind, item_id: str, body: ItemChange):
     with answer() as con:
         surveys.change(con, kind, item_id, body.model_dump())
     return {"ok": True}
 
 
-@router.delete("/api/surveys/{kind}/{item_id}")
+@router.delete("/api/surveys/{kind}/{item_id}", dependencies=auth.RECENT_MANAGER)
 def remove(kind: Kind, item_id: str):
     with answer() as con:
         surveys.remove(con, kind, item_id)
@@ -75,7 +78,7 @@ class Place(BaseModel):
     filmed_on: str | None = None
 
 
-@router.put("/api/videos/{video_id}/place")
+@router.put("/api/videos/{video_id}/place", dependencies=auth.MANAGER)
 def place(video_id: str, body: Place):
     """The station and filmed date of a video. A field left out stays as it is; an empty one clears it."""
     with answer() as con:
@@ -87,7 +90,7 @@ class PlaceMany(BaseModel):
     items: dict[str, str]  # station id by video id
 
 
-@router.put("/api/videos/places")
+@router.put("/api/videos/places", dependencies=auth.MANAGER)
 def place_many(body: PlaceMany):
     """File several videos at once, all or none, as when they're filed by their names."""
     with answer() as con:

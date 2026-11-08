@@ -355,7 +355,17 @@ export type DiversityStats = {
   partial: boolean;
 };
 
-async function call<T>(path: string, init?: RequestInit): Promise<T> {
+// Set by the session (session.tsx): what to do when the server says the session has ended, and how
+// to ask for the password when a sensitive manager action needs it confirmed.
+let signedOut: () => void = () => {};
+let reauthNeeded: () => Promise<boolean> = async () => false;
+export const onSignedOut = (fn: () => void) => { signedOut = fn; };
+export const onReauthNeeded = (fn: () => Promise<boolean>) => { reauthNeeded = fn; };
+
+/** An error from the server, with its HTTP status (401: not signed in, 403: not allowed). */
+export type ApiError = Error & { status?: number };
+
+async function call<T>(path: string, init?: RequestInit, retried = false): Promise<T> {
   const res = await fetch(path, init);
   // A web page where data was expected means the server doesn't know this endpoint, usually
   // because it's older than this page. Say so, instead of "Unexpected token '<'".
@@ -363,11 +373,53 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error("The server doesn't know this request. It may be running older code than this page: restart TideCount and reload.");
   }
   if (!res.ok) {
+    // A sensitive manager action: confirm the password, then send the same request once more.
+    if (res.status === 403 && res.headers.get("X-Tideflow-Reauth") === "required" && !retried) {
+      if (await reauthNeeded()) return call<T>(path, init, true);
+      throw Object.assign(new Error("Not done: your password wasn't confirmed."), { status: 403 });
+    }
     const body = await res.json().catch(() => null);
-    throw new Error(body?.detail ?? `Request failed (${res.status})`);
+    if (res.status === 401 && !path.startsWith("/api/auth/")) signedOut();
+    throw Object.assign(new Error(body?.detail ?? `Request failed (${res.status})`), { status: res.status });
   }
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
+
+/** The signed-in person as the server knows them. */
+export type ServerUser = { id: number; email: string; name: string; role: "manager" | "volunteer" };
+
+export const authApi = {
+  me: () => call<{ user: ServerUser | null; setup_needed: boolean }>("/api/auth/me"),
+  login: (email: string, password: string) => call<{ user: ServerUser }>("/api/auth/login", json("POST", { email, password })),
+  /** The demo sign-in: that role's shared demo account, no password (when the server allows it). */
+  demo: (role: ServerUser["role"]) => call<{ user: ServerUser }>("/api/auth/demo", json("POST", { role })),
+  /** A new account; the server makes the password and returns it this once, already signed in. */
+  register: (name: string, email: string, role: ServerUser["role"]) =>
+    call<{ user: ServerUser; password: string }>("/api/auth/register", json("POST", { name, email, role })),
+  logout: () => call<void>("/api/auth/logout", { method: "POST" }),
+  updateMe: (name: string) => call<{ user: ServerUser }>("/api/auth/me", json("PATCH", { name })),
+  changePassword: (current: string, next: string) => call<void>("/api/auth/password", json("POST", { current, new: next })),
+  reauth: (password: string) => call<void>("/api/auth/reauth", json("POST", { password })),
+  /** The first manager, with the one-time code printed on the server's console. */
+  setup: (code: string, name: string, email: string, password: string) => call<{ user: ServerUser }>("/api/auth/setup", json("POST", { code, name, email, password })),
+  invite: (token: string) => call<{ email: string; role: ServerUser["role"]; kind: "invite" | "reset"; name: string }>(`/api/auth/invite/${encodeURIComponent(token)}`),
+  acceptInvite: (token: string, name: string, password: string) => call<{ user: ServerUser }>("/api/auth/accept-invite", json("POST", { token, name, password })),
+};
+
+export type TeamMember = { id: number; email: string; name: string; role: ServerUser["role"]; active: boolean; created_at: number };
+export type TeamInvite = { id: number; email: string; role: ServerUser["role"]; created_at: number; expires_at: number };
+/** A link to pass on by hand. The token is only ever shown here, once. */
+export type TeamLink = TeamInvite & { kind: "invite" | "reset"; token: string };
+
+export const teamApi = {
+  list: () => call<{ members: TeamMember[]; invites: TeamInvite[] }>("/api/team"),
+  invite: (emails: string[], role: ServerUser["role"]) => call<{ invites: TeamLink[] }>("/api/team/invites", json("POST", { emails, role })),
+  cancelInvite: (id: number) => call<void>(`/api/team/invites/${id}`, { method: "DELETE" }),
+  renewInvite: (id: number) => call<TeamLink>(`/api/team/invites/${id}/renew`, { method: "POST" }),
+  change: (id: number, patch: { role?: ServerUser["role"]; active?: boolean }) => call<TeamMember>(`/api/team/${id}`, json("PATCH", patch)),
+  resetLink: (id: number) => call<TeamLink>(`/api/team/${id}/reset-link`, { method: "POST" }),
+};
 
 const json = (method: string, body: unknown): RequestInit => ({
   method,
@@ -392,15 +444,10 @@ export const api = {
   editPhoto: (id: string, patch: Partial<PhotoCredit> & { review?: PhotoReview }) =>
     call<LibraryPhoto>(`/api/species/library/${encodeURIComponent(id)}`, json("PATCH", patch)),
   /**
-   * Permanently deletes an uploaded photo and its links on every species. The server allows it on the
-   * computer running Tideflow, or with the deletion key. The error carries `status`, so a 403 can ask for the key.
+   * Permanently deletes an uploaded photo and its links on every species. Managers only; the server
+   * asks for the password again when it was last confirmed more than a few minutes ago.
    */
-  deletePhoto: async (id: string, key = "") => {
-    const res = await fetch(`/api/species/library/${encodeURIComponent(id)}`, { method: "DELETE", headers: key ? { "X-Tideflow-Admin-Token": key } : {} });
-    if (res.ok) return;
-    const body = await res.json().catch(() => null);
-    throw Object.assign(new Error(body?.detail ?? `Request failed (${res.status})`), { status: res.status });
-  },
+  deletePhoto: (id: string) => call<void>(`/api/species/library/${encodeURIComponent(id)}`, { method: "DELETE" }),
   /** The photos a species shows, in one save. Leaving one out only unlinks it; it stays in the library. */
   saveSpeciesPhotos: (name: string, ids: string[]) =>
     call<SpeciesProfile>(`/api/species/${encodeURIComponent(name)}/photos`, json("PUT", { ids })),
@@ -447,9 +494,11 @@ export const api = {
       xhr.open("POST", "/api/videos");
       xhr.responseType = "json";
       xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.(e.loaded / e.total); };
-      xhr.onload = () => xhr.status < 300
-        ? resolve(xhr.response)
-        : reject(new Error(xhr.response?.detail ?? `Request failed (${xhr.status})`));
+      xhr.onload = () => {
+        if (xhr.status < 300) return resolve(xhr.response);
+        if (xhr.status === 401) signedOut();
+        reject(Object.assign(new Error(xhr.response?.detail ?? `Request failed (${xhr.status})`), { status: xhr.status }));
+      };
       xhr.onerror = () => reject(new Error("The upload stopped. Check the connection and try again."));
       xhr.send(form);
     }),

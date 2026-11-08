@@ -6,10 +6,11 @@ from fastapi.responses import FileResponse
 from PIL import Image
 from pydantic import BaseModel
 
-from .. import config, db, settings, video
+from .. import auth, config, db, settings, video
 from .common import detector, get_video
 
-router = APIRouter()
+# School counts are counting work on research recordings: any signed-in volunteer or manager.
+router = APIRouter(dependencies=auth.SIGNED_IN)
 
 
 class SchoolStart(BaseModel):

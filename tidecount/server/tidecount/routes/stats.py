@@ -1,10 +1,11 @@
 """Statistics endpoints. The numbers are worked out in tidecount/stats.py."""
 from fastapi import APIRouter
 
-from .. import db, stats
+from .. import auth, db, stats
 from .common import get_video
 
-router = APIRouter()
+# Statistics of research recordings: signed in.
+router = APIRouter(dependencies=auth.SIGNED_IN)
 
 
 @router.get("/api/videos/{video_id}/stats/maxn")

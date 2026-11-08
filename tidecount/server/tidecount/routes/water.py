@@ -6,8 +6,10 @@ the latest reviews. That's quick: it only reads each video's confirmed tracks.
 """
 from fastapi import APIRouter
 
-from .. import db, link, trends, water
+from .. import auth, db, link, trends, water
 
+# Water-quality readings are public reference data. Fish trends and the fish-and-water comparison
+# come from research recordings (and rebuild fish_counts from reviews), so they need sign-in.
 router = APIRouter()
 
 
@@ -27,7 +29,7 @@ def series(site_id: str, measurement: str, deseason: bool = False):
     return s
 
 
-@router.get("/api/fish/sites/{site_id}/options")
+@router.get("/api/fish/sites/{site_id}/options", dependencies=auth.SIGNED_IN)
 def fish_options(site_id: str):
     """What a fish chart at this site can show (the overall measures, then each species), and which videos are linked."""
     with db.session() as con:
@@ -37,7 +39,7 @@ def fish_options(site_id: str):
                 "videos": videos}
 
 
-@router.get("/api/compare/sites/{site_id}")
+@router.get("/api/compare/sites/{site_id}", dependencies=auth.SIGNED_IN)
 def compare(site_id: str, metric: str = "total", measurement: str = "Temperature, water", deseason: bool = False):
     """A fish measure and a water measurement on one shared scale, with their Spearman correlation."""
     with db.session() as con:
@@ -45,7 +47,7 @@ def compare(site_id: str, metric: str = "total", measurement: str = "Temperature
         return trends.compare(con, site_id, metric, measurement, deseason)
 
 
-@router.get("/api/fish/sites/{site_id}/series")
+@router.get("/api/fish/sites/{site_id}/series", dependencies=auth.SIGNED_IN)
 def fish_series(site_id: str, metric: str = "total", deseason: bool = False):
     with db.session() as con:
         link.rebuild(con)

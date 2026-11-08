@@ -111,12 +111,13 @@ def conservation() -> dict:
     return out
 
 
-def load() -> dict:
+def load(level: str = "guest") -> dict:
     """Images joined with identification notes by scientific name. Missing files give an empty
-    result, so the app still runs without them."""
+    result, so the app still runs without them. `level` (auth.level) decides which uploads show:
+    guests get verified photos only, signed-in people pending ones too."""
     images, notes = _read(config.SPECIES_MEDIA), _read(config.SPECIES_PROFILES)
     # The Media Library's links and hidden photos, on top of the curated manifest (which it never changes).
-    galleries = species_library.apply(curated_images(images))
+    galleries = species_library.apply(curated_images(images), level)
     out = {}
     for name in images.keys() | notes.keys() | galleries.keys():
         entry = images.get(name, {"taxon": None, "images": []})
@@ -150,10 +151,10 @@ def compare_image(images: list[dict]) -> dict | None:
     }
 
 
-def summaries() -> dict:
+def summaries(level: str = "guest") -> dict:
     """One small record per curated species: enough for a table badge or a comparison card."""
     out = {}
-    curated, status = load(), conservation()
+    curated, status = load(level), conservation()
     for name in curated.keys() | status.keys():
         entry = curated.get(name, {})
         images = entry.get("images", [])
@@ -168,10 +169,10 @@ def summaries() -> dict:
     return out
 
 
-def profile(name: str) -> dict:
+def profile(name: str, level: str = "guest") -> dict:
     """The full entry for one species. Species nobody has curated still get their checked name and
     any entries that mention them, so the drawer can link back."""
-    everything = load()
+    everything = load(level)
     entry = everything.get(name) or {"taxon": None, "images": [], "profile": None}
     # .get() throughout: these files are edited by hand, and one bad look-alike entry shouldn't
     # make every species' profile fail.

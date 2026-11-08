@@ -67,6 +67,22 @@ CREATE TABLE IF NOT EXISTS fish_counts (
   site_id TEXT, date TEXT, species TEXT, count INTEGER, source TEXT DEFAULT 'demo'
 );
 CREATE INDEX IF NOT EXISTS fish_site_date ON fish_counts (site_id, date);
+-- Sign-in (auth.py). Only hashes are stored: of passwords (scrypt) and of session and invite tokens (SHA-256).
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY, email TEXT NOT NULL UNIQUE COLLATE NOCASE, name TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('manager', 'volunteer')), password_hash TEXT NOT NULL,
+  active INTEGER NOT NULL DEFAULT 1, created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sessions (
+  token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL, created_at REAL NOT NULL,
+  last_seen REAL NOT NULL, reauth_at REAL NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS sessions_user ON sessions (user_id);
+CREATE TABLE IF NOT EXISTS invites (
+  id INTEGER PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, email TEXT NOT NULL COLLATE NOCASE,
+  role TEXT NOT NULL CHECK (role IN ('manager', 'volunteer')), kind TEXT NOT NULL DEFAULT 'invite',
+  user_id INTEGER, created_by INTEGER, created_at REAL NOT NULL, expires_at REAL NOT NULL, used_at REAL
+);
 """
 
 

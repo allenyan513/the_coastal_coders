@@ -20,9 +20,6 @@ SPECIES_CONSERVATION = Path(__file__).parent / "species_conservation.json"  # ve
 # Photos people upload in the Media Library, and which species each curated or uploaded photo is
 # shown on. Data, not code: it lives with the videos, never in the package beside species.csv.
 SPECIES_LIBRARY = DATA / "species_library"
-# Permanently deleting an uploaded photo is allowed from the computer running Tideflow, or with this
-# key in the X-Tideflow-Admin-Token header (e.g. on a server behind Caddy). Unset: no key works.
-MEDIA_ADMIN_TOKEN = os.environ.get("TIDECOUNT_MEDIA_ADMIN_TOKEN", "")
 
 CFD_RELEASE = "https://github.com/WildHackers/community-fish-detector/releases/download/2026.07.06-release/"
 DETECTORS = {

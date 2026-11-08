@@ -7,12 +7,13 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from .. import config, db, models, settings, surveys
+from .. import auth, config, db, models, settings, surveys
 from .common import check_detector, get_video
 
 router = APIRouter()
 
 
+# Public: the detection models on offer, with nothing from any recording (the front page lists them).
 @router.get("/api/models")
 def list_models():
     out = []
@@ -27,7 +28,7 @@ class Reanalyze(BaseModel):
     detector: str
 
 
-@router.post("/api/videos/{video_id}/reanalyze")
+@router.post("/api/videos/{video_id}/reanalyze", dependencies=auth.MANAGER)
 def reanalyze(video_id: str, body: Reanalyze):
     """Run another model on the same footage. Each run keeps its own results and decisions."""
     check_detector(body.detector)
@@ -47,7 +48,7 @@ def reanalyze(video_id: str, body: Reanalyze):
     return {"id": new_id}
 
 
-@router.get("/api/videos/{video_id}/compare")
+@router.get("/api/videos/{video_id}/compare", dependencies=auth.SIGNED_IN)
 def compare(video_id: str):
     with db.session() as con:
         v = get_video(con, video_id)
@@ -74,6 +75,7 @@ def compare(video_id: str):
         return {"name": v["name"], "duration": v["duration"], "width": v["width"], "height": v["height"], "runs": out}
 
 
+# Public: the home page's statistics and sample preview are built from this list, for guests too.
 @router.get("/api/videos")
 def list_videos():
     with db.session() as con:
@@ -87,7 +89,7 @@ def list_videos():
         return out
 
 
-@router.post("/api/videos")
+@router.post("/api/videos", dependencies=auth.SIGNED_IN)
 def upload_video(file: UploadFile = File(...), site: str = Form(""), detector: str = Form(""),
                  station_id: str = Form(""), filmed_on: str = Form("")):
     """Upload a video, filed under its station in the same request, so a phone's upload lands in the right place."""
@@ -115,7 +117,7 @@ class ImportPath(BaseModel):
     filmed_on: str = ""
 
 
-@router.post("/api/videos/import-path")
+@router.post("/api/videos/import-path", dependencies=auth.MANAGER)
 def import_path(body: ImportPath):
     """Reference a large file where it is, without copying it."""
     detector = body.detector or settings.current().default_detector
@@ -142,7 +144,7 @@ def check_place(station_id: str, filmed_on: str) -> None:
             raise HTTPException(e.status, str(e)) from None
 
 
-@router.post("/api/videos/{video_id}/retry")
+@router.post("/api/videos/{video_id}/retry", dependencies=auth.SIGNED_IN)
 def retry(video_id: str):
     with db.session() as con:
         get_video(con, video_id)
@@ -150,7 +152,7 @@ def retry(video_id: str):
     return {"ok": True}
 
 
-@router.get("/api/videos/{video_id}")
+@router.get("/api/videos/{video_id}", dependencies=auth.SIGNED_IN)
 def video_detail(video_id: str):
     with db.session() as con:
         v = get_video(con, video_id)
@@ -160,6 +162,7 @@ def video_detail(video_id: str):
         return v
 
 
+# Public: the home page's sample preview plays this for guests too.
 @router.get("/api/videos/{video_id}/proxy")
 def proxy(video_id: str):
     with db.session() as con:

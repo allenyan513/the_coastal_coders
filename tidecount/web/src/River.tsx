@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useSession } from "./session";
 import { api, FishOptions, FishSeries, FishWaterComparison, VideoLinks, WaterSeries, WaterSite } from "./api";
 import { CompareChart } from "./CompareChart";
 import { WaterChart } from "./WaterChart";
@@ -35,16 +37,19 @@ export function River() {
   // Load the sites once, when the page opens.
   useEffect(() => { api.waterSites().then(setSites); }, []);
 
+  // Fish counts come from research recordings, so only signed-in people get them; guests see the water.
+  const signedIn = !!useSession().user;
+
   // What the fish chart can show at this site, and the chosen fish measure.
-  useEffect(() => { api.fishOptions(siteId).then(setFishOptions); }, [siteId]);
-  useEffect(() => { api.fishSeries(siteId, metric, deseason).then(setFish); }, [siteId, metric, deseason]);
+  useEffect(() => { if (signedIn) api.fishOptions(siteId).then(setFishOptions); }, [siteId, signedIn]);
+  useEffect(() => { if (signedIn) api.fishSeries(siteId, metric, deseason).then(setFish); }, [siteId, metric, deseason, signedIn]);
 
   // Load the water readings whenever the site, the measurement or the seasonal option changes.
   useEffect(() => { api.waterSeries(siteId, measurement, deseason).then(setData); }, [siteId, measurement, deseason]);
 
   // The two on one shared scale, with their correlation.
   const [comparison, setComparison] = useState<FishWaterComparison | null>(null);
-  useEffect(() => { api.fishWater(siteId, metric, measurement, deseason).then(setComparison); }, [siteId, metric, measurement, deseason]);
+  useEffect(() => { if (signedIn) api.fishWater(siteId, metric, measurement, deseason).then(setComparison); }, [siteId, metric, measurement, deseason, signedIn]);
 
   // With fish counts, the water chart covers the same years, so the two line up.
   const hasFish = !!fish && fish.points.length > 0;
@@ -97,7 +102,14 @@ export function River() {
         </section>
       )}
 
-      <section className="panel panel-pad">
+      {!signedIn && (
+        <p className="meta panel panel-pad">
+          Fish counts and the fish-and-water comparison come from research recordings, so they're shown after you{" "}
+          <Link to="/login?next=%2Friver">sign in</Link>. The water readings below are public.
+        </p>
+      )}
+
+      {signedIn && <section className="panel panel-pad">
         <div className="row" style={{ justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <h2>Fish{fish?.label ? `: ${fish.label}` : ""}{deseason ? ", seasonal pattern removed" : ""}</h2>
           {fishOptions && (
@@ -136,7 +148,7 @@ export function River() {
             <WaterChart points={fish.points} label={fish.label} unit={fish.unit} />
           </>
         )}
-      </section>
+      </section>}
 
       <section className="panel panel-pad">
         <div className="row" style={{ justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>

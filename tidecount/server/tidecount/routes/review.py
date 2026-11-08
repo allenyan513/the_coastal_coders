@@ -2,9 +2,10 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from .. import db
+from .. import auth, db
 
-router = APIRouter()
+# Review is research work: any signed-in volunteer or manager.
+router = APIRouter(dependencies=auth.SIGNED_IN)
 
 
 class SegmentStatus(BaseModel):
