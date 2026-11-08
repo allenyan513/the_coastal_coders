@@ -15,7 +15,9 @@ cards may use other measurements or limits. They're all in FRESH and SALTY below
 import math
 import sys
 
+from .stats import shannon
 from . import db, water
+
 # Each guideline: (lowest allowed, highest allowed, where it comes from). None means no limit that way.
 # Chosen to match Coastal Action's published LaHave scores for 2017-2023 as closely as possible
 # (on average within 5 points, and the same rating 48 times out of 70). Their exact list isn't published.
@@ -131,6 +133,91 @@ def site_year(con, site_id: str, year: int) -> dict:
     return {**card, **score(tests)}
 
 
+def fish_year(con, site_id: str, year: int) -> dict | None:
+    """What the fish surveys at a site found in one year, for the report card's Fish column. None if there were none."""
+    rows = con.execute(
+        "SELECT date, species, SUM(count) AS n, MAX(source = 'demo') AS demo FROM fish_counts "
+        "WHERE site_id = ? AND date LIKE ? GROUP BY date, species",
+        (site_id, f"{year}-%"),
+    ).fetchall()
+    if not rows:
+        return None
+    by_species: dict[str, int] = {}
+    for r in rows:
+        by_species[r["species"]] = by_species.get(r["species"], 0) + r["n"]
+    surveys = len({r["date"] for r in rows})
+    fish = sum(by_species.values())
+    h, _ = shannon(list(by_species.values()))
+    return {
+        "surveys": surveys,
+        "fish": fish,
+        "per_survey": round(fish / surveys, 1),
+        "species": sum(1 for n in by_species.values() if n > 0),
+        "shannon": None if h is None else round(h, 2),
+        "most_common": max(by_species, key=by_species.get),
+        "demo": any(r["demo"] for r in rows),
+    }
+
+
+# Sites in the order the river flows, from the headwaters down to the estuary, as in Coastal Action's
+# report card table. Sites not listed here go after them.
+RIVER_ORDER = ["14", "15", "12", "9", "8", "7", "5", "4", "3", "1"]
+
+
+def table(con, last: int = 7) -> dict:
+    """The report card table: each site's WQI for the last `last` years with scores, and its fish.
+
+    Sites run in river order. A site with no score in any of those years is left out.
+    """
+    names = {s["site_id"]: s["site_name"] for s in water.sites(con)}
+    newest = max((y for y in years(con) if any(site_year(con, s, y)["wqi"] is not None for s in names)), default=None)
+    if newest is None:
+        return {"years": [], "sites": []}
+    shown = list(range(newest - last + 1, newest + 1))
+    order = sorted(names, key=lambda s: (RIVER_ORDER.index(s) if s in RIVER_ORDER else len(RIVER_ORDER), names[s]))
+
+    rows = []
+    for site_id in order:
+        cards = [site_year(con, site_id, y) for y in shown]
+        if all(c["wqi"] is None for c in cards):
+            continue
+        rows.append({
+            "site_id": site_id,
+            "site_name": names[site_id],
+            "salty": cards[-1]["salty"],
+            "scores": [{"year": c["year"], "wqi": c["wqi"], "rating": c["rating"]} for c in cards],
+            "fish": [{"year": y, **f} for y in shown if (f := fish_year(con, site_id, y))],
+        })
+    return {"years": shown, "sites": rows}
+
+
+def table(con, last: int = 7) -> dict:
+    """The report card table: each site's WQI for the last `last` years with scores, and its fish.
+
+    Sites run in river order. A site with no score in any of those years is left out.
+    """
+    names = {s["site_id"]: s["site_name"] for s in water.sites(con)}
+    newest = max((y for y in years(con) if any(site_year(con, s, y)["wqi"] is not None for s in names)), default=None)
+    if newest is None:
+        return {"years": [], "sites": []}
+    shown = list(range(newest - last + 1, newest + 1))
+    order = sorted(names, key=lambda s: (RIVER_ORDER.index(s) if s in RIVER_ORDER else len(RIVER_ORDER), names[s]))
+
+    rows = []
+    for site_id in order:
+        cards = [site_year(con, site_id, y) for y in shown]
+        if all(c["wqi"] is None for c in cards):
+            continue
+        rows.append({
+            "site_id": site_id,
+            "site_name": names[site_id],
+            "salty": cards[-1]["salty"],
+            "scores": [{"year": c["year"], "wqi": c["wqi"], "rating": c["rating"]} for c in cards],
+            "fish": [{"year": y, **f} for y in shown if (f := fish_year(con, site_id, y))],
+        })
+    return {"years": shown, "sites": rows}
+
+
 def years(con) -> list[int]:
     """Years with any water readings, newest first."""
     return [int(r["y"]) for r in con.execute(
@@ -153,4 +240,7 @@ if __name__ == "__main__":
         water.load_bundled(con)
         for c in report_card(con, int(sys.argv[1])):
             score_text = "-" if c["wqi"] is None else c["wqi"]
-            print(f"{c['site_name']:28} {score_text:>6}  {c['rating']}")
+            fish = fish_year(con, c["site_id"], int(sys.argv[1]))
+            fish_text = "" if fish is None else (f"  fish: {fish['species']} species, {fish['per_survey']} per survey"
+            + (" (demo)" if fish["demo"] else ""))
+            print(f"{c['site_name']:28} {score_text:>6}  {c['rating']:16}{fish_text}")

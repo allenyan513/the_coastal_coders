@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, FishOptions, FishSeries, FishWaterComparison, VideoLinks, WaterSeries, WaterSite } from "./api";
 import { CompareChart } from "./CompareChart";
 import { WaterChart } from "./WaterChart";
+import { WqiTable } from "./WqiTable"
 
 /** The measurements Coastal Action takes on site, as named in their data. Matches KEEP in server/tidecount/water.py. */
 const MEASUREMENTS = [
@@ -60,7 +61,12 @@ export function River() {
         <p className="lede">How fish counts change over time, next to Coastal Action's water readings from the LaHave River.</p>
       </div>
 
-      <div className="row" style={{ gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+            <section className="panel panel-pad">
+        <h2>Water Quality Index report card</h2>
+        <WqiTable onPickSite={(id) => { setSiteId(id); document.getElementById("site-charts")?.scrollIntoView({ behavior: "smooth" }); }} />
+      </section>
+
+      <div id="site-charts" className="row" style={{ gap: 16, flexWrap: "wrap", alignItems: "center" }}>
         <label>
           Site{" "}
           <select value={siteId} onChange={(e) => setSiteId(e.target.value)}>
