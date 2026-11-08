@@ -7,13 +7,12 @@ import { ReactNode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { Accuracy } from "./Accuracy";
+import { Analysis, AnalysisHome } from "./Analysis";
 import { MyTasks, Workflow } from "./Board";
 import { Compare } from "./Compare";
 import { Library } from "./Library";
 import { Login } from "./Login";
 import { ModelLab } from "./ModelLab";
-import { Reports } from "./Reports";
-import { River } from "./River";
 import { School } from "./School";
 import { homeLabel, SessionProvider, useSession, useUser } from "./session";
 import { Landing } from "./Landing";
@@ -24,6 +23,7 @@ import { Species } from "./Species";
 import { SpeciesPage } from "./SpeciesPage";
 import { SummaryPage } from "./Summary";
 import { Team } from "./Team";
+import { TopBar } from "./TopBar";
 import { Tracks } from "./Tracks";
 import { Workspace } from "./Workspace";
 
@@ -94,9 +94,8 @@ function Sidebar() {
   const items: NavItem[] = [
     { to: "/workspace", label: homeLabel(user.role), short: homeLabel(user.role), icon: manager ? "videos" : "tasks", on: (pathname === "/workspace" || inVideo) && !inAccuracy },
     { to: "/workflow", label: "Workflow", short: "Workflow", icon: "board", on: pathname.startsWith("/workflow") },
-    ...(manager ? [{ to: "/reports", label: "Reports", short: "Reports", icon: "reports" as const, on: pathname.startsWith("/reports") }] : []),
+    { to: "/analysis", label: "Data analysis", short: "Analysis", icon: "reports", on: pathname.startsWith("/analysis") },
     { to: "/species", label: "Species wiki", short: "Species", icon: "species", on: pathname.startsWith("/species"), more: manager },
-    { to: "/river", label: "Fish and water trends", short: "Trends", icon: "river", on: pathname.startsWith("/river") },
     ...(manager ? [{ to: "/team", label: "Team", short: "Team", icon: "team" as const, on: pathname.startsWith("/team"), more: true }] : []),
     { to: "/settings", label: "Settings", short: "Settings", icon: "settings", on: pathname.startsWith("/settings"), more: manager, className: "side-settings" },
   ];
@@ -134,15 +133,20 @@ function Shell() {
   return (
     <div className="shell">
       <Sidebar />
+      <TopBar />
       <main className="page">
         <Routes>
           <Route path="/workspace" element={<Home />} />
           <Route path="/workflow" element={<Workflow />} />
           <Route path="/analyse" element={<Navigate to="/workflow" replace />} />
-          <Route path="/reports" element={<ManagerOnly><Reports /></ManagerOnly>} />
+          <Route path="/analysis" element={<AnalysisHome />} />
+          <Route path="/analysis/stations" element={<ManagerOnly><Analysis tab="stations" /></ManagerOnly>} />
+          <Route path="/analysis/trends" element={<Analysis tab="trends" />} />
+          {/* The old addresses of the two tabs still work. */}
+          <Route path="/reports" element={<Navigate to="/analysis/stations" replace />} />
+          <Route path="/river" element={<Navigate to="/analysis/trends" replace />} />
           <Route path="/species" element={<Species />} />
           <Route path="/species/:name" element={<SpeciesPage />} />
-          <Route path="/river" element={<River />} />
           <Route path="/team" element={<ManagerOnly><Team /></ManagerOnly>} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/models" element={<ManagerOnly><ModelLab /></ManagerOnly>} />

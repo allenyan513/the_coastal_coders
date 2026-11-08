@@ -2,6 +2,28 @@
  "version": 1,
  "note": "First-draft identification notes written from standard public descriptions (FishBase, Wikipedia and regional field guides). None has been reviewed by a fish biologist yet. When a biologist signs one off, set expert_reviewed to true and add who and when in reviewed_by.",
  "species": {
+  "Coregonus huntsmani": {
+   "summary": "A slender, silvery whitefish of the salmon family, found only in Nova Scotia: a dark blue or green back, silvery sides and a white belly, with no spots, an adipose fin and a deeply forked tail.",
+   "features": [
+    "Dark blue or green back, silvery sides and a silvery-white belly; no spots or markings on the upper body",
+    "Adipose fin present on wild fish (the small fleshy fin between the dorsal fin and the tail)",
+    "Upper and lower jaws about equal in length, with small but well-developed teeth",
+    "Deeply forked tail; dorsal and tail fins dusky",
+    "Larger scales than trout or salmon: about 90 to 100 along the lateral line (one guide gives more than 88)",
+    "Up to about 38 cm when sea-run; the landlocked Petite Rivière fish reach about 22 cm"
+   ],
+   "similar": [
+    {"species": "Coregonus clupeaformis", "common": "Lake Whitefish", "note": "Lake Whitefish has fewer than 88 lateral-line scales, clear or lightly pigmented fins, a pale green-brown back (dark brown to black in some inland lakes), and may develop a hump behind the head. It is far more common, in large rivers and cold lakes across Canada, including Nova Scotia."},
+    {"species": "Salvelinus fontinalis", "note": "Brook Trout is green to brown with red dots in blue halos along the sides, and its scales are too small to count. Atlantic Whitefish has no spots."},
+    {"species": "Salmo salar", "note": "Atlantic Salmon has black spots above the lateral line when in sea water and 109 to 124 lateral-line scales, against 90 to 100 on Atlantic Whitefish."}
+   ],
+   "sources": [
+    {"label": "Bluenose Coastal Action Foundation. Atlantic Whitefish: Identification & Status", "url": "https://www.coastalaction.org/uploads/1/2/2/2/122203881/aw_lg_low.pdf"},
+    {"label": "Bluenose Coastal Action Foundation. What's the Difference? The Atlantic Whitefish versus Lake Whitefish (c. 2010)", "url": "https://www.coastalaction.org/uploads/1/2/2/2/122203881/difference-between-aw-lw.pdf"},
+    {"label": "COSEWIC (2022). Rapid review of classification on the Atlantic Whitefish in Canada (current range)", "url": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/rroc-atlantic-whitefish-2022.html"}
+   ],
+   "expert_reviewed": false
+  },
   "Gadus morhua": {
    "summary": "A stocky, three-finned cod with a chin barbel and a pale, arched lateral line. Colour ranges from olive-green to reddish-brown, usually with fine spots.",
    "features": [
@@ -699,6 +721,206 @@
    "sources": [
     {"label": "FishBase: Liparis atlanticus", "url": "https://www.fishbase.se/summary/Liparis-atlanticus.html"},
     {"label": "Wikipedia: Atlantic seasnail", "url": "https://en.wikipedia.org/wiki/Liparis_atlanticus"}
+   ],
+   "expert_reviewed": false
+  },
+  "Merluccius bilinearis": {
+   "summary": "A slender, silvery hake of the shelf with a big head, a large mouth full of sharp teeth and a jutting lower jaw. It has no chin barbel, which sets it apart from the white and red hakes.",
+   "features": [
+    "No barbel on the chin",
+    "Two dorsal fins, both soft-rayed; the long second dorsal is notched about two-thirds of the way back, with the rear part higher",
+    "Pelvic fins are ordinary small fins on the chest, not long feelers",
+    "Large, flat-topped head (about a quarter of the length) with big eyes; lower jaw projects beyond the upper",
+    "Dark grey to brownish above and bright silvery on the sides and belly; the shine fades soon after death",
+    "Usually about 37 cm, up to about 76 cm"
+   ],
+   "similar": [
+    {"species": "Urophycis tenuis", "note": "White Hake has a small chin barbel and pelvic fins drawn out into two long feeler-like rays."},
+    {"species": "Urophycis chuss", "note": "Red Hake also has a chin barbel and feeler-like pelvic fins, and is reddish or olive brown rather than silvery."}
+   ],
+   "sources": [
+    {"label": "FishBase: Merluccius bilinearis", "url": "https://www.fishbase.se/summary/Merluccius-bilinearis.html"},
+    {"label": "Wikipedia: Silver hake", "url": "https://en.wikipedia.org/wiki/Silver_hake"},
+    {"label": "Bigelow and Schroeder (1953). Fishes of the Gulf of Maine: Silver hake", "url": "https://cybrary.fomb.org/fgom/Merluccius_bilinearis.htm"}
+   ],
+   "expert_reviewed": false
+  },
+  "Urophycis tenuis": {
+   "summary": "A large, soft-bodied hake of muddy bottoms, related to cod, with a small chin barbel, long feeler-like pelvic fins and a long trailing ray on the first dorsal fin. Mature fish move inshore in summer.",
+   "features": [
+    "Small barbel on the chin",
+    "Pelvic fins reduced to two long feeler-like rays, usually stopping short of the vent",
+    "Two dorsal fins: a short triangular first dorsal with one ray drawn out into a filament, and a long low second dorsal",
+    "Small scales: about 140 rows along the lateral line, the most reliable way to tell it from Red Hake",
+    "Upper jaw reaches back to the rear edge of the eye",
+    "Muddy or purplish brown above, sometimes bronzed on the sides; belly dirty white to yellowish; a dusky blotch on the gill cover",
+    "Commonly about 70 cm, up to about 1.3 m"
+   ],
+   "similar": [
+    {"species": "Urophycis chuss", "note": "Red Hake has larger scales (about 100 to 110 rows), an upper jaw reaching only the rear of the pupil, a longer dorsal filament and pelvic rays that usually pass the vent. It is reddish rather than purplish."},
+    {"species": "Merluccius bilinearis", "note": "Silver Hake has no chin barbel, ordinary pelvic fins and a bright silvery body."}
+   ],
+   "sources": [
+    {"label": "FishBase: Urophycis tenuis", "url": "https://www.fishbase.se/summary/Urophycis-tenuis.html"},
+    {"label": "Bigelow and Schroeder (1953). Fishes of the Gulf of Maine: White hake", "url": "https://cybrary.fomb.org/fgom/Urophycis_tenuis.htm"}
+   ],
+   "expert_reviewed": false
+  },
+  "Urophycis chuss": {
+   "summary": "A smaller, reddish-brown hake with a chin barbel, feeler-like pelvic fins and a very long filament on the first dorsal fin. Juveniles live in shallow water, often sheltering in sea scallops; adults move deeper.",
+   "features": [
+    "Small barbel on the chin and pelvic fins drawn out into long feelers, usually reaching past the vent",
+    "Filament on the first dorsal fin very long, three to five times the height of the rest of the fin when undamaged",
+    "Larger scales than White Hake: about 100 to 110 rows along the lateral line",
+    "Upper jaw reaches back only to the rear edge of the pupil",
+    "Reddish, muddy or olive brown above, sometimes mottled; pale belly; dusky blotch on the gill cover; pelvic fins pale",
+    "Up to about 66 cm; most are much smaller"
+   ],
+   "similar": [
+    {"species": "Urophycis tenuis", "note": "White Hake has smaller scales (about 140 rows), an upper jaw reaching the rear edge of the eye and a shorter dorsal filament, and grows much larger."},
+    {"species": "Merluccius bilinearis", "note": "Silver Hake has no chin barbel and ordinary pelvic fins."}
+   ],
+   "sources": [
+    {"label": "FishBase: Urophycis chuss", "url": "https://www.fishbase.se/summary/Urophycis-chuss.html"},
+    {"label": "Bigelow and Schroeder (1953). Fishes of the Gulf of Maine: Squirrel (red) hake", "url": "https://cybrary.fomb.org/fgom/Urophycis_chuss.htm"}
+   ],
+   "expert_reviewed": false
+  },
+  "Hippoglossoides platessoides": {
+   "summary": "A right-eyed flatfish of cold, soft bottoms with a large mouth, a rounded tail and an almost straight lateral line. The eyed side is rough to the touch.",
+   "features": [
+    "Eyes on the right side; large mouth gaping back to below the middle of the eye",
+    "Tail rounded or bluntly pointed, never concave",
+    "Lateral line almost straight, with only a slight rise over the pectoral fin",
+    "Scales on the eyed side have toothed edges, so the fish feels rough",
+    "Reddish to greyish brown above, white below; the tips of the long dorsal and anal fin rays are white; small fish often have a few dark spots along each edge",
+    "Usually 30 to 60 cm, up to about 80 cm"
+   ],
+   "similar": [
+    {"species": "Glyptocephalus cynoglossus", "note": "Witch Flounder has a very small mouth, a small head, large mucous pits on the blind side of the head and a dusky pectoral fin on the eyed side."},
+    {"species": "Pseudopleuronectes americanus", "note": "Winter Flounder has a small mouth and a smooth-feeling body."}
+   ],
+   "sources": [
+    {"label": "FishBase: Hippoglossoides platessoides", "url": "https://www.fishbase.se/summary/Hippoglossoides-platessoides.html"},
+    {"label": "Bigelow and Schroeder (1953). Fishes of the Gulf of Maine: American dab (American plaice)", "url": "https://www.cybrary.friendsofmerrymeetingbay.org/fgom/H_platessoides.htm"}
+   ],
+   "expert_reviewed": false
+  },
+  "Glyptocephalus cynoglossus": {
+   "summary": "A slim, oval, right-eyed flatfish of deep muddy bottoms, with a very small head and mouth and conspicuous mucous pits on the underside of the head. Also sold as grey sole.",
+   "features": [
+    "Eyes on the right side; small head (about a fifth of the length) and very small mouth",
+    "Body elliptical and thin, two and a half to three times as long as deep",
+    "Large, obvious mucous pits on the blind (white) side of the head",
+    "Pectoral fin on the eyed side dusky to blackish",
+    "Very long dorsal and anal fins (about 100 or more dorsal rays); lateral line straight",
+    "Brownish or russet grey above, plain or with faint darker bars; usually 30 to 50 cm, up to about 60 cm"
+   ],
+   "similar": [
+    {"species": "Hippoglossoides platessoides", "note": "American Plaice has a large mouth reaching below the middle of the eye and a rough-scaled eyed side."},
+    {"species": "Pseudopleuronectes americanus", "note": "Winter Flounder is also small-mouthed but deeper-bodied, with fewer fin rays and no large pits on the head."}
+   ],
+   "sources": [
+    {"label": "FishBase: Glyptocephalus cynoglossus", "url": "https://www.fishbase.se/summary/Glyptocephalus-cynoglossus.html"},
+    {"label": "Bigelow and Schroeder (1953). Fishes of the Gulf of Maine: Witch flounder", "url": "https://cybrary.fomb.org/fgom/Glyptocephalus_cynoglossus.htm"}
+   ],
+   "expert_reviewed": false
+  },
+  "Myoxocephalus aenaeus": {
+   "summary": "The grubby, or little sculpin: a small, stout sculpin of shallow coastal water, estuaries and eelgrass, with short head spines. It rarely grows past 15 cm.",
+   "features": [
+    "Small: few over 15 cm, up to about 18 cm",
+    "Short, simple head spines; no long cheek (preopercular) spine, the upper one no more than twice the length of the lower",
+    "No slit or pore behind the last gill arch",
+    "Stouter than other sculpins; smooth skin; the two dorsal fins touch",
+    "Grey to greenish or brown, with darker saddles or bars; a pale band along the lower tail stalk is a useful but not always present field mark",
+    "Common in eelgrass beds and estuaries"
+   ],
+   "similar": [
+    {"species": "Myoxocephalus scorpius", "note": "Shorthorn Sculpin grows much larger and usually has a pore behind the last gill arch. Young shorthorns look very like grubbies, so a small sculpin may need close examination."},
+    {"species": "Myoxocephalus octodecemspinosus", "note": "Longhorn Sculpin has a very long upper cheek spine."}
+   ],
+   "sources": [
+    {"label": "FishBase: Myoxocephalus aenaeus", "url": "https://www.fishbase.se/summary/Myoxocephalus-aenaeus.html"},
+    {"label": "Wikipedia: Myoxocephalus aenaeus (grubby)", "url": "https://en.wikipedia.org/wiki/Myoxocephalus_aenaeus"},
+    {"label": "Bigelow and Schroeder (1953). Fishes of the Gulf of Maine: Grubby", "url": "https://cybrary.friendsofmerrymeetingbay.org/fgom/Myoxocephalus_aeneus.htm"}
+   ],
+   "expert_reviewed": false
+  },
+  "Syngnathus fuscus": {
+   "summary": "A very thin, stick-like relative of the seahorse, armoured in bony rings, with a tube-shaped snout. It lives in eelgrass and seaweed in bays, harbours and salt marshes; the male carries the eggs in a pouch under the tail.",
+   "features": [
+    "Extremely slender body encased in bony rings (about 18 to 20 before the vent and 36 to 42 after)",
+    "Long tube-like snout with a tiny toothless mouth at the tip",
+    "No pelvic fins; small rounded tail fin; one dorsal fin over a few rings near the middle",
+    "Males have a brood pouch of two flaps along the underside behind the vent",
+    "Olive, brown or greenish, mottled and barred with darker; colour changes with surroundings",
+    "Usually 10 to 20 cm, up to about 30 cm"
+   ],
+   "similar": [],
+   "sources": [
+    {"label": "FishBase: Syngnathus fuscus", "url": "https://www.fishbase.se/summary/Syngnathus-fuscus.html"},
+    {"label": "Wikipedia: Northern pipefish", "url": "https://en.wikipedia.org/wiki/Northern_pipefish"},
+    {"label": "Bigelow and Schroeder (1953). Fishes of the Gulf of Maine: Common (northern) pipefish", "url": "https://cybrary.fomb.org/fgom/Syngnathus_fuscus.htm"}
+   ],
+   "expert_reviewed": false
+  },
+  "Gasterosteus wheatlandi": {
+   "summary": "A small coastal stickleback of marine and brackish water near shore, often around floating vegetation. It is easily confused with the threespine stickleback, which it lives alongside.",
+   "features": [
+    "Very few bony plates along the side (about 5 or 6), against a full row in most Threespine Sticklebacks",
+    "No keel on the tail stalk",
+    "Deeper body than the Threespine Stickleback",
+    "A strong cusp above and below at the base of each pelvic spine",
+    "Green above with fine black speckling; sides golden with dark blotches; pelvic fins red in life",
+    "Typically about 3.5 cm, up to about 7.6 cm"
+   ],
+   "similar": [
+    {"species": "Gasterosteus aculeatus", "note": "Threespine Stickleback usually has a long row of side plates (about 28 to 33) and a keel on the tail stalk. The two are often confused, so count the plates on fish in hand."}
+   ],
+   "sources": [
+    {"label": "FishBase: Gasterosteus wheatlandi", "url": "https://www.fishbase.se/summary/Gasterosteus-wheatlandi.html"},
+    {"label": "Wikipedia: Blackspotted stickleback", "url": "https://en.wikipedia.org/wiki/Blackspotted_stickleback"},
+    {"label": "Bigelow and Schroeder (1953). Fishes of the Gulf of Maine: Two-spined (blackspotted) stickleback", "url": "https://cybrary.fomb.org/fgom/Gasterosteus_wheatlandi.htm"}
+   ],
+   "expert_reviewed": false
+  },
+  "Leucoraja erinaceus": {
+   "summary": "A small skate of sandy and gravelly bottoms from the shoreline to about 90 m, with a blunt snout and small dark spots. Its egg cases ('mermaid's purses') wash up on beaches.",
+   "features": [
+    "Small: usually 40 to 50 cm, up to about 54 cm",
+    "Rounded disc with a blunt snout",
+    "Adults have no thorns along the middle of the back (young do), but strong spines on the head, shoulders and sides of the tail",
+    "Fewer tooth rows than Winter Skate: about 38 to 66",
+    "Grey to brown above, often with many small round dark spots and paler disc edges; white or grey below",
+    "No eyespots on the disc"
+   ],
+   "similar": [
+    {"species": "Leucoraja ocellata", "note": "Winter Skate usually has one to four eyespots (dark centre, pale ring) near the rear of each wing and 72 or more tooth rows, and grows far larger. A young Winter Skate without eyespots can only be told apart by counting teeth."}
+   ],
+   "sources": [
+    {"label": "FishBase: Leucoraja erinaceus", "url": "https://www.fishbase.se/summary/Leucoraja-erinacea.html"},
+    {"label": "Wikipedia: Little skate", "url": "https://en.wikipedia.org/wiki/Little_skate"},
+    {"label": "Bigelow and Schroeder (1953). Fishes of the Gulf of Maine: Little skate", "url": "https://cybrary.fomb.org/fgom/Raja_erinacea.htm"}
+   ],
+   "expert_reviewed": false
+  },
+  "Leucoraja ocellata": {
+   "summary": "A large skate of sandy and gravelly bottoms, often in shallow water in the north of its range, usually marked with one or more eyespots near the rear of each wing.",
+   "features": [
+    "Usually one to four eyespots on each side of the disc, each with a dark brown centre and a pale edge",
+    "Light brown above with many small dark spots; a pale or translucent patch on each side of the snout; white below, often with pale brown blotches",
+    "Many tooth rows: about 72 to 110",
+    "Rough back with spines on the head, around the eyes, on the shoulders and along the sides of the tail; adults usually lack a row of thorns down the middle",
+    "Large: matures at about 75 cm and reaches about 1.1 to 1.5 m"
+   ],
+   "similar": [
+    {"species": "Leucoraja erinaceus", "note": "Little Skate stays under about 54 cm, has no eyespots and has fewer tooth rows (about 38 to 66)."}
+   ],
+   "sources": [
+    {"label": "FishBase: Leucoraja ocellata", "url": "https://www.fishbase.se/summary/Leucoraja-ocellata.html"},
+    {"label": "Wikipedia: Winter skate", "url": "https://en.wikipedia.org/wiki/Winter_skate"},
+    {"label": "Bigelow and Schroeder (1953). Fishes of the Gulf of Maine: Big (winter) skate", "url": "https://cybrary.fomb.org/fgom/Raja_ocellata.htm"}
    ],
    "expert_reviewed": false
   }

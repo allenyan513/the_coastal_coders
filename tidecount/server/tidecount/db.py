@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS events (
 );
 CREATE TABLE IF NOT EXISTS water_readings(
 site_id TEXT, site_name TEXT, lat REAL, lon REAL, date TEXT, time TEXT, 
-measurement TEXT, value REAL, unit TEXT
+measurement TEXT, value REAL, unit TEXT, qualifier TEXT DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS water_site_date ON water_readings (site_id, date);
 CREATE TABLE IF NOT EXISTS fish_counts (
@@ -100,6 +100,9 @@ def init() -> bool:
     with session() as con:
         new_surveys = not con.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sites'").fetchone()
         con.executescript(SCHEMA)
+        if "qualifier" not in {r["name"] for r in con.execute("PRAGMA table_info(water_readings)")}:
+            con.execute("ALTER TABLE water_readings ADD COLUMN qualifier TEXT DEFAULT ''")
+            con.execute("DELETE FROM water_readings")  # emptied once, so the app reloads them with the lab results
         if "static" not in {r["name"] for r in con.execute("PRAGMA table_info(tracks)")}:
             con.execute("ALTER TABLE tracks ADD COLUMN static INTEGER DEFAULT 0")
         columns = {r["name"] for r in con.execute("PRAGMA table_info(videos)")}

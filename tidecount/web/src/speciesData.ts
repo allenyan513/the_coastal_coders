@@ -34,6 +34,9 @@ export function speciesProfile(name: string) {
   return p;
 }
 
+/** The fish last opened in the drawer or as a full page, so the list can mark it when you come back. Session only. */
+export const lastViewed = { species: "" };
+
 /** The address of a species' full page, with the tab to open. */
 export const speciesPagePath = (name: string, tab?: string) =>
-  `/species/${encodeURIComponent(name)}${tab && tab !== "photos" ? `?tab=${tab}` : ""}`;
+  `/species/${encodeURIComponent(name)}${tab && tab !== "overview" ? `?tab=${tab}` : ""}`;

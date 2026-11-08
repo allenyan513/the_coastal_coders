@@ -118,7 +118,8 @@ export type SpeciesProfile = {
   profile: {
     summary: string;
     features: string[];
-    similar: { species: string; note: string }[];
+    /** `common` names a look-alike that isn't on the species list (so there's no row to take it from). */
+    similar: { species: string; note: string; common?: string }[];
     sources: { label: string; url: string }[];
     expert_reviewed: boolean;
   } | null;
@@ -127,6 +128,46 @@ export type SpeciesProfile = {
   names: SpeciesNames | null;
   /** Other entries that list this species as easily confused with them. */
   mentioned_by: { species: string; note: string }[];
+  /** Verified conservation or invasive status, hand-curated from official sources. Null means unknown, never "safe". */
+  conservation: SpeciesConservation | null;
+};
+export type SpeciesConservation = {
+  /** at_risk: a conservation listing. invasive_ns: introduced and invasive in Nova Scotia. */
+  kind: "at_risk" | "invasive_ns";
+  badge: string;
+  verified_on: string;
+  /** Which population or area the status applies to. */
+  population: string;
+  /** Where the species lived before, and where wild fish are known now; "" when not recorded. */
+  historical_range: string;
+  current_range: string;
+  /** Why older sources may disagree with the current range. */
+  range_note: string;
+  /** The known wild population's environment now ("Freshwater"), and before; "" when WoRMS's list is enough. */
+  environment_now: string;
+  environment_now_note: string;
+  environment_historical: string;
+  /** "populations" when any status names a population: the badge then covers some populations only. */
+  scope: "species" | "populations";
+  statuses: ConservationStatus[];
+  significance: string;
+  threats: string[];
+  sources: { label: string; url: string }[];
+};
+/**
+ * One assessment, listing or classification. assessment: a scientific status (COSEWIC). legal: a
+ * listing under an act (SARA, the Nova Scotia Endangered Species Act). introduced: an introduced or
+ * invasive classification. An empty population means the whole species as far as the entry covers it.
+ */
+export type ConservationStatus = {
+  authority: string;
+  status: string;
+  date?: string;
+  note?: string;
+  type: "assessment" | "legal" | "introduced" | "other";
+  population: string;
+  jurisdiction: string;
+  source: string;
 };
 export type SpeciesNames = {
   source: "WoRMS" | "GBIF" | null;
@@ -147,7 +188,10 @@ export type CompareImage = {
   thumb: string; view: SpeciesImage["view"] | null;
   creator: string; license: string; license_url: string; source: string; source_url: string;
 };
-export type SpeciesMediaSummary = Record<string, { image_count: number; thumb: string | null; compare?: CompareImage | null; has_profile: boolean }>;
+export type SpeciesMediaSummary = Record<string, {
+  image_count: number; thumb: string | null; compare?: CompareImage | null; has_profile: boolean;
+  conservation?: Pick<SpeciesConservation, "kind" | "badge"> & { scope?: SpeciesConservation["scope"] } | null;
+}>;
 
 /** Shared by every OBIS answer: where it came from and how fresh it is. */
 type ObisMeta = { source: "OBIS"; fetched_at: number | null; cached: boolean; stale: boolean; citation: string };
@@ -355,6 +399,7 @@ export const api = {
     call<FishWaterComparison>(`/api/compare/sites/${siteId}?metric=${encodeURIComponent(metric)}&measurement=${encodeURIComponent(measurement)}&deseason=${deseason}`),
   fishSeries: (siteId: string, metric: string, deseason = false) =>
     call<FishSeries>(`/api/fish/sites/${siteId}/series?metric=${encodeURIComponent(metric)}&deseason=${deseason}`),
+  wqiTable: (last = 7) => call<WqiTable>(`/api/wqi/table?last=${last}`),
   diversity: (id: string) => call<DiversityStats>(`/api/videos/${id}/stats/diversity`),
   /**
    * Over XHR rather than fetch, so a large file can show how much has gone. `onProgress` gets 0 to 1.
@@ -547,4 +592,21 @@ export type FishSeries = {
   points: { date: string; value: number }[];
   demo: boolean;
   from_videos: boolean;
+};
+
+
+
+/** The Water Quality Index table, like Coastal Action's report card. From server/tidecount/wqi.py. */
+export type WqiTable = {
+  years: number[];
+  sites: {
+    site_id: string;
+    site_name: string;
+    salty: boolean;
+    scores: { year: number; wqi: number | null; rating: string }[];
+    fish: {
+      year: number; surveys: number; fish: number; per_survey: number; species: number;
+      shannon: number | null; most_common: string; demo: boolean;
+    }[];
+  }[];
 };
