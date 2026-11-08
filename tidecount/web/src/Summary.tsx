@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, clock, DiversityStats, MaxnStats, SpeciesRow, Summary } from "./api";
-import { colorOf, loadSpecies, UNIDENTIFIED_LABEL } from "./speciesTally";
+import { AccuracyRow, api, clock, DiversityStats, MaxnStats, SpeciesRow, Summary, surveyApi, SurveyTree, Track, Video } from "./api";
+import { AiImpact } from "./AiImpact";
+import { TrendCard } from "./TrendChart";
+import { MeanCard, NonFishCard, SpeciesDonut } from "./ReportCharts";
+import { colorOf, isNonFish, loadSpecies, UNIDENTIFIED_COLOR, UNIDENTIFIED_LABEL } from "./speciesTally";
 import { VideoHeader } from "./VideoHeader";
 
 export function SummaryPage() {
@@ -17,33 +20,90 @@ export function SummaryPage() {
   useEffect(() => { api.diversity(id).then(setDv).catch(() => setDv(null)); }, [id]);
   const [names, setNames] = useState<SpeciesRow[]>([]);
   useEffect(() => { api.species().then(setNames).catch(() => setNames([])); }, []);
+  const [meanOf, setMeanOf] = useState("all"); // the Mean count card: all fish, or one species
+  // Where and when this video was filmed, and the other stations, for the trend chart.
+  const [me, setMe] = useState<Video | null>(null);
+  useEffect(() => { api.videos().then((all) => setMe(all.find((v) => v.id === id) ?? null)).catch(() => setMe(null)); }, [id]);
+  // AI's detections and blind-count accuracy, for the cards about AI's part in the review.
+  const [tracks, setTracks] = useState<Track[] | null>(null);
+  useEffect(() => { api.tracks(id).then(setTracks).catch(() => setTracks([])); }, [id]);
+  const [acc, setAcc] = useState<AccuracyRow | null>(null);
+  useEffect(() => { api.accuracy().then((r) => setAcc(r.videos.find((v) => v.id === id) ?? null)).catch(() => setAcc(null)); }, [id]);
+  const [tree, setTree] = useState<SurveyTree | null>(null);
+  useEffect(() => { surveyApi.tree().then(setTree).catch(() => setTree(null)); }, []);
   if (!s) return <p className="meta">Loading…</p>;
 
+  const snap = s.snapshots;
   // Species counted on the Count tab. A trial kept in this browser, so it sits beside the saved numbers.
   const tagged = loadSpecies(id);
   const nameOf = (sp: string) => (sp ? names.find((r) => r.species === sp)?.common || sp : UNIDENTIFIED_LABEL);
   const counted = s.points.filter((p) => p.status === "checked");
   const perPoint = new Map(counted.map((p) => {
     const n = new Map<string, number>();
-    (tagged.frames[p.id] ?? []).forEach((t) => n.set(t.species, (n.get(t.species) ?? 0) + 1));
+    (tagged.frames[p.id] ?? []).filter((t) => !isNonFish(t.species)).forEach((t) => n.set(t.species, (n.get(t.species) ?? 0) + 1));
     const named = [...n.values()].reduce((a, b) => a + b, 0);
     if ((p.total ?? 0) > named) n.set("", (p.total ?? 0) - named);
     return [p.id, n] as const;
   }));
   const speciesRows = ["", ...tagged.palette, ...new Set(counted.flatMap((p) => (tagged.frames[p.id] ?? []).map((t) => t.species)))]
+    .filter((sp) => !isNonFish(sp))
     .filter((sp, i, all) => all.indexOf(sp) === i)
     .map((sp) => {
       const each = counted.map((p) => perPoint.get(p.id)?.get(sp) ?? 0);
       return { sp, total: each.reduce((a, b) => a + b, 0), seen: each.filter(Boolean).length, max: Math.max(0, ...each) };
     })
     .filter((r) => r.total > 0);
-  const anyTagged = counted.some((p) => (tagged.frames[p.id] ?? []).length);
+  const anyTagged = counted.some((p) => (tagged.frames[p.id] ?? []).some((t) => !isNonFish(t.species)));
+  const countLink = `/videos/${id}/snapshots`;
+
+  // The three cards at the top: fish by species, the mean count, and anything that isn't a fish.
+  const fishCounted = counted.reduce((a, p) => a + (p.total ?? 0), 0);
+  const slices = speciesRows.map((r) => ({ key: r.sp || "unidentified", label: nameOf(r.sp), n: r.total, color: colorOf(tagged.palette, r.sp) }))
+    .sort((a, b) => b.n - a.n);
+  const meanOptions = [
+    { key: "all", label: "All fish", color: UNIDENTIFIED_COLOR },
+    ...speciesRows.filter((r) => r.sp).map((r) => ({ key: r.sp, label: nameOf(r.sp), color: colorOf(tagged.palette, r.sp) })),
+  ];
+  const meanKey = meanOptions.some((o) => o.key === meanOf) ? meanOf : "all";
+  const meanValues = [...counted].sort((a, b) => a.t - b.t)
+    .map((p) => ({ id: p.id, t: p.t, n: meanKey === "all" ? p.total ?? 0 : perPoint.get(p.id)?.get(meanKey) ?? 0 }));
+  const meanNow = meanKey === "all"
+    ? snap.mean_count
+    : counted.length ? meanValues.reduce((a, v) => a + v.n, 0) / counted.length : null;
+  // The trend chart: this report's mean is the newest point of each line.
+  const stationName = (sid: string) => {
+    const st = tree?.stations.find((x) => x.id === sid);
+    const tr = tree?.transects.find((t) => t.id === st?.transectId);
+    const site = tree?.sites.find((x) => x.id === tr?.siteId);
+    return st ? [site?.name, tr?.name, st.name].filter(Boolean).join(" · ") : "";
+  };
+  const trendSeries = meanOptions.map((o) => ({
+    ...o,
+    current: o.key === "all" ? snap.mean_count : counted.length ? counted.reduce((a, p) => a + (perPoint.get(p.id)?.get(o.key) ?? 0), 0) / counted.length : null,
+  }));
+  const stationId = me?.station_id || `site:${s.video.site || id}`;
+  const otherStations = (tree?.stations ?? []).filter((x) => !x.archived && x.id !== me?.station_id).map((x) => ({ id: x.id, label: stationName(x.id) }));
+  const filmedOn = me?.filmed_on || new Date().toISOString().slice(0, 10);
+  const nonFishTotals = new Map<string, { n: number; seen: number }>();
+  counted.forEach((p) => {
+    const here = new Map<string, number>();
+    (tagged.frames[p.id] ?? []).filter((t) => isNonFish(t.species)).forEach((t) => here.set(t.species, (here.get(t.species) ?? 0) + 1));
+    here.forEach((n, sp) => {
+      const was = nonFishTotals.get(sp) ?? { n: 0, seen: 0 };
+      nonFishTotals.set(sp, { n: was.n + n, seen: was.seen + 1 });
+    });
+  });
+  const nonFishRows = [...nonFishTotals].map(([sp, v]) => ({ key: sp, label: sp, ...v })).sort((a, b) => b.n - a.n);
+  // Invertebrates saved on the record before non-fish could be tagged still show here.
+  const recorded = counted.filter((p) => (p.invertebrates ?? 0) > 0);
+  if (!nonFishRows.length && recorded.length) {
+    nonFishRows.push({ key: "invertebrates", label: "Invertebrates", n: recorded.reduce((a, p) => a + (p.invertebrates ?? 0), 0), seen: recorded.length });
+  }
 
   const total = s.video.duration || 1;
   const pct = (v: number) => `${Math.round((v / total) * 100)}%`;
   const queue = s.reviewed + s.could_not_see + s.pending;
   const school = s.schools.reduce((n, c) => n + c.total, 0);
-  const snap = s.snapshots;
   const most = Math.max(1, ...s.species.map((r) => r.entries));
   const mostMaxn = Math.max(1, ...(m?.species ?? []).map((r) => r.maxn));
   const mayRise = m?.partial ? `May rise: ${m.undecided_tracks} ${m.undecided_tracks === 1 ? "track" : "tracks"} not decided yet.` : "";
@@ -73,29 +133,28 @@ export function SummaryPage() {
         <a className="btn primary" href={`/api/videos/${id}/protocol.csv`}>Export analysis sheet</a>
       </div>
 
-      <div className="panel kpis">
-        <div className="kpi">
-          <span className="meta">MeanCount</span>
-          <b>{snap.mean_count?.toFixed(2) ?? "—"}</b>
-          {snap.mean_count !== null
-            ? <small className="meta num">Fish per point, {snap.frames_checked} of {snap.frames_total} points</small>
-            : <small><Link to={`/videos/${id}/snapshots`}>Not counted yet. Start counting</Link></small>}
-        </div>
-        <div className="kpi">
-          <span className="meta">Invertebrates per point</span>
-          <b>{snap.invertebrate_mean?.toFixed(2) ?? "—"}</b>
-        </div>
-        <div className="kpi">
-          <span className="meta">Species observed</span>
-          <b>{s.species_observed.length}</b>
-          <small className="meta">{s.species_observed.join(", ") || "None named yet"}</small>
-        </div>
-        <div className="kpi">
-          <span className="meta">Visibility</span>
-          <b style={{ fontSize: 20 }}>{s.protocol.visibility || "—"}</b>
-          <small className="meta">Juveniles: {s.protocol.juveniles === null ? "not noted" : s.protocol.juveniles ? "present" : "absent"}</small>
-        </div>
+      <div className="report-hero">
+        <SpeciesDonut slices={slices} total={fishCounted} countLink={countLink} />
+        <MeanCard
+          options={meanOptions}
+          value={meanKey}
+          onChange={setMeanOf}
+          mean={meanNow}
+          values={meanValues}
+          checked={snap.frames_checked}
+          totalPoints={snap.frames_total}
+          countLink={countLink}
+        />
+        <NonFishCard rows={nonFishRows} checked={counted.length} countLink={countLink} />
       </div>
+
+      <TrendCard
+        series={trendSeries}
+        stationId={stationId}
+        stationLabel={me?.station_id ? stationName(me.station_id) : s.video.site}
+        stations={otherStations}
+        filmedOn={filmedOn}
+      />
 
       {anyTagged && (
         <section className="panel" style={{ overflowX: "auto" }}>
@@ -120,29 +179,7 @@ export function SummaryPage() {
         </section>
       )}
 
-      <section className="panel" style={{ overflowX: "auto" }}>
-        <div className="panel-head"><h2>Sub-sample points</h2></div>
-        <table>
-          <thead><tr><th>Point</th><th>Time</th><th>Visibility</th><th className="right">Fish</th><th className="right">Invertebrates</th><th>Species</th><th>Notes</th></tr></thead>
-          <tbody>
-            {s.points.map((p, i) => (
-              <tr key={p.id}>
-                <td className="num">{i + 1}</td>
-                <td className="num">{clock(p.t)}</td>
-                <td>{p.visibility || s.protocol.visibility || "—"}</td>
-                <td className="num right">{p.status === "checked" ? p.total : p.status ? "Could not see" : "—"}</td>
-                <td className="num right">{p.status === "checked" ? p.invertebrates ?? 0 : "—"}</td>
-                <td>
-                  {p.species.length
-                    ? p.species.map((x) => `${x.name} ${x.n}`).join(", ")
-                    : [...(perPoint.get(p.id)?.entries() ?? [])].filter(([sp]) => sp).map(([sp, n]) => `${nameOf(sp)} ${n}`).join(", ")}
-                </td>
-                <td className="meta">{p.comment}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      <AiImpact s={s} tracks={tracks} accuracy={acc} nameOf={nameOf} />
 
       {!!s.peaks.length && (
         <section className="panel" style={{ overflowX: "auto" }}>

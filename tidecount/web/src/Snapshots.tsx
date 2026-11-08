@@ -6,7 +6,7 @@ import { Magnifier } from "./Magnifier";
 import { PicturePanel, pictureFilter, SharpenFilter, usePicture } from "./Picture";
 import { KeyGroup, Shortcuts } from "./Shortcuts";
 import { UNIDENTIFIED } from "./trackHelpers";
-import { colorOf, loadSpecies, saveSpecies, SpeciesDot, SpeciesStore, tally, UNIDENTIFIED_LABEL, withSpecies } from "./speciesTally";
+import { colorOf, isNonFish, loadSpecies, NON_FISH, saveSpecies, SpeciesDot, SpeciesStore, tally, UNIDENTIFIED_LABEL, withSpecies } from "./speciesTally";
 import { VideoHeader } from "./VideoHeader";
 
 const KEYS: KeyGroup[] = [
@@ -120,7 +120,7 @@ export function Snapshots() {
     setAdding(null);
     if (!typed) return;
     const known = speciesList.find((r) => r.common.toLowerCase() === typed.toLowerCase() || r.species.toLowerCase() === typed.toLowerCase());
-    const species = known?.species ?? typed;
+    const species = known?.species ?? NON_FISH.find((n) => n.toLowerCase() === typed.toLowerCase()) ?? typed;
     if (!store.palette.includes(species)) updateStore({ ...store, palette: [...store.palette, species] });
     setActive(species);
   };
@@ -187,19 +187,22 @@ export function Snapshots() {
     if (status === "checked" ? image !== "ready" : image === "loading") return;
     saving.current = true;
     const kept = status === "checked" ? shown : [];
+    const fish = kept.filter((d) => !isNonFish(d.species));
+    const others = kept.length - fish.length;
     try {
-      const plain: Dot[] = kept.map(({ x, y, source }) => ({ x, y, source }));
-      const { stats } = await snapshotApi.save(frame.id, status, plain, hidden > 0, blind, record);
+      const plain: Dot[] = fish.map(({ x, y, source }) => ({ x, y, source }));
+      const sent = others > 0 ? { ...record, invertebrates: others } : record;
+      const { stats } = await snapshotApi.save(frame.id, status, plain, hidden > 0, blind, sent);
       drafts.current.delete(frame.id);
       const tags = kept.filter((d) => d.species).map((d) => ({ x: d.x, y: d.y, species: d.species as string }));
       updateStore({ ...store, frames: { ...store.frames, [frame.id]: tags } });
-      const frames = list.frames.map((f) => (f.id === frame.id ? { ...f, status, total: status === "checked" ? kept.length : null } : f));
+      const frames = list.frames.map((f) => (f.id === frame.id ? { ...f, status, total: status === "checked" ? fish.length : null } : f));
       setList({ ...list, frames, stats });
       setFrame({ ...frame, status }); // the card shows the saved state when there's nowhere left to go
       const next = nextOpen(frames, frame.id);
       if (next && !askedFrame) setCurrentId(next.id);
       else if (askedFrame || fromAccuracy) navigate(fromAccuracy ? "/accuracy" : `/videos/${id}/summary`);
-      else flash(status === "checked" ? `Saved ${kept.length} fish` : "Saved as could not see"); // the done banner takes it from here
+      else flash(status === "checked" ? `Saved ${fish.length} fish` : "Saved as could not see"); // the done banner takes it from here
     } catch (e) {
       flash((e as Error).message);
     } finally {
@@ -270,6 +273,7 @@ export function Snapshots() {
   const pointNo = points.findIndex((f) => f.id === currentId) + 1;
   const label = frame ? LABELS[frame.status] : null;
   const counts = tally(shown, store.palette);
+  const fishOnFrame = shown.filter((d) => !isNonFish(d.species)).length;
   const countOf = (species: string) => counts.find((c) => c.species === species)?.n ?? 0;
   const dotColor = (d: SpeciesDot) => (d.species ? colorOf(store.palette, d.species) : undefined);
   /** Click a dot: give it the species being counted, or remove it when it has that species already. */
@@ -389,7 +393,10 @@ export function Snapshots() {
                       onKeyDown={(e) => { if (e.key === "Escape") setAdding(null); }}
                       onBlur={() => addSpecies(adding)}
                     />
-                    <datalist id="count-species-names">{speciesList.map((r) => <option key={r.species} value={r.common || r.species} />)}</datalist>
+                    <datalist id="count-species-names">
+                      {speciesList.map((r) => <option key={r.species} value={r.common || r.species} />)}
+                      {NON_FISH.map((n) => <option key={n} value={n}>Non-fish</option>)}
+                    </datalist>
                   </form>
                 )}
               </div>
@@ -408,8 +415,8 @@ export function Snapshots() {
               {label && <span className={`pill ${label.tone}`}>{label.text}</span>}
             </div>
             <div className="count-total">
-              <span className="num">{shown.length}</span>
-              <small>fish on this frame</small>
+              <span className="num">{fishOnFrame}</span>
+              <small>fish on this frame{shown.length > fishOnFrame ? ` + ${shown.length - fishOnFrame} non-fish` : ""}</small>
             </div>
             <p className="meta count-hint">
               {isPeak ? "AI saw many fish here, away from the points. It feeds MaxN, never MeanCount. " : ""}
