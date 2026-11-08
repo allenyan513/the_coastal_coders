@@ -11,7 +11,7 @@ This is an early prototype. The product was renamed from TideCount on 2026-11-07
 | `ml/` | Detection, tracking and species experiments, notebooks and the benchmark |
 | `server/` | The FastAPI service that runs the models and stores results |
 | `web/` | The React UI |
-| [`demo/`](demo/README.md) | Slides, screenshots and charts for the pitch |
+| [`demo/`](demo/README.md) | The pitch deck (`Tideflow Pitch.pptx`), screenshots and charts |
 
 ## Run it
 
@@ -35,16 +35,30 @@ For slides and print, `pnpm qr` in `web/` writes `demo/qr/start.png` and `start.
 
 A phone has to reach the site, so scan from the public address, not `localhost`.
 
+## Signing in
+
+The login page picks one of two demo roles. There are no passwords or server accounts: the role is kept in the browser, and the server trusts the role the browser sends.
+
+| Role | Home | What else it can do |
+|---|---|---|
+| Volunteer | **My tasks**, the videos to review and count | Workflow, Data analysis (trends), Species wiki, Settings |
+| Manager | **Surveys**, every site and its stations, with how much footage is counted | Import video, approve validation, the station report, Team, the model lab and AI accuracy. A manager can preview the volunteer view |
+
+**Surveys** lists the sites on the left and one site's detail on the right, built for dozens of sites. Import video from the page head, or **Import here** on a station, and the video is filed under that station.
+
 ## Using it
 
-1. Import a video in **Fish Counter** and choose a model. Analysis runs in the background.
+1. Sign in as the Manager, choose **Import video** and pick a model. Analysis runs in the background.
 2. Open it when it's **Ready to review**.
 3. Open **All tracks** to clear false tracks and name real ones in bulk, one thumbnail per track. This decides tracks, but it doesn't mark any footage as reviewed.
 4. Work through the queue. Confirm, correct or reject each AI track. Tick tracks to merge pieces of one fish or decide several at once.
    - For a fish AI missed, press **A** and drag a box around it. AI follows the fish through the video for up to five seconds each way, so it gets a track, a thumbnail and species suggestions like AI's own. It counts straight away as "Fish, unidentified", and the report says how many fish were added this way.
    - When AI can't follow the fish, the box marks that one moment. Following is least reliable in a dense school, where the box can slip onto a neighbour.
 5. Use **Freeze frame and count school** for dense schools.
-6. Open **Summary** and export a CSV.
+6. Count the snapshot frames, then **Validate** them (below).
+7. Open **Summary** and export a CSV.
+
+**Data analysis** has two parts. The **station report**, for managers, picks stations on a map and totals their counts. **Fish and water trends** puts fish counts next to Coastal Action's LaHave water readings, with the seasonal pattern removed if you like, and starts with the Water Quality Index report card.
 
 ## Comparing models
 
@@ -84,6 +98,18 @@ Once a frame has shown AI's dots it can't measure the AI, even if you count it a
 | Z | Undo the last dot change |
 | D / G | AI dots / grid totals |
 | Space | Play 2 seconds around the frame |
+
+### Validate
+
+From the procedure's video validation step. Once every snapshot frame is counted or marked could not see, **Validate** picks a random sample of the counted frames, chosen once and kept. A second person counts them without seeing AI's dots or the first count until they've saved their own. Two counts more than the allowed share of their mean apart are counted again, preferably by someone else. Every count keeps who made it, and the agreeing pair's average is the frame's validated value. When every frame agrees, a manager approves the video. Approval isn't in the procedure; it's ours.
+
+The draft procedure doesn't settle how many frames or how close counts must be, so both are in `[protocol]` in `settings.toml`: `validate_points` (6) and `max_difference` (0.06, 6%).
+
+## Water Quality Index
+
+`server/tidecount/wqi.py` scores each water sampling site and year with the CCME Water Quality Index, like Coastal Action's report cards. Every reading is checked against a guideline, and three factors are combined into a score from 0 (worst) to 100 (best): F1, the share of measurements that broke a guideline at least once; F2, the share of tests that broke one; and F3, how far the failing tests were from it. Estuary sites use marine guidelines.
+
+The guidelines are a starting point chosen by us, not Coastal Action's official list, which isn't published. They were matched to Coastal Action's published LaHave scores for 2017–2023: on average within 5 points, and the same rating 48 times out of 70. They're all in `FRESH` and `SALTY` in `wqi.py`. Select a site in the report card to jump to its charts.
 
 ## Learning notebooks
 
@@ -227,10 +253,10 @@ Each feature has its own router, so people working on different features edit di
 | File | What's in it |
 |---|---|
 | `server/tidecount/app.py` | Builds the app from the routers. Folders, the database and the analysis worker start when uvicorn starts it, not on import |
-| `server/tidecount/routes/` | The HTTP endpoints, one module per feature: videos, tracks, review, schools, snapshots, summary, and `web.py` for the built UI |
+| `server/tidecount/routes/` | The HTTP endpoints, one module per feature: videos, tracks, review, schools, snapshots, validation, summary, species, species library, water, and `web.py` for the built UI |
 | `server/tidecount/worker.py` | The analysis pipeline, run in its own process for each queued video |
 | `server/tidecount/models.py` | Detector and species model adapters |
-| `server/tidecount/snapshots.py`, `merge.py`, `summary.py` | Rules behind the endpoints, as plain functions on a database connection, so they can be tested without HTTP |
+| `server/tidecount/snapshots.py`, `validation.py`, `merge.py`, `summary.py`, `wqi.py`, `species_library.py` | Rules behind the endpoints, as plain functions on a database connection, so they can be tested without HTTP |
 | `server/tidecount/db.py`, `config.py`, `video.py` | Storage, paths and models, and ffmpeg helpers |
 | `settings.toml`, `server/tidecount/settings.py` | The values an experiment may change, and the code that reads and checks them |
 
@@ -257,7 +283,7 @@ docker compose up -d
 
 Point the domain's A record at the machine first, and open ports 80 and 443. If you use Cloudflare, set the record to **DNS only**. Caddy then gets a certificate and serves HTTPS by itself, and uploads have no size limit. Leave out `.env` and the site is plain HTTP on port 80. To move to a new domain, set `SITE_ADDRESS` to it and put the old one in `REDIRECT_FROM`; Caddy then sends visitors from the old address on to the new one, with the same path.
 
-The first start builds the image and downloads the model weights, about 4.2 GB, so it takes a while. Later starts skip both. Then open the site and import a video in **Fish Counter**, as you would locally. Everything is saved in `deploy/data/`, separate from the `tidecount/data/` that `start.sh` uses.
+The first start builds the image and downloads the model weights, about 4.2 GB, so it takes a while. Later starts skip both. Then open the site, sign in as the Manager and import a video, as you would locally. Everything is saved in `deploy/data/`, separate from the `tidecount/data/` that `start.sh` uses.
 
 Run these from `deploy/` too:
 
@@ -267,7 +293,7 @@ Run these from `deploy/` too:
 | Stop, keeping the data | `docker compose down` |
 | See what the app is doing | `docker compose logs -f app` |
 
-The site has no login, so anyone with the link can upload and every visitor shares one set of data. The Summary only counts decisions a person made, so review a video before you share the link.
+Sign-in only picks a role, with no password, so anyone with the link can sign in as the Manager and upload, and every visitor shares one set of data. To let a server delete uploaded Media Library photos for good, set `TIDECOUNT_MEDIA_ADMIN_TOKEN` and send it in the `X-Tideflow-Admin-Token` header; unset, only the computer running Tideflow can. The Summary only counts decisions a person made, so review a video before you share the link.
 
 ### Deploy automatically
 
@@ -307,7 +333,7 @@ The drawer needs only a scientific name, so the review screen can later open the
 
 **Filtering by method or dataset.** Under the year range, "Hide acoustic-tag detections" drops the telemetry datasets in one click, and "Filter by method or dataset" picks research surveys, acoustic telemetry, eDNA or "other or not stated", or one dataset. The map, the record lists and the totals follow, together with the year range; the eDNA and net-survey sections don't. OBIS has no field for how a record was made and can only include datasets, not exclude them, so the server lists every dataset holding the fish in the region (one cached request, opened only when the filter is), gives each a method from its own OBIS metadata, and sends OBIS the ids of the datasets to keep. The method is only what the metadata says: eDNA from the DNA extension or title, telemetry from the title or the Ocean Tracking Network as institute, research surveys from net, trawl or seine sampling with a title naming a survey, a research vessel or the gear (tagging databases are left out). Museum collections, FishBase, iNaturalist and compilations don't say how each record was made, so they stay under "other". A visitor names a method or one listed dataset, never ids of their own, and a filter keeping more than 150 datasets, or a region with more than 200, is refused rather than cut short. For mackerel in Atlantic Canada, hiding the 3 telemetry datasets takes the total from 88,955 records to 38,303; for winter flounder, 19 survey datasets hold 76,667 of its 85,463.
 
-**Keeping the public site and OBIS safe.** The map and eDNA calls reach a free public service from a public website with no login, so they are limited. All of it lives in `server/tidecount/api_guard.py` and `api_cache.py`, which know nothing about fish, so a GBIF integration can reuse them (see the note at the bottom of `api_guard.py`). It assumes the Docker deployment's single process.
+**Keeping the public site and OBIS safe.** The map and eDNA calls reach a free public service from a public website anyone can use, so they are limited. All of it lives in `server/tidecount/api_guard.py` and `api_cache.py`, which know nothing about fish, so a GBIF integration can reuse them (see the note at the bottom of `api_guard.py`). It assumes the Docker deployment's single process.
 
 | Risk | Safeguard |
 |---|---|
@@ -345,6 +371,8 @@ uv run python ../ml/species_media.py check --links
 ```
 
 `candidates` matches the name exactly on iNaturalist, GBIF and WoRMS, then collects openly licensed photos: research-grade iNaturalist observations of exactly that taxon, Atlantic Canada first, and Wikimedia Commons files in the species' category. It writes a numbered contact sheet to `data/species_media/<species>/sheet.jpg`. Look at every photo before adding it. Research-grade observations still show the wrong animal: some "haddock", "winter flounder" and "lumpfish" observations were photos of the gull or eagle that ate the fish. `check` rejects licences other than CC0, CC BY, CC BY-SA and public domain, missing credits, and look-alikes that aren't on the list. `--links` also fetches every image and source link, and asks iNaturalist whether each observation still exists, is still research grade and still names the same species, since identifications can change after a photo is picked.
+
+**The Media Library** (`/species/library`, or **Media Library** on the Species wiki) holds reference photos people upload. A photo is uploaded once and can be shown on any number of species; removing it from a species only unlinks it. Uploads start as pending review, so they're never taken for a verified identification reference until a person marks them so. The curated photos from `species_media.json` keep their credits and links and are never changed or deleted from here. Uploads and the links between photos and species live in `data/species_library/`, not in the code.
 
 ## Known limits
 
