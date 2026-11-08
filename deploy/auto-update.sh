@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Deploys the release branch when it changes. A systemd timer runs this every minute.
+# Deploys the main branch when it changes. A systemd timer runs this every minute.
 #
 # The machine asks GitHub, so no keys are stored anywhere. The site keeps running during a build,
-# and a release that fails is rolled back and not tried again. Local edits to tracked files on the
+# and a deploy that fails is rolled back and not tried again. Local edits to tracked files on the
 # machine are overwritten. Everything the app saves is in deploy/data, which git doesn't touch.
 #
 # The script is one function so `git reset` can't change the code bash is still reading.
 set -euo pipefail
 
-BRANCH=release
+BRANCH=main
 
 main() {
   cd "$(dirname "$0")"
@@ -43,6 +43,8 @@ main() {
 deploy() {
   local target=$1 from=$2
   git reset --quiet --hard "$target" || return 1
+  # Keep the local branch named after the one being deployed, so the machine reads sensibly.
+  git checkout --quiet -B "$BRANCH" || return 1
   docker compose build || return 1
   docker compose up -d --remove-orphans || return 1
   # Caddy reads this file from the machine, so Compose can't see that it changed.
