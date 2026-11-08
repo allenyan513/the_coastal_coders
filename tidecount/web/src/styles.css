@@ -231,7 +231,9 @@ td { padding: 8px 12px; font-size: 13.5px; border-top: 1px solid var(--border-2)
 .keys { font: 12px/1.7 var(--mono); color: var(--muted); }
 
 @media (max-width: 900px) {
-  .shell, .shell:has(.side.rail) { grid-template-columns: minmax(0, 1fr); }
+  /* One column: the bar is row 1 and the page is row 2. The shell is at least a screen tall, so on a short page
+     the spare height must go to the page row, not be shared out between both auto rows (which stretched the bar). */
+  .shell, .shell:has(.side.rail) { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .side, .side.rail { position: static; height: auto; flex-direction: row; align-items: center; gap: 12px; padding: 8px 16px; border-right: 0; border-bottom: 1px solid var(--border); }
   .side-nav { min-width: 0; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
   .side-link { flex: none; white-space: nowrap; }
