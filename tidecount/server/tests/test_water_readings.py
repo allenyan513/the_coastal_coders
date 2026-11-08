@@ -235,3 +235,16 @@ def test_the_copy_in_the_repo_loads():
     with db.session() as con:
         assert water.load_bundled(con) > 20000
         assert len(sites(con)) == 20
+        
+
+def test_a_lab_result_below_detection_keeps_the_limit():
+    r = reading(row("Total Phosphorus, mixed forms", "", "",
+                    ResultDetectionCondition="Below Detection/Quantification Limit",
+                    ResultDetectionQuantitationLimitMeasure="0.004",
+                    ResultDetectionQuantitationLimitUnit="mg/L"))
+    assert r is not None
+    assert r["value"] == 0.004 and r["unit"] == "mg/L" and r["qualifier"] == "<"
+
+
+def test_fecal_coliform_per_ml_is_skipped():
+    assert reading(row("Fecal Coliform", "4", "#/mL")) is None
