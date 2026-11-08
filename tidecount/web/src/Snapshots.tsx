@@ -4,6 +4,7 @@ import { api, clock, Dot, FrameRecord, snapshotApi, SnapshotFrame, SnapshotList,
 import { DotStage } from "./Dots";
 import { Magnifier } from "./Magnifier";
 import { PicturePanel, pictureFilter, SharpenFilter, usePicture } from "./Picture";
+import { useUser } from "./session";
 import { KeyGroup, Shortcuts } from "./Shortcuts";
 import { UNIDENTIFIED } from "./trackHelpers";
 import { colorOf, isNonFish, loadSpecies, NON_FISH, saveSpecies, SpeciesDot, SpeciesStore, tally, UNIDENTIFIED_LABEL, withSpecies } from "./speciesTally";
@@ -36,6 +37,7 @@ const nextOpen = (frames: SnapshotRow[], after: number) => {
 
 export function Snapshots() {
   const { id = "" } = useParams();
+  const user = useUser();
   const navigate = useNavigate();
   // Counting starts from AI's dots. Only the AI accuracy page asks for a blind count (?mode=own):
   // AI's dots never load, so the counts can score the AI, and frames come in a fixed random order,
@@ -192,7 +194,7 @@ export function Snapshots() {
     try {
       const plain: Dot[] = fish.map(({ x, y, source }) => ({ x, y, source }));
       const sent = others > 0 ? { ...record, invertebrates: others } : record;
-      const { stats } = await snapshotApi.save(frame.id, status, plain, hidden > 0, blind, sent);
+      const { stats } = await snapshotApi.save(frame.id, status, plain, hidden > 0, blind, sent, user.name);
       drafts.current.delete(frame.id);
       const tags = kept.filter((d) => d.species).map((d) => ({ x: d.x, y: d.y, species: d.species as string }));
       updateStore({ ...store, frames: { ...store.frames, [frame.id]: tags } });

@@ -18,6 +18,7 @@ import { homeLabel, SessionProvider, useSession, useUser } from "./session";
 import { Landing } from "./Landing";
 import { Settings } from "./Settings";
 import { Snapshots } from "./Snapshots";
+import { Validate } from "./Validate";
 import { Species } from "./Species";
 import { SpeciesPage } from "./SpeciesPage";
 import { SummaryPage } from "./Summary";
@@ -155,6 +156,7 @@ function Shell() {
           <Route path="/videos/:id/compare" element={<Compare />} />
           <Route path="/videos/:id/school" element={<School />} />
           <Route path="/videos/:id/snapshots" element={<Snapshots />} />
+          <Route path="/videos/:id/validate" element={<Validate />} />
           <Route path="/videos/:id/summary" element={<SummaryPage />} />
         </Routes>
       </main>
