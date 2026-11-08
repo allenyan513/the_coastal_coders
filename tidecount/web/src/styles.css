@@ -1659,3 +1659,92 @@ section > .fold { border-top: 0; padding-top: 0; }
 .photo-editor-head { display: flex; flex-direction: column; gap: 2px; }
 .picker-group { margin: 4px 0 0; font: 600 13px var(--sans, inherit); color: var(--text); }
 .photo-editor-actions { position: sticky; bottom: 0; padding: 10px 0; background: var(--panel); border-top: 1px solid var(--border-2); }
+
+/* Identify workspace: the searchable species picker, the Info buttons and the reference panel. */
+.species-line { display: flex; align-items: stretch; gap: 6px; }
+.species-line .species { flex: 1 1 auto; min-width: 0; }
+.species-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.species-name i { font-size: 12px; overflow-wrap: anywhere; }
+.species.chosen { background: var(--accent-soft); border-color: var(--accent); }
+.species-info { flex: none; height: auto; min-height: 44px; padding: 0 10px; font-size: 12px; }
+.species-info[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: #fff; }
+
+.picker { display: flex; flex-direction: column; gap: 6px; }
+.picker .name-species { width: 100%; }
+.picker-list { margin: 0; padding: 0; list-style: none; max-height: 220px; overflow-y: auto; overscroll-behavior: contain; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; }
+.picker-list[hidden] { display: none; }
+.picker-list li[role="option"] { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 4px 10px; cursor: pointer; }
+.picker-list li[role="option"] + li[role="option"] { border-top: 1px solid var(--border-2); }
+.picker-list li.on { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.picker-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; font-size: 13px; }
+.picker-name b { font-weight: 600; overflow-wrap: anywhere; }
+.picker-ref { flex: none; font-size: 12px; }
+.picker-more { padding: 6px 10px; }
+.picker-none { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+
+.species-ref { display: flex; flex-direction: column; gap: 12px; }
+.species-ref-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.species-ref-head h2 { font-size: 18px; letter-spacing: -.3px; overflow-wrap: anywhere; }
+.species-ref-head .sci { margin-top: 2px; color: var(--text-2); font-size: 13px; }
+.species-ref h3 { margin-bottom: 6px; font: 500 11px var(--mono); letter-spacing: .3px; text-transform: uppercase; color: var(--muted); }
+.species-ref a { color: var(--accent-ink); }
+.species-ref .gallery-frame { max-height: 220px; }
+.species-ref .gallery-empty { min-height: 0; }
+.species-ref-lede { font-size: 13px; line-height: 1.5; }
+.species-ref-facts { margin: 0; display: grid; gap: 6px; }
+.species-ref-facts dt { font-size: 12px; color: var(--muted); }
+.species-ref-facts dd { margin: 0; font-weight: 600; font-size: 13px; }
+.species-ref-similar { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.species-ref-actions { flex: none; justify-content: flex-end; }
+.species-ref-links { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.species-ref-head { flex-direction: column; }
+.species-ref-actions { justify-content: stretch; }
+.species-ref-actions .btn { flex: 1 1 auto; min-width: 0; height: auto; min-height: 36px; white-space: normal; line-height: 1.2; }
+.species-ref-body, .species-ref-media, .species-ref-text { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+
+/* The left drawer: a slide-out menu laid over the left column, where the picture sliders sit. It is
+   a grid item wider than its column, so it overlaps the neighbours instead of resizing anything:
+   the video, player bar and timeline never move. It scrolls inside itself. A button at the top of
+   that column (Species reference) opens and collapses it. */
+@media (min-width: 721px) {
+  .review-mid > .species-ref.dock {
+    grid-column: 1; grid-row: 1 / span 2; justify-self: start; align-self: stretch;
+    width: min(320px, 46vw); contain: size; position: relative; z-index: 7;
+    overflow-y: auto; overscroll-behavior: contain;
+    /* Starts just under the Species reference button (the panel's padding plus the button), so the button stays visible as its header. No animation. */
+    margin-top: 56px; box-shadow: 8px 0 28px rgba(16, 24, 40, .28);
+  }
+}
+.ref-toggle { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; height: 36px; padding: 0 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font: inherit; font-size: 13px; font-weight: 600; text-align: left; }
+.ref-toggle:hover { border-color: var(--accent); }
+.ref-toggle[aria-expanded="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+/* Phone: no side column, so it follows the track card (the video stays pinned above). */
+@media (max-width: 720px) {
+  .species-ref.dock { order: 4; }
+}
+
+/* All species: the header and filter stay put and the list scrolls beneath them. */
+.species-all { gap: 10px; }
+.species-all .name-species { width: 100%; flex: none; }
+.species-all-list { flex: 1 1 0; min-height: 0; margin: 0; padding: 0; list-style: none; overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--border-2); border-radius: 6px; }
+.species-all-list li + li { border-top: 1px solid var(--border-2); }
+.species-all-row { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; padding: 4px 8px; background: var(--panel); border: 0; color: var(--text); font: inherit; font-size: 13px; text-align: left; }
+.species-all-row:hover { background: var(--panel-2); }
+.species-all-row[aria-current="true"] { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.species-all-thumb { flex: none; width: 44px; height: 33px; background: var(--panel-3); border-radius: 4px; overflow: hidden; }
+.species-all-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.species-all-row .species-name { flex: 1; min-width: 0; }
+.species-all-row .species-name b { font-weight: 600; overflow-wrap: anywhere; }
+.species-all-tag { flex: none; font-size: 11px; line-height: 18px; }
+@media (max-width: 720px) {
+  .species-all-list { flex: none; max-height: 60vh; }
+}
+
+/* A small round "?" that opens a .tip explanation. Sits inline in a line of text. */
+.info-tip { display: inline-grid; place-items: center; width: 16px; height: 16px; margin-left: 2px; padding: 0; vertical-align: -3px; background: var(--panel-3); border: 1px solid var(--border); border-radius: 50%; color: var(--text-2); font: 600 11px/1 var(--sans); cursor: help; }
+.info-tip:hover, .info-tip:focus-visible { background: var(--text); border-color: var(--text); color: #fff; }
+/* A bigger target on touch screens, without changing how it looks. */
+@media (pointer: coarse) {
+  .info-tip { position: relative; }
+  .info-tip::before { content: ""; position: absolute; inset: -12px; }
+}
