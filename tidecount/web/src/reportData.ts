@@ -1,5 +1,5 @@
 import { Summary, Video } from "./api";
-import { NO_DATE, season, SurveyData } from "./surveyStore";
+import { NO_DATE, season, Site, Station, SurveyData, Transect } from "./surveyStore";
 
 /** One video's results, for the run with the most points counted. */
 export type VideoResult = { video: Video; summary: Summary; maxn: number | null };
@@ -52,25 +52,60 @@ export function buildCells(results: VideoResult[], data: SurveyData): Cell[] {
 
 const FISH = ["Cunner", "Pollock", "Mummichog", "Atlantic silverside", "Winter flounder", "Green crab", "Rock gunnel"];
 
+/** A site with its stations, shaped like activeTree() in surveyStore.ts. */
+export type SampleSite = { site: Site; stations: { station: Station; transect: Transect; label: string }[] };
+
+/**
+ * The sample structure the Station report shows before any station is counted. The place names are real,
+ * but these transects, stations, coordinates and depths are made up. Each transect starts at a point and
+ * runs out from the shore in even steps, four stations long. One station has no coordinates, to show how
+ * the map lists stations it can't place.
+ */
+const SAMPLE_LAYOUT = [
+  {
+    site: { id: "mahone-bay", name: "Mahone Bay Living Shoreline", flag: "treatment" as const },
+    step: [0.000605, 0.000257],
+    transects: [["t1", 44.44553, -64.36564], ["t2", 44.44482, -64.36235], ["t3", 44.44415, -64.35907]] as const,
+  },
+  {
+    site: { id: "lahave", name: "LaHave River Estuary", flag: "reference" as const },
+    step: [-0.0001, -0.00228],
+    transects: [["l1", 44.3552, -64.43837], ["l2", 44.35277, -64.43837], ["l3", 44.35034, -64.43894]] as const,
+  },
+];
+const UNPLACED = "l3-s4";
+
+export const SAMPLE_TREE: SampleSite[] = SAMPLE_LAYOUT.map(({ site, step, transects }) => ({
+  site: { ...site, coordinates: "", archived: false },
+  stations: transects.flatMap(([id, lat, lon], t) => {
+    const transect: Transect = { id, siteId: site.id, name: `T${t + 1}`, archived: false };
+    return [1, 2, 3, 4].map((n) => {
+      const stationId = `${id}-s${n}`;
+      const at = [lat + step[0] * (n - 1), lon + step[1] * (n - 1)];
+      const station: Station = {
+        id: stationId, transectId: id, name: `STAT${n}`, archived: false,
+        coordinates: stationId === UNPLACED ? "" : `${at[0].toFixed(5)}, ${at[1].toFixed(5)}`,
+        depth: (1.2 + n * 0.9 + t * 0.3).toFixed(1),
+      };
+      return { station, transect, label: `${transect.name} · ${station.name}` };
+    });
+  }),
+}));
+
 /** Made-up numbers for the sample structure. They show the page's shape and say nothing about these places. */
 function sampleCell(stationId: string, name: string, mean: number, maxn: number, kinds: number): Cell {
   return { stationId, season: name, videos: 1, finished: 1, mean, maxn, species: FISH.slice(0, kinds), links: [] };
 }
 
-export const SAMPLE_CELLS: Cell[] = [
-  ["t1-s1", 3.0, 7, 3, 3.7, 9, 4],
-  ["t1-s2", 4.0, 9, 4, 3.5, 8, 4],
-  ["t1-s3", 2.0, 5, 3, 2.8, 7, 4],
-  ["t2-s1", 5.0, 12, 5, 6.0, 14, 6],
-  ["t2-s2", 1.5, 4, 2, 2.2, 6, 3],
-  ["t2-s3", 3.5, 8, 4, 4.3, 10, 5],
-  ["l1-s1", 2.5, 6, 3, 2.6, 6, 3],
-  ["l1-s2", 3.0, 7, 3, 2.9, 7, 3],
-  ["l1-s3", 1.8, 4, 2, 1.9, 5, 3],
-  ["l2-s1", 2.2, 5, 3, 2.4, 6, 3],
-  ["l2-s2", 3.4, 8, 4, 3.3, 8, 4],
-  ["l2-s3", 2.0, 5, 2, 2.2, 5, 3],
-].flatMap(([id, fallMean, fallMax, fallKinds, springMean, springMax, springKinds]) => [
-  sampleCell(id as string, "Fall 2025", fallMean as number, fallMax as number, fallKinds as number),
-  sampleCell(id as string, "Spring 2026", springMean as number, springMax as number, springKinds as number),
-]);
+// The same made-up numbers on every visit: a fixed pseudo-random sequence rather than Math.random.
+const wobble = (k: number) => { const v = Math.sin(k * 12.9898 + 4.1) * 43758.5453; return v - Math.floor(v); };
+
+export const SAMPLE_CELLS: Cell[] = SAMPLE_TREE.flatMap((s) => s.stations).flatMap(({ station }, k) => {
+  const fall = 1.5 + wobble(k) * 5;
+  const spring = Math.max(0.8, fall * (0.7 + wobble(k + 50) * 0.75));
+  const kinds = (mean: number) => Math.min(FISH.length, 2 + Math.round(mean / 2));
+  return [
+    sampleCell(station.id, "Fall 2025", Number(fall.toFixed(1)), Math.round(fall * 2.2 + wobble(k + 90) * 3), kinds(fall)),
+    sampleCell(station.id, "Spring 2026", Number(spring.toFixed(1)), Math.round(spring * 2.2 + wobble(k + 130) * 3), kinds(spring)),
+  ];
+});

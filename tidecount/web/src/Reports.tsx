@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { api } from "./api";
+import { Link, useNavigate } from "react-router-dom";
+import { api, WaterSite } from "./api";
 import { countProgress } from "./Library";
-import { bySeason, buildCells, Cell, SAMPLE_CELLS, VideoResult } from "./reportData";
+import { bySeason, buildCells, Cell, SAMPLE_CELLS, SAMPLE_TREE, VideoResult } from "./reportData";
+import { distanceKm, MapStation, parseCoordinates, StationMap } from "./StationMap";
 import { activeTree, NO_DATE, useSurveys } from "./surveyStore";
 
 const one = (n: number | null | undefined) => (n === null || n === undefined ? "—" : n.toFixed(1));
+// A water sampling site further away than this isn't offered as the station's nearest.
+const NEAR_KM = 5;
+const signed = (n: number) => `${n > 0 ? "+" : n < 0 ? "−" : "±"}${Math.abs(n).toFixed(1)}`;
 
 function csvRow(values: (string | number | null)[]) {
   return values.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",");
@@ -21,9 +25,9 @@ function download(name: string, rows: string[]) {
 
 type Bar = { label: string; season: string; value: number | null; latest: boolean };
 
-function BarPair({ label, bars, most }: { label: string; bars: Bar[]; most: number }) {
+function BarPair({ label, bars, most, picked, onPick }: { label: string; bars: Bar[]; most: number; picked: boolean; onPick: () => void }) {
   return (
-    <div className="rstation">
+    <div className={`rstation ${picked ? "picked" : ""}`} onClick={onPick}>
       <div className="rbars">
         {bars.map((b) => (
           <div className={`rbar ${b.latest ? "latest" : ""}`} key={b.season} tabIndex={0} aria-label={`${b.label}, ${b.season}: ${one(b.value)}`}>
@@ -33,7 +37,7 @@ function BarPair({ label, bars, most }: { label: string; bars: Bar[]; most: numb
           </div>
         ))}
       </div>
-      <span className="rlabel">{label}</span>
+      <button type="button" className="rlabel" aria-pressed={picked}>{label}</button>
     </div>
   );
 }
@@ -45,6 +49,12 @@ export function Reports() {
   const [error, setError] = useState("");
   const [picked, setPicked] = useState<boolean | null>(null);
   const [siteId, setSiteId] = useState("");
+  const [pickedId, setPickedId] = useState("");
+  const [water, setWater] = useState<WaterSite[]>([]);
+  const navigate = useNavigate();
+
+  // Coastal Action's water sampling sites, shown on the station map. The map still works without them.
+  useEffect(() => { api.waterSites().then(setWater).catch(() => setWater([])); }, []);
 
   useEffect(() => {
     api.videos()
@@ -72,7 +82,8 @@ export function Reports() {
 
   const hasReal = realCells.some((c) => c.finished > 0);
   const sample = picked ?? !hasReal;
-  const tree = activeTree(data);
+  // Sample data comes with its own made-up stations, so the page can show a full site with a map.
+  const tree = sample ? SAMPLE_TREE : activeTree(data);
   const current = tree.find((t) => t.site.id === siteId) ?? tree[0];
   const stations = current?.stations ?? [];
   const inSite = (sample ? SAMPLE_CELLS : realCells).filter((c) => stations.some((s) => s.station.id === c.stationId));
@@ -93,6 +104,29 @@ export function Reports() {
   const most = Math.max(1, ...inSite.map((c) => c.mean ?? 0));
   const shownSeasons = [base, latest].filter((s): s is string => !!s);
   const transects = [...new Map(stations.map((s) => [s.transect.id, s.transect])).values()];
+  const changeOf = (stationId: string) => {
+    const now = cellAt(stationId, latest)?.mean;
+    const before = cellAt(stationId, base)?.mean;
+    return now != null && before != null ? Number(now.toFixed(1)) - Number(before.toFixed(1)) : null;
+  };
+
+  // The map places every station with coordinates. The rest are listed under it.
+  const mapStations: MapStation[] = stations.flatMap((s) => {
+    const at = parseCoordinates(s.station.coordinates);
+    if (!at) return [];
+    const now = cellAt(s.station.id, latest)?.mean ?? null;
+    return [{ id: s.station.id, label: s.label, transectId: s.transect.id, transect: s.transect.name, at, now, change: changeOf(s.station.id), size: Math.round(22 + ((now ?? 0) / most) * 22) }];
+  });
+  const unplaced = stations.filter((s) => !parseCoordinates(s.station.coordinates));
+  const focus = stations.find((s) => s.station.id === pickedId) ?? stations.find((s) => mapStations.some((m) => m.id === s.station.id)) ?? stations[0];
+  const pickedAt = focus ? parseCoordinates(focus.station.coordinates) : null;
+  const pickedNow = focus && cellAt(focus.station.id, latest);
+  const pickedBefore = focus && cellAt(focus.station.id, base);
+  const pickedChange = focus ? changeOf(focus.station.id) : null;
+  const pickedLinks = focus ? inSite.filter((c) => c.stationId === focus.station.id).flatMap((c) => c.links) : [];
+  const nearestWater = pickedAt
+    ? water.map((w) => ({ w, km: distanceKm(pickedAt, [w.lat, w.lon]) })).sort((a, b) => a.km - b.km)[0]
+    : undefined;
 
   const unfiled = results.filter((r) => !data.places[r.video.source_id || r.video.id]).length;
   const undated = results.filter((r) => { const root = r.video.source_id || r.video.id; return data.places[root] && !data.filmedOn[root]; }).length;
@@ -136,6 +170,85 @@ export function Reports() {
         <div className="kpi"><span className="meta">Stations counted</span><b>{counted.length} of {stations.length}</b><small className="meta">Fully counted videos only</small></div>
       </div>
 
+      {focus && (
+        <section className="panel smap-panel" aria-label="Station map">
+          <div className="smap-main">
+            <div>
+              <h2>Where the stations are</h2>
+              <p className="meta">
+                Circle size is MeanCount{latest ? ` in ${latest}` : ""}.{base ? ` Color is the change since ${base}.` : ""} Click a station to see its numbers.
+              </p>
+            </div>
+            {mapStations.length > 0 ? (
+              <>
+                <StationMap
+                  stations={mapStations}
+                  water={water.map((w) => ({ id: w.site_id, name: w.site_name, at: [w.lat, w.lon] }))}
+                  picked={focus.station.id}
+                  onPick={setPickedId}
+                  onWater={() => navigate("/analysis/trends")}
+                  fitKey={`${sample}|${current?.site.id}`}
+                  base={base}
+                />
+                <div className="row smap-legend">
+                  <span><i className="up" />Counted higher ▲</span>
+                  <span><i className="down" />Counted lower ▼</span>
+                  <span><i className="line" />Transect</span>
+                  <span><i className="water" />Water site, opens Fish and water</span>
+                </div>
+                {unplaced.length > 0 && (
+                  <p className="smap-note">
+                    Not on the map: <b>{unplaced.map((s) => s.label).join(", ")}</b> {unplaced.length === 1 ? "has" : "have"} no coordinates.{" "}
+                    {!sample && <Link to="/workspace">Add them in Surveys</Link>}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="smap-note">
+                No station at {current?.site.name} has coordinates yet. <Link to="/workspace">Add them in Surveys</Link> to see the stations on a map.
+              </p>
+            )}
+          </div>
+
+          <aside className="smap-side" aria-live="polite">
+            <span className="side-label" style={{ padding: 0 }}>Picked station</span>
+            <div>
+              <h2 className="smap-name">{focus.label}</h2>
+              <span className="meta num">
+                {pickedAt ? `${pickedAt[0].toFixed(4)}, ${pickedAt[1].toFixed(4)}` : "No coordinates"}
+                {focus.station.depth && ` · ${focus.station.depth} m deep`}
+              </span>
+            </div>
+            <div>
+              <span className="meta">MeanCount{latest ? `, ${latest}` : ""}</span>
+              <div className="row" style={{ gap: 10, marginTop: 4 }}>
+                <b className="smap-big num">{one(pickedNow?.mean)}</b>
+                {pickedChange !== null && <span className={`pill ${pickedChange >= 0 ? "up" : "down"}`}>{signed(pickedChange)} since {base}</span>}
+              </div>
+            </div>
+            <dl className="smap-facts">
+              <div><dt>{base ?? "Season before"}</dt><dd className="num">{one(pickedBefore?.mean)}</dd></div>
+              <div><dt>MaxN</dt><dd className="num">{pickedNow?.maxn ?? "—"}</dd></div>
+              <div><dt>Species</dt><dd className="num">{pickedNow ? pickedNow.species.length : "—"}</dd></div>
+              <div>
+                <dt>Nearest water site</dt>
+                <dd>
+                  {nearestWater && nearestWater.km <= NEAR_KM
+                    ? <Link to="/analysis/trends">{nearestWater.w.site_name}, {nearestWater.km.toFixed(1)} km</Link>
+                    : pickedAt ? `None within ${NEAR_KM} km` : "—"}
+                </dd>
+              </div>
+            </dl>
+            {pickedNow && pickedNow.species.length > 0 && <p className="meta">{pickedNow.species.join(", ")}</p>}
+            <div className="row">
+              {pickedLinks.map((l) => <Link key={l.id} className="vname" to={`/videos/${l.id}/summary`}>{l.name}</Link>)}
+              {sample && <span className="meta">Sample station, no footage</span>}
+              {!sample && pickedLinks.length === 0 && <span className="meta">No footage yet</span>}
+            </div>
+          </aside>
+        </section>
+      )}
+
       <section className="panel">
         <div className="panel-head rhead">
           <h2>MeanCount by station</h2>
@@ -155,6 +268,8 @@ export function Reports() {
                       key={s.station.id}
                       label={s.station.name}
                       most={most}
+                      picked={s.station.id === focus?.station.id}
+                      onPick={() => setPickedId(s.station.id)}
                       bars={shownSeasons.map((name) => ({ label: s.label, season: name, value: cellAt(s.station.id, name)?.mean ?? null, latest: name === latest }))}
                     />
                   ))}
@@ -181,13 +296,13 @@ export function Reports() {
             {stations.map((s) => {
               const now = cellAt(s.station.id, latest);
               const before = cellAt(s.station.id, base);
-              const change = now?.mean != null && before?.mean != null ? Number(now.mean.toFixed(1)) - Number(before.mean.toFixed(1)) : null;
+              const change = changeOf(s.station.id);
               const all = inSite.filter((c) => c.stationId === s.station.id);
               const waiting = all.reduce((n, c) => n + c.videos - c.finished, 0);
               const links = all.flatMap((c) => c.links);
               return (
-                <tr key={s.station.id}>
-                  <td><b>{s.label}</b></td>
+                <tr key={s.station.id} className={s.station.id === focus?.station.id ? "picked" : ""}>
+                  <td><button type="button" className="rowpick" aria-pressed={s.station.id === focus?.station.id} onClick={() => setPickedId(s.station.id)}>{s.label}</button></td>
                   {base && <td className="num right" data-label={base}>{one(before?.mean)}</td>}
                   <td className="num right" data-label={latest ?? "MeanCount"}>{one(now?.mean)}</td>
                   {base && <td className="num right" data-label="Change">{change === null ? "—" : `${change > 0 ? "+" : ""}${change.toFixed(1)}`}</td>}
