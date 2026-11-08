@@ -271,12 +271,12 @@ The site has no login, so anyone with the link can upload and every visitor shar
 
 ### Deploy automatically
 
-The machine can deploy the `release` branch by itself. To publish, merge `main` into `release`. Within a minute the machine pulls it, rebuilds and checks the site. The site stays up during the build and goes down for a few seconds when the containers change. If the release fails, the machine goes back to the previous commit and doesn't try that commit again. Data in `deploy/data/` is kept.
+The machine can deploy `main` by itself. Every merge into `main` is published: within a minute the machine pulls it, rebuilds and checks the site. The site stays up during the build and goes down for a few seconds when the containers change. If the deploy fails, the machine goes back to the previous commit and doesn't try that commit again. Data in `deploy/data/` is kept.
 
 To turn this on, run these once on the machine. `tidecount-update.service` assumes the repo is at `/home/wsyanligang/the_coastal_coders`.
 
 ```bash
-git fetch origin release && git switch release
+git switch main
 chmod +x deploy/auto-update.sh
 sudo cp deploy/tidecount-update.service deploy/tidecount-update.timer /etc/systemd/system/
 sudo systemctl daemon-reload

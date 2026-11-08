@@ -75,7 +75,7 @@ docker compose up -d
 
 The first start builds the image and downloads every model (about 4.2 GB), so it takes a while. Then the site is on port 80. Put `SITE_ADDRESS=your.domain` in `deploy/.env` and Caddy fetches a certificate and serves HTTPS. Data lives in `deploy/data/`.
 
-The demo server deploys the `release` branch by itself within a minute of a change and rolls back when the site doesn't come up. See [Deploy a public demo](tidecount/README.md#deploy-a-public-demo) for the setup.
+The demo server deploys `main` by itself within a minute of a change and rolls back when the site doesn't come up. See [Deploy a public demo](tidecount/README.md#deploy-a-public-demo) for the setup.
 
 ## Repository layout
 
@@ -116,7 +116,7 @@ The full list is in [Known limits](tidecount/README.md#known-limits).
 
 1. Branch from `main`, commit, push and open a pull request.
 2. Someone else reviews it. Merge with **Squash and merge**, so `main` has one commit per change.
-3. To publish, open a pull request from `main` into `release` and merge it with **Create a merge commit**. Never squash or rebase that one. The server picks it up within a minute.
+3. Merging into `main` publishes it. The server picks it up within a minute and rolls back if the site does not come up.
 4. Check https://tideflow.ligangyan.com.
 
 Docs, commits and pull requests are in English. Video files and model weights never go in git.
