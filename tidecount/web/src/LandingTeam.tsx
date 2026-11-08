@@ -70,7 +70,7 @@ export function Roles() {
 
 const FLOW: { icon: IconName; title: string; who: string; live: boolean; text: string; stages?: string[]; mail?: string }[] = [
   { icon: "import", title: "Import", who: "Coordinator", live: true, text: "Files the video under its site and station. AI scans it for fish.", stages: ["Analysing"], mail: "Volunteers hear a video is ready to count" },
-  { icon: "count", title: "Count", who: "Volunteer", live: true, text: "Counts every snapshot point the procedure asks for.", stages: ["To count", "Counting", "Counted"], mail: "The validator hears it's ready to check" },
+  { icon: "count", title: "Count", who: "Volunteer", live: true, text: "Names the species AI found, then counts every snapshot point the procedure asks for.", stages: ["To identify", "To count", "Counting", "Counted"], mail: "The validator hears it's ready to check" },
   { icon: "validator", title: "Validate", who: "Validator", live: false, text: "Passes the counts, or returns them with a note.", stages: ["Validated", "Returned"], mail: "The volunteer hears if it comes back" },
   { icon: "report", title: "Report", who: "Coordinator", live: true, text: "MeanCount and MaxN by station and season, exported as CSV." },
 ];
