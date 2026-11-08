@@ -2,7 +2,7 @@
 
 The data is Coastal Action's LaHave River Water Quality Monitoring on DataStream
 (https://doi.org/10.25976/r245-z904), licensed ODC-By: credit Coastal Action wherever it's shown.
-The file has one row per measurement. Only the probe readings taken on site are imported for now.
+The file has one row per measurement. The probe readings and the main lab results are imported.
 """
 import csv
 import sys
@@ -18,6 +18,13 @@ KEEP = {
     "Dissolved oxygen saturation",
     "Specific conductance",
     "Salinity",
+    "Total Phosphorus, mixed forms",
+    "Total Nitrogen, mixed forms",
+    "Inorganic nitrogen (nitrate and nitrite)",
+    "Total suspended solids",
+    "Chloride",
+    "Fecal Coliform",
+    "Fecal Streptococcus Group Bacteria",
 }
 
 
@@ -30,6 +37,13 @@ LIMITS = {
     "Dissolved oxygen saturation": (0, 200),
     "Specific conductance": (0, 60000),
     "Salinity": (0, 40),
+    "Total Phosphorus, mixed forms": (0, 5),
+    "Total Nitrogen, mixed forms": (0, 20),
+    "Inorganic nitrogen (nitrate and nitrite)": (0, 20),
+    "Total suspended solids": (0, 1000),
+    "Chloride": (0, 25000),  # the estuary sites are salty, so chloride there is high
+    "Fecal Coliform": (0, 100000),
+    "Fecal Streptococcus Group Bacteria": (0, 100000),
 }
 
 
@@ -37,11 +51,20 @@ def reading(row: dict) -> dict | None:
     """One row of the file as a reading, or None if it isn't one to keep."""
     if row["CharacteristicName"] not in KEEP:
         return None
+    qualifier = ""  # "<" below what the lab can measure, ">" above it, "" a measured value
+    unit = row["ResultUnit"]
     try:
         value = float(row["ResultValue"])
     except ValueError:
-        return None
-    unit = row["ResultUnit"]
+        # A lab result too small (or too large) to measure has no value, only the lab's limit.
+        try:
+            value = float(row.get("ResultDetectionQuantitationLimitMeasure", ""))
+        except ValueError:
+            return None
+        unit = row.get("ResultDetectionQuantitationLimitUnit", "")
+        qualifier = "<" if row.get("ResultDetectionCondition", "").startswith("Below") else ">"
+    if row["CharacteristicName"] == "Fecal Coliform" and unit != "cfu/100mL":
+        return None  # 2007-2012 results say #/mL, which doesn't fit their values; left out until confirmed
     if row["CharacteristicName"] == "Specific conductance" and unit == "mS/cm":
         value = value * 1000
         unit = "uS/cm"
@@ -60,6 +83,7 @@ def reading(row: dict) -> dict | None:
         "measurement": row["CharacteristicName"],
         "value": value,
         "unit": unit,
+        "qualifier": qualifier,
     }
 
 
@@ -112,8 +136,8 @@ def save(con, readings: list[dict]) -> None:
     """Replace every water reading with these."""
     con.execute("DELETE FROM water_readings")
     con.executemany(
-        "INSERT INTO water_readings (site_id, site_name, lat, lon, date, time, measurement, value, unit) "
-        "VALUES (:site_id, :site_name, :lat, :lon, :date, :time, :measurement, :value, :unit)",
+        "INSERT INTO water_readings (site_id, site_name, lat, lon, date, time, measurement, value, unit, qualifier) "
+        "VALUES (:site_id, :site_name, :lat, :lon, :date, :time, :measurement, :value, :unit, :qualifier)",
         readings,
     )
 
@@ -132,7 +156,7 @@ def import_file(path: str) -> int:
 # get the water data without downloading or importing anything. See water_data/README.md.
 
 BUNDLED = Path(__file__).parent / "water_data" / "lahave.csv"
-COLUMNS = ("site_id", "site_name", "lat", "lon", "date", "time", "measurement", "value", "unit")
+COLUMNS = ("site_id", "site_name", "lat", "lon", "date", "time", "measurement", "value", "unit", "qualifier")
 
 
 def write_bundled(path: str, out: Path = BUNDLED) -> int:

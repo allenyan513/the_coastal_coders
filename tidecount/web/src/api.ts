@@ -399,6 +399,7 @@ export const api = {
     call<FishWaterComparison>(`/api/compare/sites/${siteId}?metric=${encodeURIComponent(metric)}&measurement=${encodeURIComponent(measurement)}&deseason=${deseason}`),
   fishSeries: (siteId: string, metric: string, deseason = false) =>
     call<FishSeries>(`/api/fish/sites/${siteId}/series?metric=${encodeURIComponent(metric)}&deseason=${deseason}`),
+  wqiTable: (last = 7) => call<WqiTable>(`/api/wqi/table?last=${last}`),
   diversity: (id: string) => call<DiversityStats>(`/api/videos/${id}/stats/diversity`),
   /**
    * Over XHR rather than fetch, so a large file can show how much has gone. `onProgress` gets 0 to 1.
@@ -570,4 +571,21 @@ export type FishSeries = {
   points: { date: string; value: number }[];
   demo: boolean;
   from_videos: boolean;
+};
+
+
+
+/** The Water Quality Index table, like Coastal Action's report card. From server/tidecount/wqi.py. */
+export type WqiTable = {
+  years: number[];
+  sites: {
+    site_id: string;
+    site_name: string;
+    salty: boolean;
+    scores: { year: number; wqi: number | null; rating: string }[];
+    fish: {
+      year: number; surveys: number; fish: number; per_survey: number; species: number;
+      shannon: number | null; most_common: string; demo: boolean;
+    }[];
+  }[];
 };
