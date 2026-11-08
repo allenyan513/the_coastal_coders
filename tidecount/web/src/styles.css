@@ -780,11 +780,12 @@ textarea.record-input { height: auto; resize: vertical; }
 .ln-table td b { display: block; font-weight: 600; }
 .ln-card .ln-more { margin-top: auto; padding: 14px 20px; align-self: stretch; border-top: 1px solid var(--border-2); }
 .ln-water { padding: 0 20px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.ln-water div { padding: 14px; display: flex; flex-direction: column; gap: 6px; background: var(--panel-2); border: 1px dashed var(--border); border-radius: 10px; }
+.ln-water div { padding: 14px; display: flex; flex-direction: column; gap: 6px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; }
 .ln-water div:last-child { grid-column: 1 / -1; }
-.ln-water b { font-size: 22px; font-weight: 600; color: var(--muted-2); }
-.ln-water small { font-size: 12px; font-weight: 500; }
+.ln-water b { font-size: 22px; font-weight: 600; color: var(--text); }
+.ln-water small { font-size: 12px; font-weight: 500; color: var(--text-2); }
 .ln-card-note { margin-top: auto; padding: 16px 20px 20px; color: var(--text-2); font-size: 13px; line-height: 1.55; }
+.ln-water + .ln-card-note { margin-top: 0; }
 
 .ln-volunteer { padding: 48px; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 48px; align-items: center; background: linear-gradient(120deg, #1f5eff, #0b2a5c); border-radius: 24px; color: #fff; }
 .ln-join { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
