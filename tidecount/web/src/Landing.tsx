@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, ModelOption, SpeciesMediaSummary, SpeciesRow, Summary, Video } from "./api";
 import { SpeciesShowcase, StationPreview, WqiPreview } from "./LandingData";
 import { Pipeline, Research, VisionStack } from "./LandingVision";
+import { Access, Flow, JOIN_STEPS, Roles, Status } from "./LandingTeam";
 import { countProgress } from "./Library";
 import { speciesMedia } from "./speciesData";
 import { useSession } from "./session";
@@ -70,12 +71,6 @@ const STEPS = [
   { title: "Data visualization", text: "Confirmed counts become charts by station and site, so treatment and reference sites sit side by side, season by season." },
 ];
 
-const VOLUNTEER = [
-  { title: "Join", text: "Sign in as a volunteer. Your tasks list the videos waiting for a count." },
-  { title: "Open a video", text: "Tideflow takes you to each snapshot point in turn, with a grid to count in." },
-  { title: "Count what you see", text: "Confirm AI's dots, add the fish it missed, and note the visibility. That's one point done." },
-];
-
 function Brand({ dark }: { dark?: boolean }) {
   return <Link to="/" className={`ln-brand ${dark ? "dark" : ""}`}><img src="/favicon.svg" alt="" />Tideflow</Link>;
 }
@@ -100,7 +95,7 @@ function Nav() {
         <a href="#ai">Computer vision</a>
         <a href="#species">Species</a>
         <a href="#data">Data</a>
-        <a href="#volunteer">Volunteer</a>
+        <a href="#team">Team</a>
       </nav>
       <span className="spacer" />
       {user
@@ -219,7 +214,12 @@ export function Landing() {
         </div>
       </section>
 
-      <section className="ln-wrap ln-section" id="volunteer">
+      <section className="ln-wrap ln-section" id="team">
+        <Head eyebrow="Team and roles" title="Every count has an owner" text="Volunteers count, validators check and coordinators run the survey. Each role sees its own screens, and every video shows who has it next." />
+        <p className="ln-legend-row"><Status live /> works in the app today <Status live={false} /> designed, not built yet</p>
+        <Roles />
+        <Flow />
+        <Access />
         <div className="ln-volunteer">
           <div className="stack" style={{ gap: 16 }}>
             <Head light eyebrow="Volunteer" title="Help count the fish of your shoreline" text="No experience needed. The procedure walks you through each frame, on a laptop or a phone, and every point you save goes into the site reports." />
@@ -229,7 +229,12 @@ export function Landing() {
             </div>
           </div>
           <ol className="ln-join">
-            {VOLUNTEER.map((s, i) => <li key={s.title}><span className="num">{i + 1}</span><div><b>{s.title}</b><p>{s.text}</p></div></li>)}
+            {JOIN_STEPS.map((s, i) => (
+              <li key={s.title} className={s.live ? "" : "planned"}>
+                <span className="num">{s.live ? i + 1 : "+"}</span>
+                <div><b>{s.title} <Status live={s.live} /></b><p>{s.text}</p></div>
+              </li>
+            ))}
           </ol>
         </div>
       </section>
