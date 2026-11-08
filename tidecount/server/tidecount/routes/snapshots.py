@@ -138,6 +138,7 @@ class SnapshotSave(BaseModel):
     species: list[SpeciesCount] = []
     visibility: str = ""
     comment: str = ""
+    counter: str = ""  # who counted it, from the web's simulated sign-in, so they can't validate their own point
 
 
 @router.put("/api/snapshot-frames/{count_id}")
@@ -168,8 +169,9 @@ def snapshot_save(count_id: int, body: SnapshotSave):
         )
         con.execute(
             "UPDATE school_counts SET saved = 1, status = ?, total = ?, proposed = ?, removed = ?, added = ?, blind = ?, "
-            "invertebrates = ?, species = ?, visibility = ?, comment = ? WHERE id = ?",
-            (body.status, total, proposed, removed, added, int(blind), invertebrates, json.dumps(species), body.visibility, body.comment, count_id),
+            "invertebrates = ?, species = ?, visibility = ?, comment = ?, counter = COALESCE(NULLIF(?, ''), counter) WHERE id = ?",
+            (body.status, total, proposed, removed, added, int(blind), invertebrates, json.dumps(species), body.visibility, body.comment,
+             body.counter.strip(), count_id),
         )
         db.log_event(con, row["video_id"], "snapshot_save", {
             "count": count_id, "kind": row["kind"], "t": row["t"], "status": body.status, "total": total,

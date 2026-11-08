@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, ModelOption, SpeciesRow, Summary, Video, WaterSite } from "./api";
+import { api, ModelOption, SpeciesMediaSummary, SpeciesRow, Summary, Video } from "./api";
+import { SpeciesShowcase, StationPreview, WqiPreview } from "./LandingData";
+import { Pipeline, Research, VisionStack } from "./LandingVision";
+import { Access, Flow, JOIN_STEPS, Roles, Status } from "./LandingTeam";
 import { countProgress } from "./Library";
+import { speciesMedia } from "./speciesData";
 import { useSession } from "./session";
 
 const READY = "Ready to review";
@@ -12,11 +16,13 @@ function useFacts() {
   const [summaries, setSummaries] = useState<Record<string, Summary>>({});
   const [species, setSpecies] = useState<SpeciesRow[]>([]);
   const [models, setModels] = useState<ModelOption[]>([]);
+  const [media, setMedia] = useState<SpeciesMediaSummary>({});
 
   useEffect(() => {
     api.videos().then(setVideos).catch(() => setVideos([]));
     api.species().then(setSpecies).catch(() => {});
     api.models().then(setModels).catch(() => {});
+    speciesMedia.get().then(setMedia);
   }, []);
   const readyIds = (videos ?? []).filter((v) => v.status === READY).map((v) => v.id).join(",");
   useEffect(() => {
@@ -37,6 +43,7 @@ function useFacts() {
     videos: firsts.length,
     hours: firsts.reduce((n, v) => n + v.duration, 0) / 3600,
     species,
+    media,
     models,
     /** The ready video with the most points to count, so the sample shows the procedure best. */
     sample: [...ready].sort((a, b) => progress(b).total - progress(a).total)[0] as Video | undefined,
@@ -64,57 +71,6 @@ const STEPS = [
   { title: "Data visualization", text: "Confirmed counts become charts by station and site, so treatment and reference sites sit side by side, season by season." },
 ];
 
-const AI_POINTS = [
-  { title: "Finds the fish", text: "An object detector boxes every fish it sees, frame by frame. Pick the model that suits the water." },
-  { title: "Skips empty water", text: "Stretches with no detections, and boxes that flicker in and out, are set aside so people don't sit through them." },
-  { title: "Follows each fish", text: "Boxes are linked into tracks, so one fish swimming past reads as one fish, not fifty frames." },
-  { title: "Suggests the species", text: "BioCLIP names each fish, choosing only from species recorded in Nova Scotia." },
-];
-
-/** The readings the card shows, by their name in Coastal Action's data. Matches MEASUREMENTS in River.tsx. */
-const WATER = [
-  { key: "Temperature, water", name: "Temperature", unit: "°C" },
-  { key: "pH", name: "pH", unit: "" },
-  { key: "Dissolved oxygen (DO)", name: "Dissolved oxygen", unit: "mg/L" },
-  { key: "Specific conductance", name: "Conductance", unit: "µS/cm" },
-  { key: "Salinity", name: "Salinity", unit: "ppt" },
-];
-
-type Reading = { date: string; value: number };
-/** The site the card shows: Bridgewater, the LaHave's town, where the readings are the fullest. */
-const FRONT_SITE = "Bridgewater";
-
-/** The newest reading of each measurement at Bridgewater, or at the site visited most recently, for the front page card. */
-function useLatestWater() {
-  const [site, setSite] = useState<WaterSite | null>(null);
-  const [latest, setLatest] = useState<Record<string, Reading>>({});
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    api.waterSites().then(async (sites) => {
-      const newest = sites.find((x) => x.site_name === FRONT_SITE)
-        ?? [...sites].sort((a, b) => b.last_date.localeCompare(a.last_date) || b.visits - a.visits)[0];
-      if (!newest) throw new Error("no water sites");
-      setSite(newest);
-      const all = await Promise.all(WATER.map(async (w) => {
-        const series = await api.waterSeries(newest.site_id, w.key);
-        return [w.key, series.points[series.points.length - 1]] as const;
-      }));
-      setLatest(Object.fromEntries(all.filter(([, r]) => r)));
-    }).catch(() => setFailed(true));
-  }, []);
-  return { site, latest, failed };
-}
-
-/** 5,002 · 14.3 · 7.03: fewer decimals as the number grows, so the five readings read alike. */
-const reading = (v: number) => v.toLocaleString("en-CA", { maximumFractionDigits: Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 10 ? 1 : 2 });
-const shortDate = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-
-const VOLUNTEER = [
-  { title: "Join", text: "Sign in as a volunteer. Your tasks list the videos waiting for a count." },
-  { title: "Open a video", text: "Tideflow takes you to each snapshot point in turn, with a grid to count in." },
-  { title: "Count what you see", text: "Confirm AI's dots, add the fish it missed, and note the visibility. That's one point done." },
-];
-
 function Brand({ dark }: { dark?: boolean }) {
   return <Link to="/" className={`ln-brand ${dark ? "dark" : ""}`}><img src="/favicon.svg" alt="" />Tideflow</Link>;
 }
@@ -136,9 +92,10 @@ function Nav() {
       <Brand />
       <nav className="ln-links" aria-label="Sections">
         <a href="#how">How it works</a>
-        <a href="#ai">AI</a>
-        <a href="#data">Species and water</a>
-        <a href="#volunteer">Volunteer</a>
+        <a href="#ai">Computer vision</a>
+        <a href="#species">Species</a>
+        <a href="#data">Data</a>
+        <a href="#team">Team</a>
       </nav>
       <span className="spacer" />
       {user
@@ -187,7 +144,6 @@ function Head({ eyebrow, title, text, light }: { eyebrow: string; title: string;
 /** The public front page: what Tideflow is, how the work flows, the AI, the data it opens up, and how to help. */
 export function Landing() {
   const f = useFacts();
-  const w = useLatestWater();
   // Every figure here is computed from the data, or true by how Tideflow works. None is an estimate.
   const stats: [string, string][] = [
     [`${Math.round(f.skippedShare(f.summarised) * 100)}%`, "of the footage set aside by AI as empty, so nobody has to watch it"],
@@ -195,8 +151,6 @@ export function Landing() {
     [String(f.species.length), "Nova Scotia species the AI suggests from, and no others"],
     [hours(f.hours), `of survey video scanned, across ${f.videos} ${f.videos === 1 ? "video" : "videos"}`],
   ];
-  const named = f.species.filter((s) => s.confirmed > 0).length;
-  const topSpecies = [...f.species].sort((a, b) => b.inat_obs - a.inat_obs).slice(0, 6);
 
   return (
     <div className="ln">
@@ -232,75 +186,40 @@ export function Landing() {
       </section>
 
       <section className="ln-dark" id="ai">
-        <div className="ln-wrap ln-section ln-ai">
-          <div className="stack" style={{ gap: 28 }}>
-            <Head light eyebrow="The AI" title="AI does the searching. People make the call." text="Long stretches of survey video show no fish at all. Tideflow's models find the ones that do, so volunteers spend their time counting, not scrubbing." />
-            <div className="ln-ai-grid">
-              {AI_POINTS.map((x) => <div key={x.title}><b>{x.title}</b><p>{x.text}</p></div>)}
-            </div>
+        <div className="ln-wrap ln-section">
+          <div className="ln-ai">
+            <Head light eyebrow="Computer vision · runs on your own PC" title="Three vision models find, follow and name every fish" text="An object detector, a tracker and a species model run inside Tideflow, on an ordinary computer, with no footage sent to a cloud service. Each one is benchmarked on real underwater video before volunteers rely on it, and a person still makes every call." />
+            <VisionStack models={f.models} species={f.species.length} />
           </div>
-          <aside className="ln-ai-card" aria-label="Models">
-            <p className="ln-card-kicker">Detection models</p>
-            {f.models.map((m) => (
-              <div className="ln-model" key={m.key}>
-                <span>{m.label}</span>
-                {m.default ? <span className="pill accent">Default</span> : <span className="meta">Optional</span>}
-              </div>
-            ))}
-            <p className="ln-card-kicker" style={{ marginTop: 16 }}>Species</p>
-            <div className="ln-model"><span>BioCLIP, limited to the Nova Scotia list</span><span className="num meta">{f.species.length} species</span></div>
-            <p className="ln-ai-rule">Nothing AI suggests reaches a report until a person confirms it. A frame nobody could see into is left out, never counted as zero.</p>
-          </aside>
+          <Pipeline />
+          <div className="ln-research-head">
+            <p className="ln-card-kicker">What we measured</p>
+            <span className="pill ln-pill-dark">Provisional</span>
+          </div>
+          <Research />
+          <p className="ln-research-note">From the team's benchmark in the ml folder of the repository. Detector numbers rest on 30 hand-labelled frames from 2 of 6 development videos, and thresholds were chosen on those same frames, so they flatter the models. Nothing here is measured on Coastal Action's own footage yet.</p>
         </div>
+      </section>
+
+      <section className="ln-wrap ln-section" id="species">
+        <Head eyebrow="Species wiki" title="Know every fish in the footage" text="Each fish the AI may suggest has its own entry: reference photos, how to tell it from look-alikes, and where it has been recorded in Nova Scotia." />
+        <SpeciesShowcase rows={f.species} media={f.media} />
       </section>
 
       <section className="ln-wrap ln-section" id="data">
-        <Head eyebrow="Explore the data" title="Fish and water, side by side" text="Every count adds to a picture of the shoreline: which species live there, and the water they live in." />
+        <Head eyebrow="Data analysis" title="Fish and water, side by side" text="Confirmed counts become station reports, next to Coastal Action's water readings from the same river, so a change in one can be checked against the other." />
         <div className="ln-data">
-          <div className="ln-card">
-            <div className="ln-card-head">
-              <div><b>Species wiki</b><p className="meta">{f.species.length} species recorded in Nova Scotia · {named} named in our footage</p></div>
-              <span className="pill up">Live</span>
-            </div>
-            <table className="ln-table">
-              <thead><tr><th>Species</th><th className="right">iNaturalist sightings</th></tr></thead>
-              <tbody>
-                {topSpecies.map((s) => (
-                  <tr key={s.species}>
-                    <td><b>{s.common || s.species}</b><span className="meta"><i>{s.species}</i></span></td>
-                    <td className="right num">{s.inat_obs.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <Link className="ln-more" to="/species">Open the species wiki <span aria-hidden>→</span></Link>
-          </div>
-          <div className="ln-card">
-            <div className="ln-card-head">
-              <div>
-                <b>Water quality</b>
-                <p className="meta">Coastal Action's river readings from the LaHave River{w.site ? ` · ${w.site.site_name}, ${shortDate(w.site.last_date)}` : ""}</p>
-              </div>
-              {w.failed ? <span className="pill warn">Unavailable</span> : <span className="pill up">Live</span>}
-            </div>
-            <div className="ln-water">
-              {WATER.map((m) => {
-                const r = w.latest[m.key];
-                return (
-                  <div key={m.key}>
-                    <span className="meta">{m.name}</span>
-                    <b className="num">{r ? reading(r.value) : w.failed ? "—" : "…"}{m.unit && <small> {m.unit}</small>}</b>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="ln-card-note">From the newest visit to this site. Readings sit beside the fish counts from the same sites, so a change in one can be checked against the other.</p>
-            <Link className="ln-more" to="/river">Open the water trends <span aria-hidden>→</span></Link>
-          </div>
+          <WqiPreview />
+          <StationPreview />
         </div>
       </section>
 
-      <section className="ln-wrap ln-section" id="volunteer">
+      <section className="ln-wrap ln-section" id="team">
+        <Head eyebrow="Team and roles" title="Every count has an owner" text="Volunteers count, validators check and coordinators run the survey. Each role sees its own screens, and every video shows who has it next." />
+        <p className="ln-legend-row"><Status live /> works in the app today <Status live={false} /> designed, not built yet</p>
+        <Roles />
+        <Flow />
+        <Access />
         <div className="ln-volunteer">
           <div className="stack" style={{ gap: 16 }}>
             <Head light eyebrow="Volunteer" title="Help count the fish of your shoreline" text="No experience needed. The procedure walks you through each frame, on a laptop or a phone, and every point you save goes into the site reports." />
@@ -310,7 +229,12 @@ export function Landing() {
             </div>
           </div>
           <ol className="ln-join">
-            {VOLUNTEER.map((s, i) => <li key={s.title}><span className="num">{i + 1}</span><div><b>{s.title}</b><p>{s.text}</p></div></li>)}
+            {JOIN_STEPS.map((s, i) => (
+              <li key={s.title} className={s.live ? "" : "planned"}>
+                <span className="num">{s.live ? i + 1 : "+"}</span>
+                <div><b>{s.title} <Status live={s.live} /></b><p>{s.text}</p></div>
+              </li>
+            ))}
           </ol>
         </div>
       </section>
@@ -321,8 +245,8 @@ export function Landing() {
             <Brand dark />
             <p className="meta" style={{ maxWidth: 340, lineHeight: 1.6 }}>Underwater video in, confirmed fish counts out, for the people who survey Nova Scotia's living shorelines. Built at RBC HubHacks 2026 with Coastal Action.</p>
           </div>
-          <div className="ln-foot-col"><b>Platform</b><Link to="/workspace">Workspace</Link><Link to="/workflow">Workflow board</Link><Link to="/reports">Reports</Link><Link to="/login">Sign in</Link></div>
-          <div className="ln-foot-col"><b>Explore</b><Link to="/species">Species wiki</Link><Link to="/river">Water quality</Link><a href="#ai">How the AI works</a></div>
+          <div className="ln-foot-col"><b>Platform</b><Link to="/workspace">Workspace</Link><Link to="/workflow">Workflow board</Link><Link to="/analysis">Data analysis</Link><Link to="/login">Sign in</Link></div>
+          <div className="ln-foot-col"><b>Explore</b><Link to="/species">Species wiki</Link><Link to="/analysis/trends">Fish and water trends</Link><a href="#ai">How the computer vision works</a></div>
           <div className="ln-foot-col"><b>Project</b><a href="https://github.com/allenyan513/the_coastal_coders" target="_blank" rel="noreferrer">Source on GitHub</a><span className="meta">RBC HubHacks 2026</span><span className="meta">Coastal Action</span></div>
         </div>
         <div className="ln-wrap ln-foot-fine meta">

@@ -6,7 +6,7 @@ the latest reviews. That's quick: it only reads each video's confirmed tracks.
 """
 from fastapi import APIRouter
 
-from .. import db, link, trends, water
+from .. import db, link, trends, water, wqi
 
 router = APIRouter()
 
@@ -53,3 +53,11 @@ def fish_series(site_id: str, metric: str = "total", deseason: bool = False):
     if deseason:
         s["points"] = trends.deseasonalize(s["points"])
     return s
+
+
+@router.get("/api/wqi/table")
+def table(last: int=7):
+    """The Water Quality Index table, like Coastal Action's report card: recent years, in river order, with fish."""
+    with db.session() as con:
+        link.rebuild(con)
+        return wqi.table(con, last)

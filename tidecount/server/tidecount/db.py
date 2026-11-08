@@ -60,13 +60,20 @@ CREATE TABLE IF NOT EXISTS events (
 );
 CREATE TABLE IF NOT EXISTS water_readings(
 site_id TEXT, site_name TEXT, lat REAL, lon REAL, date TEXT, time TEXT, 
-measurement TEXT, value REAL, unit TEXT
+measurement TEXT, value REAL, unit TEXT, qualifier TEXT DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS water_site_date ON water_readings (site_id, date);
 CREATE TABLE IF NOT EXISTS fish_counts (
   site_id TEXT, date TEXT, species TEXT, count INTEGER, source TEXT DEFAULT 'demo'
 );
 CREATE INDEX IF NOT EXISTS fish_site_date ON fish_counts (site_id, date);
+CREATE TABLE IF NOT EXISTS validation_samples (video_id TEXT, count_id INTEGER, PRIMARY KEY (video_id, count_id));
+CREATE TABLE IF NOT EXISTS validation_counts (
+  id INTEGER PRIMARY KEY, count_id INTEGER, counter TEXT NOT NULL, total INTEGER NOT NULL, dots TEXT DEFAULT '[]',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS validation_counts_point ON validation_counts (count_id);
+CREATE TABLE IF NOT EXISTS approvals (video_id TEXT PRIMARY KEY, approver TEXT NOT NULL, approved_at TEXT DEFAULT CURRENT_TIMESTAMP);
 """
 
 
@@ -93,6 +100,9 @@ def init() -> bool:
     with session() as con:
         new_surveys = not con.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sites'").fetchone()
         con.executescript(SCHEMA)
+        if "qualifier" not in {r["name"] for r in con.execute("PRAGMA table_info(water_readings)")}:
+            con.execute("ALTER TABLE water_readings ADD COLUMN qualifier TEXT DEFAULT ''")
+            con.execute("DELETE FROM water_readings")  # emptied once, so the app reloads them with the lab results
         if "static" not in {r["name"] for r in con.execute("PRAGMA table_info(tracks)")}:
             con.execute("ALTER TABLE tracks ADD COLUMN static INTEGER DEFAULT 0")
         columns = {r["name"] for r in con.execute("PRAGMA table_info(videos)")}
@@ -106,7 +116,7 @@ def init() -> bool:
         columns = {r["name"] for r in con.execute("PRAGMA table_info(school_counts)")}
         for name, kind in (("kind", "TEXT DEFAULT 'school'"), ("status", "TEXT DEFAULT ''"), ("blind", "INTEGER DEFAULT 0"),
                            ("ai_shown", "INTEGER DEFAULT 0"), ("invertebrates", "INTEGER"), ("species", "TEXT DEFAULT '[]'"),
-                           ("visibility", "TEXT DEFAULT ''"), ("comment", "TEXT DEFAULT ''")):
+                           ("visibility", "TEXT DEFAULT ''"), ("comment", "TEXT DEFAULT ''"), ("counter", "TEXT DEFAULT ''")):
             if name not in columns:
                 con.execute(f"ALTER TABLE school_counts ADD COLUMN {name} {kind}")
         if "ai_shown" not in columns and "blind" in columns:

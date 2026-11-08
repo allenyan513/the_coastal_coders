@@ -431,6 +431,7 @@ export const api = {
     call<FishWaterComparison>(`/api/compare/sites/${siteId}?metric=${encodeURIComponent(metric)}&measurement=${encodeURIComponent(measurement)}&deseason=${deseason}`),
   fishSeries: (siteId: string, metric: string, deseason = false) =>
     call<FishSeries>(`/api/fish/sites/${siteId}/series?metric=${encodeURIComponent(metric)}&deseason=${deseason}`),
+  wqiTable: (last = 7) => call<WqiTable>(`/api/wqi/table?last=${last}`),
   diversity: (id: string) => call<DiversityStats>(`/api/videos/${id}/stats/diversity`),
   /**
    * Over XHR rather than fetch, so a large file can show how much has gone. `onProgress` gets 0 to 1.
@@ -545,8 +546,29 @@ export const snapshotApi = {
   frame: (frameId: number, blind = false) => call<SnapshotFrame>(`/api/snapshot-frames/${frameId}${blind ? "?blind=true" : ""}`),
   image: (frameId: number) => `/api/snapshot-frames/${frameId}/image`,
   clip: (frameId: number) => `/api/snapshot-frames/${frameId}/clip`,
-  save: (frameId: number, status: SnapshotStatus, dots: Dot[], aiHidden: boolean, blind: boolean, record: FrameRecord) =>
-    call<{ stats: SnapshotStats }>(`/api/snapshot-frames/${frameId}`, json("PUT", { status, dots, ai_hidden: aiHidden, blind, ...record })),
+  /** `counter` is who counted it, from the simulated sign-in, so they can't validate their own point. */
+  save: (frameId: number, status: SnapshotStatus, dots: Dot[], aiHidden: boolean, blind: boolean, record: FrameRecord, counter = "") =>
+    call<{ stats: SnapshotStats }>(`/api/snapshot-frames/${frameId}`, json("PUT", { status, dots, ai_hidden: aiHidden, blind, ...record, counter })),
+};
+
+/** One count of a sampled point. The first is the Count tab's; `total` is hidden until you've counted the point too. */
+export type ValidationCount = { id: number | null; counter: string; total: number | null; original: boolean; created_at: string | null };
+export type ValidationState = "to_count" | "agree" | "recount";
+export type ValidationPoint = {
+  id: number; t: number; number: number | null; state: ValidationState;
+  difference: number | null; agreed: number | null; original_counter: string; counted_by_viewer: boolean;
+  counts: ValidationCount[];
+};
+/** Validate: a second person's blind counts of a random sample of points. From server/tidecount/validation.py. */
+export type Validation = {
+  ready: boolean; reason: string; sample_size: number; max_difference: number;
+  points: ValidationPoint[]; all_agree: boolean;
+  approval: { approver: string; approved_at: string } | null;
+};
+export const validationApi = {
+  report: (videoId: string, viewer = "") => call<Validation>(`/api/videos/${videoId}/validation?viewer=${encodeURIComponent(viewer)}`),
+  save: (frameId: number, counter: string, dots: Dot[]) => call<Validation>(`/api/snapshot-frames/${frameId}/validation`, json("POST", { counter, dots })),
+  approve: (videoId: string, name: string, role: string) => call<Validation>(`/api/videos/${videoId}/validation/approve`, json("POST", { name, role })),
 };
 
 /** A water sampling site. From server/tidecount/water.py. */
@@ -602,4 +624,21 @@ export type FishSeries = {
   points: { date: string; value: number }[];
   demo: boolean;
   from_videos: boolean;
+};
+
+
+
+/** The Water Quality Index table, like Coastal Action's report card. From server/tidecount/wqi.py. */
+export type WqiTable = {
+  years: number[];
+  sites: {
+    site_id: string;
+    site_name: string;
+    salty: boolean;
+    scores: { year: number; wqi: number | null; rating: string }[];
+    fish: {
+      year: number; surveys: number; fish: number; per_survey: number; species: number;
+      shannon: number | null; most_common: string; demo: boolean;
+    }[];
+  }[];
 };

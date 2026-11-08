@@ -164,7 +164,7 @@ export function Workflow() {
           <h1>Workflow</h1>
           <p className="lede">Every video from import to the finished count.</p>
         </div>
-        {manager && <Link className="btn primary" to="/workspace?import=1">Import video</Link>}
+        {manager && <div className="row pagehead-actions"><Link className="btn primary" to="/workspace?import=1">Import video</Link></div>}
       </div>
 
       <div className="flow-bar">
