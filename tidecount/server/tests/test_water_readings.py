@@ -52,7 +52,7 @@ def test_a_blank_value_is_skipped():
 
 
 def test_other_measurements_are_skipped():
-    assert reading(row("Total Phosphorus, mixed forms", "0.02", "mg/L")) is None
+        assert reading(row("Barometric pressure", "760", "mmHg")) is None
 
 
 def test_ms_cm_is_converted_to_us_cm():
