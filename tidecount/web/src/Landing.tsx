@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, ModelOption, SpeciesRow, Summary, Video } from "./api";
+import { api, ModelOption, SpeciesRow, Summary, Video, WaterSite } from "./api";
 import { countProgress } from "./Library";
 import { useSession } from "./session";
 
@@ -71,13 +71,43 @@ const AI_POINTS = [
   { title: "Suggests the species", text: "BioCLIP names each fish, choosing only from species recorded in Nova Scotia." },
 ];
 
+/** The readings the card shows, by their name in Coastal Action's data. Matches MEASUREMENTS in River.tsx. */
 const WATER = [
-  { name: "Temperature", unit: "°C" },
-  { name: "pH", unit: "" },
-  { name: "Dissolved oxygen", unit: "mg/L" },
-  { name: "Conductance", unit: "µS/cm" },
-  { name: "Salinity", unit: "ppt" },
+  { key: "Temperature, water", name: "Temperature", unit: "°C" },
+  { key: "pH", name: "pH", unit: "" },
+  { key: "Dissolved oxygen (DO)", name: "Dissolved oxygen", unit: "mg/L" },
+  { key: "Specific conductance", name: "Conductance", unit: "µS/cm" },
+  { key: "Salinity", name: "Salinity", unit: "ppt" },
 ];
+
+type Reading = { date: string; value: number };
+/** The site the card shows: Bridgewater, the LaHave's town, where the readings are the fullest. */
+const FRONT_SITE = "Bridgewater";
+
+/** The newest reading of each measurement at Bridgewater, or at the site visited most recently, for the front page card. */
+function useLatestWater() {
+  const [site, setSite] = useState<WaterSite | null>(null);
+  const [latest, setLatest] = useState<Record<string, Reading>>({});
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    api.waterSites().then(async (sites) => {
+      const newest = sites.find((x) => x.site_name === FRONT_SITE)
+        ?? [...sites].sort((a, b) => b.last_date.localeCompare(a.last_date) || b.visits - a.visits)[0];
+      if (!newest) throw new Error("no water sites");
+      setSite(newest);
+      const all = await Promise.all(WATER.map(async (w) => {
+        const series = await api.waterSeries(newest.site_id, w.key);
+        return [w.key, series.points[series.points.length - 1]] as const;
+      }));
+      setLatest(Object.fromEntries(all.filter(([, r]) => r)));
+    }).catch(() => setFailed(true));
+  }, []);
+  return { site, latest, failed };
+}
+
+/** 5,002 · 14.3 · 7.03: fewer decimals as the number grows, so the five readings read alike. */
+const reading = (v: number) => v.toLocaleString("en-CA", { maximumFractionDigits: Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 10 ? 1 : 2 });
+const shortDate = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 const VOLUNTEER = [
   { title: "Join", text: "Sign in as a volunteer. Your tasks list the videos waiting for a count." },
@@ -157,6 +187,7 @@ function Head({ eyebrow, title, text, light }: { eyebrow: string; title: string;
 /** The public front page: what Tideflow is, how the work flows, the AI, the data it opens up, and how to help. */
 export function Landing() {
   const f = useFacts();
+  const w = useLatestWater();
   // Every figure here is computed from the data, or true by how Tideflow works. None is an estimate.
   const stats: [string, string][] = [
     [`${Math.round(f.skippedShare(f.summarised) * 100)}%`, "of the footage set aside by AI as empty, so nobody has to watch it"],
@@ -246,15 +277,25 @@ export function Landing() {
           </div>
           <div className="ln-card">
             <div className="ln-card-head">
-              <div><b>Water quality</b><p className="meta">Coastal Action's public river readings, from the LaHave River</p></div>
-              <span className="pill warn">Coming soon</span>
+              <div>
+                <b>Water quality</b>
+                <p className="meta">Coastal Action's river readings from the LaHave River{w.site ? ` · ${w.site.site_name}, ${shortDate(w.site.last_date)}` : ""}</p>
+              </div>
+              {w.failed ? <span className="pill warn">Unavailable</span> : <span className="pill up">Live</span>}
             </div>
             <div className="ln-water">
-              {WATER.map((w) => (
-                <div key={w.name}><span className="meta">{w.name}</span><b className="num">—{w.unit && <small> {w.unit}</small>}</b></div>
-              ))}
+              {WATER.map((m) => {
+                const r = w.latest[m.key];
+                return (
+                  <div key={m.key}>
+                    <span className="meta">{m.name}</span>
+                    <b className="num">{r ? reading(r.value) : w.failed ? "—" : "…"}{m.unit && <small> {m.unit}</small>}</b>
+                  </div>
+                );
+              })}
             </div>
-            <p className="ln-card-note">Readings will sit beside the fish counts from the same sites, so a change in one can be checked against the other.</p>
+            <p className="ln-card-note">From the newest visit to this site. Readings sit beside the fish counts from the same sites, so a change in one can be checked against the other.</p>
+            <Link className="ln-more" to="/river">Open the water trends <span aria-hidden>→</span></Link>
           </div>
         </div>
       </section>
