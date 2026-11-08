@@ -85,6 +85,8 @@ class Protocol(Strict):
     context_s: int = Field(5, ge=1, le=30)  # seconds a person watches either side of a point
     clear_share: float = Field(0.5, gt=0, le=1)  # footage this far below the video's usual clarity is too murky
     clear_for_s: int = Field(120, ge=1)    # the suggested start needs this long of clear footage after it
+    validate_points: int = Field(6, ge=1)  # counted points a second person blind-counts for quality control
+    max_difference: float = Field(0.06, ge=0, lt=1)  # two counts further apart than this share of their mean need a recount
 
 
 class Settings(Strict):

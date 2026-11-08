@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { AccuracyRow, api, clock, DiversityStats, MaxnStats, SpeciesRow, Summary, surveyApi, SurveyTree, Track, Video } from "./api";
+import { AccuracyRow, api, clock, DiversityStats, MaxnStats, SpeciesRow, Summary, surveyApi, SurveyTree, Track, Validation, validationApi, Video } from "./api";
 import { AiImpact } from "./AiImpact";
 import { TrendCard } from "./TrendChart";
 import { MeanCard, NonFishCard, SpeciesDonut } from "./ReportCharts";
@@ -29,6 +29,8 @@ export function SummaryPage() {
   useEffect(() => { api.tracks(id).then(setTracks).catch(() => setTracks([])); }, [id]);
   const [acc, setAcc] = useState<AccuracyRow | null>(null);
   useEffect(() => { api.accuracy().then((r) => setAcc(r.videos.find((v) => v.id === id) ?? null)).catch(() => setAcc(null)); }, [id]);
+  const [val, setVal] = useState<Validation | null>(null);
+  useEffect(() => { validationApi.report(id).then(setVal).catch(() => setVal(null)); }, [id]);
   const [tree, setTree] = useState<SurveyTree | null>(null);
   useEffect(() => { surveyApi.tree().then(setTree).catch(() => setTree(null)); }, []);
   if (!s) return <p className="meta">Loading…</p>;
@@ -129,6 +131,11 @@ export function SummaryPage() {
         <div>
           <h1>Report</h1>
           <p className="lede">Analysis window {clock(s.protocol.start)} to {clock(s.protocol.end)}. Only counts a person confirmed are included.</p>
+          {val?.approval ? (
+            <p className="report-approval"><span className="pill up">Validated</span> Approved by <b>{val.approval.approver}</b> on {new Date(`${val.approval.approved_at.replace(" ", "T")}Z`).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p>
+          ) : val?.ready ? (
+            <p className="report-approval"><span className="pill muted">Not approved yet</span> <Link to={`/videos/${id}/validate`}>{val.points.filter((p) => p.state === "agree").length} of {val.points.length} sampled points agree</Link></p>
+          ) : null}
         </div>
         <a className="btn primary" href={`/api/videos/${id}/protocol.csv`}>Export analysis sheet</a>
       </div>

@@ -1,18 +1,19 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, snapshotApi } from "./api";
+import { api, snapshotApi, validationApi } from "./api";
 import { homeLabel, useUser } from "./session";
 
 type Progress = { done: number; total: number };
 type Props = {
   id: string;
   /** The tab this page belongs to. Pages outside the tabs pass nothing. */
-  step?: "review" | "snapshots" | "report";
+  step?: "review" | "snapshots" | "validate" | "report";
   /** Which half of the review step is open. */
   view?: "segments" | "tracks";
   /** Live numbers from the page, so the header moves as soon as work is saved. */
   review?: Progress;
   snapshots?: Progress;
+  validate?: Progress;
   title?: string;
   /** Where the first crumb leads. The person's home, unless the page belongs to another part of the app. */
   from?: { to: string; label: string };
@@ -21,12 +22,12 @@ type Props = {
 };
 
 /** One header for every page inside a video: where you are, and the tabs for this video. */
-export function VideoHeader({ id, step, view, review, snapshots, title, from, actions }: Props) {
+export function VideoHeader({ id, step, view, review, snapshots, validate, title, from, actions }: Props) {
   const user = useUser();
   const crumb = from ?? { to: "/workspace", label: homeLabel(user.role) };
   const [name, setName] = useState("");
   const [site, setSite] = useState("");
-  const [loaded, setLoaded] = useState<{ review?: Progress; snapshots?: Progress }>({});
+  const [loaded, setLoaded] = useState<{ review?: Progress; snapshots?: Progress; validate?: Progress }>({});
 
   useEffect(() => {
     let stale = false;
@@ -40,15 +41,20 @@ export function VideoHeader({ id, step, view, review, snapshots, title, from, ac
     snapshotApi.list(id).then((l) => {
       if (!stale) setLoaded((x) => ({ ...x, snapshots: { done: l.stats.frames_done, total: l.stats.frames_total } }));
     }).catch(() => {});
+    validationApi.report(id).then((r) => {
+      if (!stale && r.ready) setLoaded((x) => ({ ...x, validate: { done: r.points.filter((p) => p.state === "agree").length, total: r.points.length } }));
+    }).catch(() => {});
     return () => { stale = true; };
   }, [id]);
 
   const r = review ?? loaded.review;
   const s = snapshots ?? loaded.snapshots;
+  const val = validate ?? loaded.validate;
   // Add a tab here and it shows up on every video page.
   const tabs = [
     { key: "review", to: `/videos/${id}`, label: "Identify", p: r, unit: "segments reviewed" },
     { key: "snapshots", to: `/videos/${id}/snapshots`, label: "Count", p: s, unit: "points counted" },
+    { key: "validate", to: `/videos/${id}/validate`, label: "Validate", p: val, unit: "sampled points agree" },
     { key: "report", to: `/videos/${id}/summary`, label: "Report", p: undefined, unit: "" },
   ];
 
