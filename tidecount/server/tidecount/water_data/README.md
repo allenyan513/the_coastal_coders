@@ -1,7 +1,9 @@
 # Water quality data
 
 `lahave.csv` holds the on-site probe readings and main lab results from **Coastal Action's LaHave
-River Water Quality Monitoring**, published on DataStream: https://doi.org/10.25976/r245-z904
+River Water Quality Monitoring**, published on DataStream:
+
+> Coastal Action. LaHave River Water Quality Monitoring. DataStream. https://doi.org/10.25976/r245-z904
 
 The data is licensed under the [Open Data Commons Attribution License (ODC-By)](https://opendatacommons.org/licenses/by/1-0/).
 You may share and adapt it, as long as Coastal Action is credited wherever it is used or shown.
