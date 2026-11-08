@@ -147,6 +147,16 @@ button.side-link { width: 100%; background: none; border: 0; font: inherit; font
 .rvalue { position: relative; margin-bottom: 3px; color: var(--text); font-size: 11px; font-weight: 600; text-align: center; }
 .rtip { position: absolute; left: 50%; bottom: calc(100% - 28px); z-index: 5; transform: translateX(-50%); display: none; padding: 4px 8px; background: var(--text); color: #fff; border-radius: 4px; font-size: 12px; white-space: nowrap; pointer-events: none; }
 .rbar:hover .rtip, .rbar:focus-visible .rtip { display: block; }
+
+/* Bootstrap-style tooltip: dark bubble with an arrow, above the term */
+.tip-wrap { display: inline-block; border-bottom: 1px dotted currentColor; cursor: help; outline: none; }
+.tip { position: fixed; transform: translateY(calc(-100% + 3px)); z-index: 1000; width: 230px; box-sizing: border-box; padding: 8px 10px; background: var(--text); color: #fff; border-radius: 6px; font-size: 12px; font-weight: 400; line-height: 1.4; text-align: left; white-space: normal; opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+.tip.show { opacity: 1; visibility: visible; }
+.tip b { display: block; margin-bottom: 2px; font-weight: 600; }
+.tip::after { content: ""; position: absolute; top: 100%; left: var(--arrow, 14px); border: 6px solid transparent; border-top-color: var(--text); }
+/* Not enough room above: open below with the arrow on top */
+.tip.below { transform: none; }
+.tip.below::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--text); }
 .rlabel { color: var(--text-2); font-size: 12px; text-align: center; }
 
 .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; max-width: 860px; }
@@ -1293,4 +1303,5 @@ section > .fold { border-top: 0; padding-top: 0; }
 .photo-fields .field input, .photo-fields .field select { width: 100%; min-width: 0; max-width: none; }
 .photo-upload { gap: 12px; }
 .photo-editor-head { display: flex; flex-direction: column; gap: 2px; }
+.picker-group { margin: 4px 0 0; font: 600 13px var(--sans, inherit); color: var(--text); }
 .photo-editor-actions { position: sticky; bottom: 0; padding: 10px 0; background: var(--panel); border-top: 1px solid var(--border-2); }

@@ -134,6 +134,47 @@ function CreditLine({ img }: { img: SpeciesImage }) {
 
 type Staged = { key: string; file: File; credit: PhotoCredit; preview: string };
 
+/** The species a photo is filed under: the one it's a curated reference for, then every profile showing it. */
+const filedUnder = (p: LibraryPhoto) => [...new Set([...(p.home ? [p.home] : []), ...p.species])];
+
+/**
+ * The picker's photos in three groups: this species (by scientific name, accepted name or synonym,
+ * including its own photos taken off this profile), other species, then photos on no species.
+ * It only sorts; nothing is linked until "Add to species". Search covers every group, by species
+ * (common or scientific name), photographer, caption, source and place.
+ */
+function pickerGroups(library: LibraryPhoto[], ownNames: Set<string>, inDraft: Set<string>, query: string, namesOf: (s: string) => string[]) {
+  const q = query.trim().toLowerCase();
+  const groups = [
+    { key: "this", title: "This species", photos: [] as LibraryPhoto[] },
+    { key: "other", title: "Other species", photos: [] as LibraryPhoto[] },
+    { key: "none", title: "Not on any species", photos: [] as LibraryPhoto[] },
+  ];
+  for (const p of library) {
+    if (inDraft.has(p.id) || p.review === "rejected") continue;
+    const filed = filedUnder(p);
+    if (q && ![p.creator, p.caption, p.source, p.place ?? "", ...filed.flatMap(namesOf)].join(" ").toLowerCase().includes(q)) continue;
+    groups[filed.some((s) => ownNames.has(s)) ? 0 : filed.length ? 1 : 2].photos.push(p);
+  }
+  return groups;
+}
+
+/** Which species a photo is on, by common name with the scientific name beside it. */
+function FiledUnder({ photo, rows }: { photo: LibraryPhoto; rows: SpeciesRow[] | null }) {
+  const filed = filedUnder(photo);
+  if (!filed.length) return <span className="meta">Not on any species</span>;
+  const shown = filed.slice(0, 3);
+  return (
+    <span className="meta">
+      {shown.map((s, i) => {
+        const common = nameOf(rows, s);
+        return <span key={s}>{i > 0 && "; "}{common !== s ? <><b>{common}</b> <i>{s}</i></> : <i>{s}</i>}</span>;
+      })}
+      {filed.length > shown.length && ` and ${filed.length - shown.length} more`}
+    </span>
+  );
+}
+
 /**
  * Unsaved photo edits by species, in memory only. Expand and Collapse swap the drawer for the page
  * (or back), which remounts the editor; they pass `editing: true` in the navigation state, and the
@@ -171,12 +212,18 @@ export function PhotoEditor({ data, onSaved, onCancel }: { data: SpeciesProfile;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
+  // The species list, for common names on the picker's cards and for searching by them.
+  const [rows, setRows] = useState<SpeciesRow[] | null>(() => speciesRows.peek() ?? null);
+  useEffect(() => { speciesRows.get().then(setRows).catch(() => {}); }, []);
+
   const openPicker = () => {
     setPicking(true);
     if (!library) api.photoLibrary().then((r) => setLibrary(r.photos)).catch((e) => setError(e.message));
   };
   const inDraft = new Set(draft.map((i) => i.id));
-  const choices = (library ?? []).filter((p) => !inDraft.has(p.id) && p.review !== "rejected" && (!query.trim() || [p.creator, p.caption, p.source, ...p.species].join(" ").toLowerCase().includes(query.trim().toLowerCase())));
+  // This species' own names: the listed one, and the accepted name and synonyms when the list uses another.
+  const ownNames = new Set([data.species, data.names?.accepted_name ?? "", ...(data.names?.synonyms ?? [])].filter(Boolean));
+  const groups = pickerGroups(library ?? [], ownNames, inDraft, query, (s) => [s, nameOf(rows, s)]);
 
   const save = async () => {
     setBusy(true); setError("");
@@ -229,21 +276,26 @@ export function PhotoEditor({ data, onSaved, onCancel }: { data: SpeciesProfile;
       </div>
       {picking && (
         <div className="panel panel-pad stack" style={{ gap: 8 }}>
-          <label className="field">Find a photo<input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Photographer, caption, source or species" /></label>
-          {!library ? <p className="meta">Loading the library…</p> : !choices.length ? <p className="meta">No other photos match.</p> : (
-            <ul className="photo-grid">
-              {choices.map((p) => (
-                <li key={p.id} className="photo-card">
-                  <Thumb img={p} />
-                  <div className="photo-card-body">
-                    <span className="row" style={{ gap: 6 }}><span className="pill muted">{VIEW_LABELS[p.view]}</span><ReviewPill review={p.review} /></span>
-                    <CreditLine img={p} />
-                    <span className="meta">{p.species.length ? `On ${p.species.length} species` : "Not on any species"}</span>
-                    <button type="button" className="btn" onClick={() => setDraft((d) => [...d, p])}>Add to species</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+          <label className="field">Find a photo<input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Species (common or scientific), photographer, caption or source" /></label>
+          {!library ? <p className="meta">Loading the library…</p> : !groups.some((g) => g.photos.length) ? <p className="meta">No other photos match.</p> : (
+            groups.filter((g) => g.photos.length).map((g) => (
+              <section key={g.key} className="stack" style={{ gap: 6 }} aria-label={g.title}>
+                <h4 className="picker-group">{g.title} <span className="num meta">{g.photos.length}</span></h4>
+                <ul className="photo-grid">
+                  {g.photos.map((p) => (
+                    <li key={p.id} className="photo-card">
+                      <Thumb img={p} />
+                      <div className="photo-card-body">
+                        <span className="row" style={{ gap: 6 }}><span className="pill muted">{VIEW_LABELS[p.view]}</span><ReviewPill review={p.review} /></span>
+                        <FiledUnder photo={p} rows={rows} />
+                        <CreditLine img={p} />
+                        <button type="button" className="btn" onClick={() => setDraft((d) => [...d, p])}>Add to species</button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))
           )}
         </div>
       )}

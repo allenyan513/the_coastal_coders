@@ -96,7 +96,7 @@ function Sidebar() {
     { to: "/workflow", label: "Workflow", short: "Workflow", icon: "board", on: pathname.startsWith("/workflow") },
     ...(manager ? [{ to: "/reports", label: "Reports", short: "Reports", icon: "reports" as const, on: pathname.startsWith("/reports") }] : []),
     { to: "/species", label: "Species wiki", short: "Species", icon: "species", on: pathname.startsWith("/species"), more: manager },
-    { to: "/river", label: "Fish and water trends", short: "Trends", icon: "river", on: pathname.startsWith("/river") },
+    { to: "/river", label: "Water trends", short: "Trends", icon: "river", on: pathname.startsWith("/river") },
     ...(manager ? [{ to: "/team", label: "Team", short: "Team", icon: "team" as const, on: pathname.startsWith("/team"), more: true }] : []),
     { to: "/settings", label: "Settings", short: "Settings", icon: "settings", on: pathname.startsWith("/settings"), more: manager, className: "side-settings" },
   ];

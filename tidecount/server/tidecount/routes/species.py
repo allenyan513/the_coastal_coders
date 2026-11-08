@@ -91,11 +91,16 @@ def occurrence_datasets(name: str, region: str = "atlantic-canada"):
 
 
 @router.get("/api/species/{name}/occurrences/nondetections")
-def occurrence_nondetections(name: str, region: str = "atlantic-canada", ip: str = Depends(wiki_guard)):
-    """Net, trawl and seine surveys (and withheld imagery or unclear methods) that reported the
-    species as not detected, as site-dates. eDNA is separate: see /occurrences/edna. Runs as a
-    background job: `status` is "queued" or "computing" until it is done, so ask again."""
-    return _obis(lambda: occurrences.nondetections(_listed(name), region, on_start=lambda: api_guard.charge_job_start(ip)))
+def occurrence_nondetections(name: str):
+    """Withdrawn: always 410 Gone, and nothing is asked of OBIS. The net, trawl and seine
+    non-detection counts weren't defensible. OBIS flags a zero count as an absence even where the
+    survey recorded the fish as present with a catch weight (all 4 Winter Flounder "absences" in the
+    DFO Gulf groundfish survey), and the tows that caught nothing aren't published. The calculation,
+    occurrences.nondetections, is kept for a sounder version. eDNA evidence is unaffected: see
+    /occurrences/edna."""
+    raise HTTPException(410, "Survey non-detections have been withdrawn: OBIS's zero-count records "
+                             "for net, trawl and seine surveys don't reliably mean the fish wasn't caught. "
+                             "eDNA evidence is still available at /occurrences/edna.")
 
 
 @router.get("/api/species/{name}/occurrences/edna")

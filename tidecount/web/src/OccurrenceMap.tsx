@@ -68,6 +68,17 @@ const markerColors = (p: PaletteKey) => {
   const pal: Palette = PALETTES[p];
   return { edna: pal.edna ?? DEFAULT_EDNA, nd: pal.nd ?? DEFAULT_ND };
 };
+/**
+ * The "net, trawl or seine surveys that didn't catch this fish" section is hidden, and with it its map
+ * rings and legend entry (they only appear when that section hands the map its points). Its numbers
+ * aren't defensible yet. OBIS flags a record as an absence when its count is 0, and in the trawl
+ * surveys checked those rows still say the fish was present, with a catch weight (e.g. all 4 Winter
+ * Flounder "absences" in the DFO Gulf groundfish survey). Meanwhile the tows that really caught
+ * nothing aren't published at all. The endpoint and the calculation are kept for a sounder version.
+ * eDNA non-detections are unaffected: those rows say occurrenceStatus "absent" with 0 DNA reads.
+ */
+const SHOW_SURVEY_NONDETECTIONS = false;
+
 // Non-detection sites, by sampling method. Rings, so they never read as record shading. Their
 // colour comes from markerColors, through the --nd variable on the map.
 const ND_STYLE: Record<string, { label: string }> = {
@@ -447,7 +458,9 @@ export default function OccurrenceMap({ species, names }: Props) {
 
       <EdnaEvidencePanel key={`edna:${species}:${region}`} species={species} region={region} regionLabel={regionLabel} years={years} onSites={setEdnaPoints} />
 
-      <NonDetections key={`${species}:${region}`} species={species} region={region} regionLabel={regionLabel} years={years} onShow={setNdPoints} showing={!!ndPoints} />
+      {SHOW_SURVEY_NONDETECTIONS && (
+        <NonDetections key={`${species}:${region}`} species={species} region={region} regionLabel={regionLabel} years={years} onShow={setNdPoints} showing={!!ndPoints} />
+      )}
       </div>
     </div>
   );
