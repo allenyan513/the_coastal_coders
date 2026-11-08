@@ -15,6 +15,13 @@ export function countProgress(s: Summary) {
   return { done: s.snapshots.frames_done, total: s.snapshots.frames_total };
 }
 
+/** Footage still to identify, in seconds, and the share already done. Identify comes before Count,
+ * since Count offers the species named on Identify. */
+export function identifyProgress(s: Summary) {
+  const done = s.reviewed + s.could_not_see;
+  return { left: s.pending, share: done + s.pending > 0 ? done / (done + s.pending) : 1 };
+}
+
 /** Surveys: one tree of sites, transects and stations, with each station's footage under it. */
 export function Library() {
   const manager = useUser().role === "manager";
@@ -105,6 +112,9 @@ export function Library() {
     const ready = v.status === READY;
     const started = !!p && p.done > 0;
     const finished = !!p && p.total > 0 && p.done >= p.total;
+    // Identify first, unless counting has already started.
+    const toIdentify = !!s && !started && !finished && identifyProgress(s).left > 0;
+    const work = toIdentify ? `/videos/${v.id}` : `/videos/${v.id}/snapshots`;
     const filed = !!data.places[g.root];
     return (
       <div className="vrow" key={g.root}>
@@ -112,7 +122,7 @@ export function Library() {
           ? <video className="thumb" src={`/api/videos/${v.id}/proxy#t=${Math.min(3, v.duration / 2).toFixed(1)}`} preload="metadata" muted playsInline tabIndex={-1} />
           : <span className="thumb" />}
         <div className="stack" style={{ gap: 4, minWidth: 0 }}>
-          {ready ? <Link className="vname" to={`/videos/${v.id}/snapshots`}>{v.name}</Link> : <span className="vname">{v.name}</span>}
+          {ready ? <Link className="vname" to={work}>{v.name}</Link> : <span className="vname">{v.name}</span>}
           <span className="meta">
             {!filed && <><button className="link" onClick={() => setPlacing({ root: g.root, name: v.name })}>Choose station</button>{" · "}</>}
             {filed && !data.filmedOn[g.root] && <><button className="link" onClick={() => setPlacing({ root: g.root, name: v.name })}>Add filmed date</button>{" · "}</>}
@@ -140,7 +150,7 @@ export function Library() {
           {ready && (
             <>
               <div className="row">
-                <span className={`pill ${finished ? "up" : started ? "warn" : "accent"}`}>{finished ? "Counted" : started ? "Counting" : "Ready to count"}</span>
+                <span className={`pill ${finished ? "up" : started ? "warn" : "accent"}`}>{finished ? "Counted" : started ? "Counting" : toIdentify ? "To identify" : "Ready to count"}</span>
                 {p && <span className="num meta">{p.done} of {p.total} points</span>}
               </div>
               {p && <span className="bar wide"><i className={finished ? "up" : ""} style={{ width: `${(p.done / (p.total || 1)) * 100}%` }} /></span>}
@@ -151,8 +161,8 @@ export function Library() {
           {v.status === "Failed" && <button className="btn" disabled={busy} onClick={() => run(() => api.retry(v.id))}>Retry</button>}
           {ready && (
             <>
-              <Link className={`btn ${finished ? "" : "go"}`} to={finished ? `/videos/${v.id}/summary` : `/videos/${v.id}/snapshots`}>
-                {finished ? "Open report" : started ? "Continue" : "Count"}
+              <Link className={`btn ${finished ? "" : "go"}`} to={finished ? `/videos/${v.id}/summary` : work}>
+                {finished ? "Open report" : started ? "Continue" : toIdentify ? "Identify" : "Count"}
               </Link>
               <Menu label={`More for ${v.name}`}>
                 <Link role="menuitem" to={`/videos/${v.id}`}>Review footage</Link>

@@ -1,27 +1,31 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, Summary, Video } from "./api";
-import { countProgress } from "./Library";
+import { api, clock, Summary, Video } from "./api";
+import { countProgress, identifyProgress } from "./Library";
 import { useUser } from "./session";
 import { placeLabel, season, siteOf, SurveyData, useSurveys } from "./surveyStore";
 
 const READY = "Ready to review";
-const STAGES = ["Analysing", "To count", "Counting", "Counted"] as const;
+const STAGES = ["Analysing", "To identify", "To count", "Counting", "Counted"] as const;
 type Stage = (typeof STAGES)[number];
-type Card = { video: Video; root: string; done: number; total: number; stage: Stage };
+/** `left` is footage still to identify, in seconds; `identified` the share already done. */
+type Card = { video: Video; root: string; done: number; total: number; left: number; identified: number; stage: Stage };
 
 /** What each column means, and the colour it carries everywhere it shows. */
 const ABOUT: Record<Stage, { text: string; tone: string }> = {
   Analysing: { text: "AI is scanning the footage for fish.", tone: "muted" },
-  "To count": { text: "Ready for someone to start counting.", tone: "accent" },
+  "To identify": { text: "Name the species AI found. Count offers these.", tone: "accent" },
+  "To count": { text: "Species named. Ready for someone to start counting.", tone: "accent" },
   Counting: { text: "Sub-sample points partly counted.", tone: "warn" },
   Counted: { text: "Every point counted. Ready to report.", tone: "up" },
 };
 
-function stageOf(video: Video, done: number, total: number): Stage {
+/** Identify comes first: Count only offers the species named there. Once counting has started, the card stays with the count. */
+function stageOf(video: Video, done: number, total: number, left: number): Stage {
   if (video.status !== READY) return "Analysing";
   if (total > 0 && done >= total) return "Counted";
-  return done > 0 ? "Counting" : "To count";
+  if (done > 0) return "Counting";
+  return left > 0 ? "To identify" : "To count";
 }
 
 /** One card per video. Re-runs of a video with another model share a card, showing the run with the most counted. */
@@ -30,8 +34,9 @@ function toCards(videos: Video[], summaries: Record<string, Summary>): Card[] {
   videos.forEach((video) => {
     const summary = summaries[video.id];
     const { done, total } = summary ? countProgress(summary) : { done: 0, total: 0 };
+    const { left, share } = summary ? identifyProgress(summary) : { left: 0, share: 0 };
     const root = video.source_id || video.id;
-    const card = { video, root, done, total, stage: stageOf(video, done, total) };
+    const card = { video, root, done, total, left, identified: share, stage: stageOf(video, done, total, left) };
     const held = best.get(root);
     if (!held || done > held.done) best.set(root, card);
   });
@@ -61,8 +66,14 @@ function useCards() {
   return { cards: videos ? toCards(videos, summaries) : null, error, reload: load };
 }
 
-const openPath = (c: Card) => `/videos/${c.video.id}/${c.stage === "Counted" ? "summary" : "snapshots"}`;
-const openLabel = (c: Card) => (c.stage === "Counted" ? "Open report" : c.stage === "Counting" ? "Continue" : "Count");
+const openPath = (c: Card) =>
+  c.stage === "To identify" ? `/videos/${c.video.id}` : `/videos/${c.video.id}/${c.stage === "Counted" ? "summary" : "snapshots"}`;
+const openLabel = (c: Card) =>
+  c.stage === "To identify" ? "Identify" : c.stage === "Counted" ? "Open report" : c.stage === "Counting" ? "Continue" : "Count";
+/** The card's progress line: footage left to identify before the count, points after. */
+const progressText = (c: Card) =>
+  c.stage === "To identify" ? `${clock(c.left)} to identify` : c.total ? `${c.done} of ${c.total} points` : "";
+const progressShare = (c: Card) => (c.stage === "To identify" ? c.identified : c.total ? c.done / c.total : null);
 
 /** Where a card's video belongs, once someone has filed it. */
 function useWhere() {
@@ -71,11 +82,12 @@ function useWhere() {
 }
 
 function Progress({ card }: { card: Card }) {
-  if (!card.total) return null;
+  const share = progressShare(card);
+  if (share === null) return null;
   return (
     <>
-      <span className="num meta">{card.done} of {card.total} points</span>
-      <span className="bar wide"><i className={card.stage === "Counted" ? "up" : ""} style={{ width: `${(card.done / card.total) * 100}%` }} /></span>
+      <span className="num meta">{progressText(card)}</span>
+      <span className="bar wide"><i className={card.stage === "Counted" ? "up" : ""} style={{ width: `${share * 100}%` }} /></span>
     </>
   );
 }
@@ -123,9 +135,9 @@ function FlowCard({ card, data, onRetry }: { card: Card; data: SurveyData; onRet
         )
       ) : (
         <>
-          {card.total > 0 && <span className="bar wide"><i className={stage === "Counted" ? "up" : ""} style={{ width: `${(card.done / card.total) * 100}%` }} /></span>}
+          {progressShare(card) !== null && <span className="bar wide"><i className={stage === "Counted" ? "up" : ""} style={{ width: `${progressShare(card)! * 100}%` }} /></span>}
           <div className="flow-foot">
-            <span className="num meta">{card.total ? `${card.done} of ${card.total} points` : ""}</span>
+            <span className="num meta">{progressText(card)}</span>
             <Link className={`btn ${stage === "Counted" ? "" : "go"}`} to={openPath(card)}>{openLabel(card)}</Link>
           </div>
         </>
@@ -212,12 +224,12 @@ export function Workflow() {
 export function MyTasks() {
   const { cards, error } = useCards();
   const where = useWhere();
-  const open = cards?.filter((c) => c.stage === "To count" || c.stage === "Counting") ?? [];
+  const open = cards?.filter((c) => c.stage === "To identify" || c.stage === "To count" || c.stage === "Counting") ?? [];
   return (
     <div className="stack" style={{ gap: 20 }}>
       <div>
         <h1>My tasks</h1>
-        <p className="lede">Videos waiting for your count.</p>
+        <p className="lede">Videos waiting for you to identify or count.</p>
       </div>
       {error && <p className="meta" style={{ color: "var(--down)" }}>{error}</p>}
       {!cards ? <p className="meta">Loading…</p> : (
@@ -232,7 +244,7 @@ export function MyTasks() {
               <Link className="btn go" to={openPath(c)}>{openLabel(c)}</Link>
             </div>
           ))}
-          {open.length === 0 && <p className="meta" style={{ padding: 16 }}>Nothing to count right now.</p>}
+          {open.length === 0 && <p className="meta" style={{ padding: 16 }}>Nothing waiting right now.</p>}
         </div>
       )}
     </div>

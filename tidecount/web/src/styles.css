@@ -60,7 +60,7 @@ button.side-link { width: 100%; background: none; border: 0; font: inherit; font
 .login-roles .chip { height: 38px; justify-content: center; }
 .field input:read-only { background: var(--panel-2); color: var(--text-2); }
 
-.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.board { display: grid; grid-template-columns: repeat(5, minmax(200px, 1fr)); overflow-x: auto; gap: 12px; align-items: start; }
 .board-col { padding: 10px; display: flex; flex-direction: column; gap: 8px; background: var(--panel-3); border-radius: 10px; border-top: 3px solid var(--muted-2); }
 .board-col.accent { border-top-color: var(--accent); }
 .board-col.warn { border-top-color: var(--amber); }
