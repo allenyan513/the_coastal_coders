@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { api, FishOptions, FishSeries, FishWaterComparison, VideoLinks, WaterSeries, WaterSite } from "./api";
 import { CompareChart } from "./CompareChart";
 import { WaterChart } from "./WaterChart";
-import { WqiTable } from "./WqiTable"
+import { WqiTable } from "./WqiTable";
 
 /** The measurements Coastal Action takes on site, as named in their data. Matches KEEP in server/tidecount/water.py. */
 const MEASUREMENTS = [
@@ -14,16 +14,30 @@ const MEASUREMENTS = [
   "Salinity",
 ];
 
+/** What the chart shows: the water line, the fish line, or both on one scale with their correlation. */
+type View = "water" | "fish" | "both";
+const VIEWS: { key: View; label: string }[] = [
+  { key: "water", label: "Water" },
+  { key: "fish", label: "Fish" },
+  { key: "both", label: "Both" },
+];
+
 type Point = { date: string; value: number };
 
+/** A word with a dotted underline that explains itself on hover, so the page doesn't need paragraphs of explanation. */
+function Hint({ tip, children }: { tip: string; children: ReactNode }) {
+  return <span title={tip} style={{ textDecoration: "underline dotted", textUnderlineOffset: 3, cursor: "help" }}>{children}</span>;
+}
+
 /**
- * Fish and water trends. Ethan owns this page: the route and the sidebar entry already point here.
+ * Fish and water trends. Ethan owns this page.
  * Fish counts come from the fish_counts table (server/tidecount/trends.py), which holds made-up demo
  * data for now. Water readings come from the water_readings table, imported by server/tidecount/water.py.
  */
 export function River() {
   const [sites, setSites] = useState<WaterSite[]>([]);
   const [siteId, setSiteId] = useState("1");
+  const [view, setView] = useState<View>("both");
   const [deseason, setDeseason] = useState(false);
 
   const [fishOptions, setFishOptions] = useState<FishOptions | null>(null);
@@ -47,135 +61,113 @@ export function River() {
   const [comparison, setComparison] = useState<FishWaterComparison | null>(null);
   useEffect(() => { api.fishWater(siteId, metric, measurement, deseason).then(setComparison); }, [siteId, metric, measurement, deseason]);
 
-  // With fish counts, the water chart covers the same years, so the two line up.
   const hasFish = !!fish && fish.points.length > 0;
-  const from = hasFish ? fish.points[0].date : "";
-  const to = hasFish ? fish.points[fish.points.length - 1].date : "";
-  const waterPoints = data ? data.points.filter((p) => !hasFish || (p.date >= from && p.date <= to)) : [];
-  const siteName = sites.find((s) => s.site_id === siteId)?.site_name ?? "";
+  const siteName = sites.find((s) => s.site_id === siteId)?.site_name ?? "this site";
+  const showFish = view !== "water";
+  const showWater = view !== "fish";
+  const seasonal = deseason ? ", seasonal pattern removed" : "";
+  const title = view === "both" ? "Fish and water together" : view === "fish" ? `Fish: ${fish?.label ?? ""}` : `Water: ${measurement}${data?.unit ? ` (${data.unit})` : ""}`;
 
   return (
     <div className="stack" style={{ gap: 20 }}>
       <div>
         <h1>Fish and water trends</h1>
-        <p className="lede">How fish counts change over time, next to Coastal Action's water readings from the LaHave River.</p>
+        <p className="lede">How fish counts change over time, next to Coastal Action's water readings.</p>
       </div>
 
-            <section className="panel panel-pad">
-        <h2>Water Quality Index report card</h2>
+      <section className="panel panel-pad">
         <WqiTable onPickSite={(id) => { setSiteId(id); document.getElementById("site-charts")?.scrollIntoView({ behavior: "smooth" }); }} />
       </section>
 
-      <div id="site-charts" className="row" style={{ gap: 16, flexWrap: "wrap", alignItems: "center" }}>
-        <label>
-          Site{" "}
+      <div id="site-charts" className="row" style={{ gap: 16, flexWrap: "wrap", alignItems: "flex-end" }}>
+        <label className="field">Site
           <select value={siteId} onChange={(e) => setSiteId(e.target.value)}>
             {sites.map((s) => <option key={s.site_id} value={s.site_id}>{s.site_name}</option>)}
           </select>
         </label>
-        <label title="Takes out the usual pattern for each month, so year-to-year change is easier to see">
+        <div className="field">Show
+          <div className="seg" role="group" aria-label="Show">
+            {VIEWS.map((v) => (
+              <button key={v.key} type="button" aria-pressed={view === v.key} onClick={() => setView(v.key)}>{v.label}</button>
+            ))}
+          </div>
+        </div>
+        <label style={{ paddingBottom: 9 }} title="Takes out each calendar month's usual level, so year-to-year change is easier to see">
           <input type="checkbox" checked={deseason} onChange={(e) => setDeseason(e.target.checked)} />{" "}
           Remove seasonal pattern
         </label>
       </div>
-      {deseason && (
-        <p className="meta" style={{ marginTop: -12, lineHeight: 1.6 }}>
-          Each value has its calendar month's average over all years taken away, then the overall average added back.
-          What's left is change from year to year and unusual months, not summer and winter. Months seen only once are left out.
-        </p>
-      )}
 
-      {hasFish && comparison && (
-        <section className="panel panel-pad">
-          <h2>Compare: {comparison.fish.label} and {comparison.water.label}{deseason ? ", seasonal pattern removed" : ""}</h2>
-          <p className="meta" style={{ lineHeight: 1.6 }}>
-            Both lines on one scale: how far each is above or below its own usual level, in standard deviations.
-            Change what's compared with the two "Show" and "Measurement" boxes below.
-          </p>
-          <CorrelationLine c={comparison} />
-          <CompareChart fish={comparison.fish} water={comparison.water} />
-          <p className="meta" style={{ lineHeight: 1.6 }}>
-            Spearman correlation runs from −1 (one always falls as the other rises) to +1 (they always rise together); 0 means
-            no relationship. It shows two things move together, not that one causes the other. Season drives many fish and
-            water measures at once, so tick "Remove seasonal pattern" to see whether they still move together year to year.
-            {comparison.demo && " With demo fish data, these numbers only show how the analysis will work."}
-          </p>
-        </section>
-      )}
-
-      <section className="panel panel-pad">
-        <div className="row" style={{ justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <h2>Fish{fish?.label ? `: ${fish.label}` : ""}{deseason ? ", seasonal pattern removed" : ""}</h2>
-          {fishOptions && (
-            <label>
-              Show{" "}
-              <select value={metric} onChange={(e) => setMetric(e.target.value)}>
-                <optgroup label="All fish">
-                  {fishOptions.metrics.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
-                </optgroup>
-                {fishOptions.species.length > 0 && (
-                  <optgroup label="One species">
-                    {fishOptions.species.map((s) => <option key={s} value={s}>{s}</option>)}
+      <section className="panel panel-pad stack" style={{ gap: 12 }}>
+        <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
+          <h2 title={view === "both" ? "Both lines on one scale: how far each is above or below its own usual level" : undefined}>{title}{seasonal}</h2>
+          <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
+            {showFish && fishOptions && (
+              <label className="field">Fish measure
+                <select value={metric} onChange={(e) => setMetric(e.target.value)}>
+                  <optgroup label="All fish">
+                    {fishOptions.metrics.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
                   </optgroup>
-                )}
-              </select>
-            </label>
-          )}
+                  {fishOptions.species.length > 0 && (
+                    <optgroup label="One species">
+                      {fishOptions.species.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </optgroup>
+                  )}
+                </select>
+              </label>
+            )}
+            {showWater && (
+              <label className="field">Water measure
+                <select value={measurement} onChange={(e) => setMeasurement(e.target.value)}>
+                  {MEASUREMENTS.map((name) => <option key={name} value={name}>{name}</option>)}
+                </select>
+              </label>
+            )}
+          </div>
         </div>
-        {fish?.demo && (
+
+        {showFish && fish?.demo && (
           <p className="demo-flag" style={{ background: "var(--warn-soft)", color: "var(--down-ink)", padding: "6px 10px", borderRadius: 6, fontSize: 13 }}>
-            <b>Demo data.</b> These fish counts are made up to show how trends will look. They are not real observations.
-            {fish.from_videos && " Counts from reviewed videos are added to them."}
+            <b>Demo data.</b> These fish counts are made up to show how trends will look.
           </p>
         )}
-        {fish && !hasFish && (
-          <p className="meta">
-            No fish counts at {siteName || "this site"} yet. Demo counts cover Upper LaHave, Dayspring and Bridgewater.
-            Videos count here once they have a station and filming date, the station is within{" "}
-            {fishOptions?.videos.match_km ?? 1} km of this site, and their review is finished.
-          </p>
+        {showFish && fish && !hasFish && <p className="meta">No fish counts at {siteName} yet.</p>}
+
+        {view === "both" && hasFish && comparison && (
+          <>
+            <CorrelationLine c={comparison} />
+            <CompareChart fish={comparison.fish} water={comparison.water} />
+          </>
         )}
-        {fishOptions && <VideoLinkList links={fishOptions.videos} siteId={siteId} />}
-        {hasFish && (
+        {view === "fish" && hasFish && (
           <>
             <Summary points={fish.points} unit={fish.unit} what="surveys" />
             <WaterChart points={fish.points} label={fish.label} unit={fish.unit} />
           </>
         )}
-      </section>
+        {view === "water" && !data && <p className="meta">Loading…</p>}
+        {view === "water" && data && (
+          <>
+            <Summary points={data.points} unit={data.unit} what="readings" />
+            <WaterChart points={data.points} label={measurement} unit={data.unit} />
+          </>
+        )}
 
-      <section className="panel panel-pad">
-        <div className="row" style={{ justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <h2>Water: {measurement}{data?.unit ? ` (${data.unit})` : ""}{deseason ? ", seasonal pattern removed" : ""}</h2>
-          <label>
-            Measurement{" "}
-            <select value={measurement} onChange={(e) => setMeasurement(e.target.value)}>
-              {MEASUREMENTS.map((name) => <option key={name} value={name}>{name}</option>)}
-            </select>
-          </label>
-        </div>
-        {!data && <p className="meta">Loading…</p>}
-        {data && hasFish && <p className="meta">Showing {from} to {to}, the same years as the fish counts.</p>}
-        {data && <Summary points={waterPoints} unit={data.unit} what="readings" />}
-        {data && <WaterChart points={waterPoints} label={measurement} unit={data.unit} />}
-        {measurement === "Specific conductance" && (
-          <p className="meta" style={{ lineHeight: 1.6 }}>
-            Corrected: at the three salty estuary sites (Upper LaHave, Dayspring, Bridgewater), 739 conductance readings
-            labelled uS/cm were really mS/cm, 1,000 times too small for the salinity measured on the same visit.
-            They have been multiplied by 1,000.
+        {showFish && fishOptions && <VideoLinkList links={fishOptions.videos} siteId={siteId} />}
+        {showWater && (
+          <p className="meta" style={{ borderTop: "1px solid var(--border-2)", paddingTop: 8 }}
+            title="Readings outside sensible limits are left out, and 739 conductance readings at salty sites labelled uS/cm were really mS/cm, so they were multiplied by 1,000.">
+            Data: Coastal Action,{" "}
+            <a href="https://doi.org/10.25976/r245-z904" target="_blank" rel="noreferrer">LaHave River Water Quality Monitoring</a>
+            {" "}(DataStream), ODC-By.
           </p>
         )}
-        <p className="meta" style={{ borderTop: "1px solid var(--border-2)", paddingTop: 8 }}>
-          Data: Coastal Action,{" "}
-          <a href="https://doi.org/10.25976/r245-z904" target="_blank" rel="noreferrer">LaHave River Water Quality Monitoring</a>
-          {" "}(DataStream), licensed ODC-By. Readings outside sensible limits, such as dissolved oxygen above 20 mg/L, are left out.
-        </p>
       </section>
     </div>
   );
 }
 
-/** The correlation in numbers and words, such as "Spearman ρ = +0.62, strong positive · 120 pairs · p < 0.001". */
+/** The correlation in numbers and words, such as "ρ = +0.62, strong positive, 120 pairs, p < 0.001". Hover a label to see what it means. */
 function CorrelationLine({ c }: { c: FishWaterComparison }) {
   if (c.spearman === null) {
     return <p className="meta">Not enough fish surveys with a water reading within {c.max_gap_days} days to work out a correlation.</p>;
@@ -185,15 +177,19 @@ function CorrelationLine({ c }: { c: FishWaterComparison }) {
   return (
     <div className="row" style={{ gap: 20, flexWrap: "wrap", alignItems: "baseline" }}>
       <div>
-        <span className="meta">Spearman correlation</span>
+        <span className="meta"><Hint tip="Spearman correlation, from −1 to +1: how closely fish and water move together. 0 means no relationship. It shows they move together, not that one causes the other.">Correlation</Hint></span>
         <div style={{ fontSize: 22, fontWeight: 600 }} className="num">ρ = {rho}</div>
       </div>
       <div><span className="meta">Strength</span><div style={{ fontSize: 15, fontWeight: 500 }}>{c.strength}</div></div>
-      <div><span className="meta">Pairs</span><div className="num" style={{ fontSize: 15 }}>{c.pairs}</div></div>
-      <div><span className="meta">Chance of this by luck</span><div className="num" style={{ fontSize: 15 }}>{p}</div></div>
-      <p className="meta" style={{ flexBasis: "100%", margin: 0 }}>
-        Each fish survey is paired with the water reading closest in time, within {c.max_gap_days} days.
-      </p>
+      <div>
+        <span className="meta"><Hint tip={`Fish surveys paired with the water reading closest in time, within ${c.max_gap_days} days`}>Pairs</Hint></span>
+        <div className="num" style={{ fontSize: 15 }}>{c.pairs}</div>
+      </div>
+      {p && (
+        <div className="num meta" style={{ fontSize: 15 }}>
+          <Hint tip="The p-value: how likely a result this strong would be by chance alone. Smaller is more convincing.">{p}</Hint>
+        </div>
+      )}
     </div>
   );
 }
@@ -208,10 +204,7 @@ function VideoLinkList({ links, siteId }: { links: VideoLinks; siteId: string })
         {here.length === 0 ? "No reviewed videos from this site yet" : `${here.length} reviewed video${here.length === 1 ? "" : "s"} from this site`}
         {links.not_linked.length > 0 && ` · ${links.not_linked.length} video${links.not_linked.length === 1 ? "" : "s"} not counted`}
       </summary>
-      <p style={{ margin: "6px 0" }}>
-        A video counts when its station is within {links.match_km} km of a water sampling site, so the fish and the water
-        come from the same place. Each species' MaxN from the confirmed fish is used.
-      </p>
+      <p style={{ margin: "6px 0" }}>A video counts when it was filmed within {links.match_km} km of a water sampling site.</p>
       {here.length > 0 && (
         <ul style={{ margin: "4px 0" }}>
           {here.map((l) => <li key={l.video + l.date}>{l.video}: filmed {l.date}, {l.km} km from the water site</li>)}

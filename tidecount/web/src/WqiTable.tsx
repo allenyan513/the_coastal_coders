@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api, WqiTable as WqiTableData } from "./api";
 
 /** Coastal Action's report card colors for each rating, taken from their 2023 LaHave report card. */
@@ -16,21 +16,36 @@ const head = { ...cell, fontWeight: 500, fontFamily: "inherit", fontSize: 15, te
 
 /**
  * The Water Quality Index table, laid out like Coastal Action's report card: sites from the headwaters
- * down to the estuary, one colored cell per year, and what the fish surveys found. Clicking a site
- * shows its charts below. The scores come from server/tidecount/wqi.py.
+ * down to the estuary, one colored cell per year. Clicking a site shows its charts below.
+ * The scores come from server/tidecount/wqi.py.
  */
 export function WqiTable({ onPickSite }: { onPickSite: (siteId: string) => void }) {
+  const [open, setOpen] = useState(false);
   const [data, setData] = useState<WqiTableData | null>(null);
-  useEffect(() => { api.wqiTable().then(setData); }, []);
 
-  if (!data) return <p className="meta">Loading the report card…</p>;
-  if (data.sites.length === 0) return <p className="meta">Not enough water data for a report card yet.</p>;
+  // The report card is only worked out when someone asks for it.
+  const toggle = () => {
+    if (!open && !data) api.wqiTable().then(setData);
+    setOpen(!open);
+  };
 
-  const fishYear = data.years[data.years.length - 1];
-  const anyDemo = data.sites.some((s) => s.fish.some((f) => f.demo));
+  const header = (
+    <div className="row" style={{ justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <div>
+        <h2>Water Quality Index report card</h2>
+        {!open && <p className="meta">Scores every site for each year, the way Coastal Action's report card does.</p>}
+      </div>
+      <button type="button" className={open ? "btn" : "btn go"} onClick={toggle}>{open ? "Hide report card" : "Generate report card"}</button>
+    </div>
+  );
+
+  if (!open) return header;
+  if (!data) return <div className="stack" style={{ gap: 10 }}>{header}<p className="meta">Working out the report card…</p></div>;
+  if (data.sites.length === 0) return <div className="stack" style={{ gap: 10 }}>{header}<p className="meta">Not enough water data for a report card yet.</p></div>;
 
   return (
     <div className="stack" style={{ gap: 10 }}>
+      {header}
       <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
         {/* The "direction of river flow" arrow down the left, as on the report card. */}
         <div style={{ display: "flex", gap: 4, paddingTop: 40 }} aria-hidden>
@@ -48,40 +63,29 @@ export function WqiTable({ onPickSite }: { onPickSite: (siteId: string) => void 
             <tr>
               <th style={{ ...head, color: "var(--accent-ink)" }}>Site</th>
               {data.years.map((y) => <th key={y} style={head}>{y}</th>)}
-              <th style={head}>Fish in {fishYear}</th>
             </tr>
           </thead>
           <tbody>
-            {data.sites.map((s) => {
-              const fish = s.fish.find((f) => f.year === fishYear);
-              return (
-                <tr key={s.site_id}>
-                  <td style={{ ...cell, background: "#ececee", whiteSpace: "nowrap" }}>
-                    <button onClick={() => onPickSite(s.site_id)} title="Show this site's charts"
-                      style={{ background: "none", border: 0, padding: 0, font: "inherit", color: "inherit", cursor: "pointer", textDecoration: "underline dotted" }}>
-                      {s.site_name}
-                    </button>
-                    {s.salty && <span className="meta" title="Scored with estuary (marine) guidelines"> · estuary</span>}
-                  </td>
-                  {s.scores.map((c) => {
-                    const r = RATINGS.find((x) => x.name === c.rating);
-                    return (
-                      <td key={c.year} className="num" title={`${s.site_name}, ${c.year}: ${c.rating}`}
-                        style={{ ...cell, background: r?.color ?? "transparent", color: r?.ink ?? "var(--muted-2)", minWidth: 58 }}>
-                        {c.wqi === null ? "–" : c.wqi.toFixed(1)}
-                      </td>
-                    );
-                  })}
-                  <td style={{ ...cell, fontSize: 13, textAlign: "left", whiteSpace: "nowrap" }}>
-                    {fish ? (
-                      <span title={`${fish.surveys} surveys, ${fish.fish} fish. Most common: ${fish.most_common}. Shannon diversity ${fish.shannon ?? "–"}.`}>
-                        {fish.species} species · {fish.per_survey} per survey{fish.demo && <b style={{ color: "var(--down-ink)" }}> (demo)</b>}
-                      </span>
-                    ) : <span className="meta">No surveys</span>}
-                  </td>
-                </tr>
-              );
-            })}
+            {data.sites.map((s) => (
+              <tr key={s.site_id}>
+                <td style={{ ...cell, background: "#ececee", whiteSpace: "nowrap" }}>
+                  <button onClick={() => onPickSite(s.site_id)} title="Show this site's charts"
+                    style={{ background: "none", border: 0, padding: 0, font: "inherit", color: "inherit", cursor: "pointer", textDecoration: "underline dotted" }}>
+                    {s.site_name}
+                  </button>
+                  {s.salty && <span className="meta" title="Scored with estuary (marine) guidelines"> · estuary</span>}
+                </td>
+                {s.scores.map((c) => {
+                  const r = RATINGS.find((x) => x.name === c.rating);
+                  return (
+                    <td key={c.year} className="num" title={`${s.site_name}, ${c.year}: ${c.rating}`}
+                      style={{ ...cell, background: r?.color ?? "transparent", color: r?.ink ?? "var(--muted-2)", minWidth: 58 }}>
+                      {c.wqi === null ? "–" : c.wqi.toFixed(1)}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -97,11 +101,8 @@ export function WqiTable({ onPickSite }: { onPickSite: (siteId: string) => void 
         <span className="meta">– Not enough data</span>
       </div>
 
-      <p className="meta" style={{ lineHeight: 1.6 }}>
-        The CCME Water Quality Index, worked out by TideCount from Coastal Action's readings. Freshwater and estuary
-        sites use different guidelines, as in Coastal Action's report cards. These are not their official scores: on
-        2017 to 2023 they come within about 5 points of the published ones. Click a site to see its charts.
-        {anyDemo && " Fish numbers marked demo are made up, to show how the column will look."}
+      <p className="meta" title="Freshwater and estuary sites use different guidelines, as in Coastal Action's report cards. For 2017 to 2023 these come within about 5 points of their published scores.">
+        Our calculation from Coastal Action's data, not their official scores.
       </p>
     </div>
   );
