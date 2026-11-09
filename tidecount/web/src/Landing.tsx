@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ModelOption, SpeciesMediaSummary, SpeciesRow, Summary, Video } from "./api";
-import { SpeciesShowcase, StationPreview, WqiPreview } from "./LandingData";
+import { SpeciesShowcase } from "./LandingData";
 import { Pipeline, Research, VisionStack } from "./LandingVision";
-import { Access, Flow, JOIN_STEPS, Roles, Status } from "./LandingTeam";
+import { JOIN_STEPS, Status } from "./LandingTeam";
 import { RevealFooter, Surface } from "./LandingFooter";
 import { countProgress } from "./Library";
 import { speciesMedia } from "./speciesData";
@@ -95,8 +95,6 @@ function Nav() {
         <a href="#how">How it works</a>
         <a href="#ai">Computer vision</a>
         <a href="#species">Species</a>
-        <a href="#data">Data</a>
-        <a href="#team">Team</a>
       </nav>
       <span className="spacer" />
       {user
@@ -142,7 +140,7 @@ function Head({ eyebrow, title, text, light }: { eyebrow: string; title: string;
   );
 }
 
-/** The public front page: what Tideflow is, how the work flows, the AI, the data it opens up, and how to help.
+/** The public front page: what Tideflow is, how the work flows, the AI, the species wiki, and how to help.
  *  The content is raised into a <main>, and scrolling to the end uncovers the underwater footer beneath it (issue #50). */
 export function Landing() {
   const f = useFacts();
@@ -209,20 +207,7 @@ export function Landing() {
           <SpeciesShowcase rows={f.species} media={f.media} />
         </section>
 
-        <section className="ln-wrap ln-section" id="data">
-          <Head eyebrow="Data analysis" title="Fish and water, side by side" text="Confirmed counts become station reports, next to Coastal Action's water readings from the same river, so a change in one can be checked against the other." />
-          <div className="ln-data">
-            <WqiPreview />
-            <StationPreview />
-          </div>
-        </section>
-
-        <section className="ln-wrap ln-section" id="team">
-          <Head eyebrow="Team and roles" title="Every count has an owner" text="Volunteers count, validators check and coordinators run the survey. Each role sees its own screens, and every video shows who has it next." />
-          <p className="ln-legend-row"><Status live /> works in the app today <Status live={false} /> designed, not built yet</p>
-          <Roles />
-          <Flow />
-          <Access />
+        <section className="ln-wrap ln-section" id="volunteer">
           <div className="ln-volunteer">
             <div className="stack" style={{ gap: 16 }}>
               <Head light eyebrow="Volunteer" title="Help count the fish of your shoreline" text="No experience needed. The procedure walks you through each frame, on a laptop or a phone, and every point you save goes into the site reports." />
