@@ -110,7 +110,9 @@ def init() -> bool:
                            ("analysis_s", "REAL DEFAULT 0"), ("frames", "INTEGER DEFAULT 0"),
                            ("settings_json", "TEXT DEFAULT ''"), ("settings_hash", "TEXT DEFAULT ''"),
                            ("window_start", "REAL"), ("visibility", "TEXT DEFAULT ''"), ("juveniles", "INTEGER"),
-                           ("station_id", "TEXT DEFAULT ''"), ("filmed_on", "TEXT DEFAULT ''")):
+                           ("station_id", "TEXT DEFAULT ''"), ("filmed_on", "TEXT DEFAULT ''"),
+                           # Unix seconds. queued_at orders the queue (see analysis_queue); the other two time a run.
+                           ("queued_at", "REAL"), ("started_at", "REAL"), ("finished_at", "REAL")):
             if name not in columns:
                 con.execute(f"ALTER TABLE videos ADD COLUMN {name} {kind}")
         columns = {r["name"] for r in con.execute("PRAGMA table_info(school_counts)")}

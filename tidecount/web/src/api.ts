@@ -38,7 +38,12 @@ export type Video = {
   detector: string;
   source_id: string;
   to_review?: number;
+  /** Set while the video is Queued or Analyzing. A time is null until this computer has finished a run. */
+  queue?: QueueSpot | null;
 };
+
+/** `ahead` counts the videos that start first, the running one included. */
+export type QueueSpot = { ahead: number; starts_in_s: number | null; done_in_s: number | null };
 
 export type ModelOption = { key: string; label: string; available: boolean; note: string; default: boolean };
 
@@ -529,6 +534,23 @@ export type SurveyTree = {
   places: Record<string, string>;
   filmedOn: Record<string, string>;
 };
+
+function roughly(seconds: number): string {
+  return seconds < 60 ? "under a minute" : `about ${Math.round(seconds / 60)} min`;
+}
+
+/** "2 ahead · starts in about 6 min" while queued, "about 3 min left" while analysing, or "". */
+export function queueText(v: Video): string {
+  const q = v.queue;
+  if (!q) return "";
+  if (v.status === "Analyzing") {
+    if (q.done_in_s === null) return "";
+    return q.done_in_s === 0 ? "taking longer than usual" : `${roughly(q.done_in_s)} left`;
+  }
+  const place = q.ahead === 0 ? "Next" : `${q.ahead} ahead`;
+  if (q.starts_in_s === null) return place;
+  return q.starts_in_s === 0 ? "Starting now" : `${place} · starts in ${roughly(q.starts_in_s)}`;
+}
 
 export function clock(seconds: number): string {
   const s = Math.max(0, Math.floor(seconds));

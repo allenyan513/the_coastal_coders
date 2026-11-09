@@ -12,7 +12,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-from . import config, db, settings, surveys, trends, water
+from . import analysis_queue, config, db, settings, surveys, trends, water
 from .routes import review, scan, schools, snapshots, species, species_library, stats, summary, surveys as survey_routes, tracks, validation as validation_routes, videos, water as water_routes, web
 
 
@@ -23,9 +23,14 @@ def worker_loop() -> None:
     server_dir = Path(__file__).resolve().parents[1]
     while True:
         with db.session() as con:
-            row = con.execute("SELECT id FROM videos WHERE status = 'Queued' ORDER BY created_at LIMIT 1").fetchone()
-        if row:
-            subprocess.run([sys.executable, "-m", "tidecount.worker", row["id"]], cwd=server_dir)
+            video_id = analysis_queue.next_queued(con)
+        if video_id:
+            done = subprocess.run([sys.executable, "-m", "tidecount.worker", video_id], cwd=server_dir)
+            # A worker killed from outside (out of memory, say) can't mark its own row, which would
+            # otherwise stay Analyzing and hold up every wait time after it.
+            with db.session() as con:
+                con.execute("UPDATE videos SET status = 'Failed', stage = '', error = ? WHERE id = ? AND status = 'Analyzing'",
+                            (f"The analysis stopped unexpectedly (exit code {done.returncode}). Try again.", video_id))
         else:
             time.sleep(1)
 

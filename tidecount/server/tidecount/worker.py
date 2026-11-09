@@ -213,7 +213,7 @@ def run(video_id: str) -> None:
     clear_results(video_id)
     notes = []
 
-    update(video_id, status="Analyzing", stage="Probing video", progress=0, error="",
+    update(video_id, status="Analyzing", stage="Probing video", progress=0, error="", started_at=time.time(), finished_at=None,
            settings_json=s.model_dump_json(), settings_hash=s.hash())
     v.update(video.probe(v["path"]))
     update(video_id, duration=v["duration"], fps=v["fps"], width=v["width"], height=v["height"])
@@ -253,7 +253,7 @@ def run(video_id: str) -> None:
     update(video_id, stage="Building review queue")
     build_segments(video_id, stats, v["duration"], s.queue)
     notes.append(f"Settings: {s.hash()}" if settings.PATH.exists() else f"Settings: {s.hash()}, built-in defaults")
-    update(video_id, status="Ready to review", stage="", progress=1, notes=" · ".join(notes))
+    update(video_id, status="Ready to review", stage="", progress=1, notes=" · ".join(notes), finished_at=time.time())
 
 
 def main() -> None:

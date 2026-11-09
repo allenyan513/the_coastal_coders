@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, clock, Summary, Video } from "./api";
+import { api, clock, queueText, Summary, Video } from "./api";
 import { countProgress, identifyProgress } from "./Library";
 import { useUser } from "./session";
 import { placeLabel, season, siteOf, SurveyData, useSurveys } from "./surveyStore";
@@ -129,7 +129,7 @@ function FlowCard({ card, data, onRetry }: { card: Card; data: SurveyData; onRet
           </div>
         ) : (
           <div className="stack" style={{ gap: 6 }}>
-            <span className="meta">{video.stage || video.status}{video.status === "Analyzing" ? ` · ${Math.round(video.progress * 100)}%` : ""}</span>
+            <span className="meta">{video.stage || video.status}{video.status === "Analyzing" ? ` · ${Math.round(video.progress * 100)}%` : ""}{queueText(video) && ` · ${queueText(video)}`}</span>
             <span className="bar wide"><i className="pulse" style={{ width: `${Math.max(4, video.progress * 100)}%` }} /></span>
           </div>
         )

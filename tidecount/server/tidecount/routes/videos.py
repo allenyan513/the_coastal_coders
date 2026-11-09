@@ -1,5 +1,6 @@
 """Videos and runs: import, list, detail, the playable copy, reruns and model comparison."""
 import shutil
+import time
 import uuid
 from pathlib import Path
 
@@ -7,7 +8,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from .. import config, db, models, settings, surveys
+from .. import analysis_queue, config, db, models, settings, surveys, video
 from .common import check_detector, get_video
 
 router = APIRouter()
@@ -41,8 +42,9 @@ def reanalyze(video_id: str, body: Reanalyze):
             raise HTTPException(409, "This video already has a run with that model.")
         new_id = uuid.uuid4().hex[:10]
         con.execute(
-            "INSERT INTO videos (id, name, path, site, detector, source_id, station_id, filmed_on) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (new_id, v["name"], v["path"], v["site"], body.detector, root, v["station_id"], v["filmed_on"]),
+            "INSERT INTO videos (id, name, path, site, detector, source_id, station_id, filmed_on, duration, queued_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (new_id, v["name"], v["path"], v["site"], body.detector, root, v["station_id"], v["filmed_on"], v["duration"], time.time()),
         )
     return {"id": new_id}
 
@@ -78,7 +80,9 @@ def compare(video_id: str):
 def list_videos():
     with db.session() as con:
         out = db.rows(con.execute("SELECT * FROM videos ORDER BY created_at DESC"))
+        waits = analysis_queue.estimate(con)
         for v in out:
+            v["queue"] = waits.get(v["id"])
             r = con.execute(
                 "SELECT COALESCE(SUM(end - start), 0) AS s FROM segments WHERE video_id = ? AND status = 'needs_review'", (v["id"],)
             ).fetchone()
@@ -99,11 +103,7 @@ def upload_video(file: UploadFile = File(...), site: str = Form(""), detector: s
     target = config.VIDEOS / f"{video_id}{Path(name).suffix or '.mp4'}"
     with open(target, "wb") as out:
         shutil.copyfileobj(file.file, out, 1024 * 1024)
-    with db.session() as con:
-        con.execute(
-            "INSERT INTO videos (id, name, path, site, detector, station_id, filmed_on) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (video_id, name, str(target), site, detector, station_id, filmed_on),
-        )
+    add_video(video_id, name, target, site, detector, station_id, filmed_on)
     return {"id": video_id}
 
 
@@ -125,12 +125,24 @@ def import_path(body: ImportPath):
     if not path.is_file():
         raise HTTPException(400, "That file doesn't exist on this computer.")
     video_id = uuid.uuid4().hex[:10]
+    add_video(video_id, path.name, path, body.site, detector, body.station_id, body.filmed_on)
+    return {"id": video_id}
+
+
+def add_video(video_id: str, name: str, path: Path, site: str, detector: str, station_id: str, filmed_on: str) -> None:
+    """Queue a new video. Its length is read now, so its wait can be estimated before it starts. A
+    file ffmpeg can't read is still queued, and the worker reports what's wrong with it as before."""
+    try:
+        meta = video.probe(str(path))
+    except (ValueError, OSError):
+        meta = {"duration": 0, "fps": 0, "width": 0, "height": 0}
     with db.session() as con:
         con.execute(
-            "INSERT INTO videos (id, name, path, site, detector, station_id, filmed_on) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (video_id, path.name, str(path), body.site, detector, body.station_id, body.filmed_on),
+            "INSERT INTO videos (id, name, path, site, detector, station_id, filmed_on, duration, fps, width, height, queued_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (video_id, name, str(path), site, detector, station_id, filmed_on,
+             meta["duration"], meta["fps"], meta["width"], meta["height"], time.time()),
         )
-    return {"id": video_id}
 
 
 def check_place(station_id: str, filmed_on: str) -> None:
@@ -146,7 +158,8 @@ def check_place(station_id: str, filmed_on: str) -> None:
 def retry(video_id: str):
     with db.session() as con:
         get_video(con, video_id)
-        con.execute("UPDATE videos SET status = 'Queued', error = '', progress = 0 WHERE id = ?", (video_id,))
+        # To the back of the queue, behind what was already waiting.
+        con.execute("UPDATE videos SET status = 'Queued', error = '', progress = 0, queued_at = ? WHERE id = ?", (time.time(), video_id))
     return {"ok": True}
 
 
@@ -155,6 +168,7 @@ def video_detail(video_id: str):
     with db.session() as con:
         v = get_video(con, video_id)
         del v["settings_json"]
+        v["queue"] = analysis_queue.estimate(con).get(video_id)
         v["segments"] = db.rows(con.execute("SELECT * FROM segments WHERE video_id = ? ORDER BY start", (video_id,)))
         v["seconds"] = db.rows(con.execute("SELECT second, detections, clarity FROM seconds WHERE video_id = ? ORDER BY second", (video_id,)))
         return v

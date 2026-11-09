@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, clock, ModelOption, Summary, Video } from "./api";
+import { api, clock, ModelOption, queueText, Summary, Video } from "./api";
 import { ImportDialog } from "./ImportDialog";
 import { Menu } from "./Menu";
 import { useUser } from "./session";
@@ -142,7 +142,8 @@ export function Library() {
           {!ready && (
             <div className="row">
               <span className={`pill ${v.status === "Failed" ? "down" : "muted"}`}>{v.status}</span>
-              {v.status === "Analyzing" && <span className="meta">{v.stage} · {Math.round(v.progress * 100)}%</span>}
+              {v.status === "Analyzing" && <span className="meta">{v.stage} · {Math.round(v.progress * 100)}%{queueText(v) && ` · ${queueText(v)}`}</span>}
+              {v.status === "Queued" && queueText(v) && <span className="meta">{queueText(v)}</span>}
               {v.error && <span className="meta">{v.error}</span>}
             </div>
           )}
